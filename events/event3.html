@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>借出去的钱 · 大学心理事件簿</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0e6d3;--bg2:#e8dcc8;--bg3:#d9ccb5;
+  --card:rgba(255,250,240,0.7);--card-hover:rgba(255,250,240,0.95);
+  --amber:#a07030;--amber-light:#c49a5c;--amber-dim:rgba(160,112,48,0.1);
+  --ink:#3a2e20;--ink2:#6b5940;--ink3:#9a8a70;--ink4:#c4b8a0;
+  --red:#a04030;--green:#4a8050;--blue:#406080;
+  --font-body:Georgia,'Songti SC','SimSun','Noto Serif CJK SC',serif;
+  --font-accent:'Kaiti SC','STKaiti','KaiTi',cursive;
+  --font-ui:system-ui,'PingFang SC',sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 600px 400px at 50% 30%,rgba(196,154,92,0.08),transparent 70%)}
+#app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh;padding:0 20px}
+.screen{display:none;opacity:0}.screen.active{display:block;animation:caseIn 0.8s ease forwards}
+@keyframes caseIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* TITLE */
+#title-screen{text-align:center}
+#title-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:caseIn 1s ease forwards}
+.title-seal{width:80px;height:80px;margin-bottom:28px;border-radius:50%;border:2px solid var(--amber-light);display:flex;align-items:center;justify-content:center;font-family:var(--font-accent);font-size:1.4rem;color:var(--amber);animation:sealPulse 3s ease-in-out infinite}
+@keyframes sealPulse{0%,100%{box-shadow:0 0 20px rgba(160,112,48,0.1)}50%{box-shadow:0 0 40px rgba(160,112,48,0.2)}}
+.title-main{font-size:1.8rem;font-weight:700;letter-spacing:0.1em;color:var(--ink);margin-bottom:6px}
+.title-sub{font-size:0.82rem;color:var(--ink3);letter-spacing:0.25em;margin-bottom:40px}
+.btn-start{background:transparent;border:1px solid var(--amber-light);color:var(--amber);padding:14px 44px;font-size:0.9rem;letter-spacing:0.2em;cursor:pointer;border-radius:1px;transition:all 0.3s;font-family:var(--font-body)}
+.btn-start:hover{background:var(--amber-dim);box-shadow:0 0 30px rgba(160,112,48,0.1)}
+
+/* SELECT */
+#gender-screen{display:none;opacity:0;min-height:100vh;text-align:center}
+#gender-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:caseIn 0.6s ease forwards}
+.sel-heading{font-size:1.05rem;color:var(--ink);margin-bottom:6px}
+.sel-sub{font-size:0.78rem;color:var(--ink3);margin-bottom:28px;letter-spacing:0.1em}
+.gender-grid{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.gender-card{width:140px;background:var(--card);border:1px solid rgba(0,0,0,0.06);border-radius:6px;padding:22px 16px;cursor:pointer;transition:all 0.3s;text-align:center}
+.gender-card:hover{background:var(--card-hover);border-color:var(--amber-light);transform:translateY(-3px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+.gender-icon{font-size:2rem;margin-bottom:8px}
+.gender-label{font-size:0.9rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.gender-desc{font-size:0.72rem;color:var(--ink2);line-height:1.5}
+
+/* TRUST SCALES */
+.trust-bar{position:sticky;top:0;z-index:100;padding:12px 0 10px;background:linear-gradient(to bottom,var(--bg) 70%,transparent)}
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.trust-item{text-align:center;position:relative}
+.trust-name{font-size:0.62rem;color:var(--ink3);margin-bottom:3px}
+.trust-track{height:4px;border-radius:2px;background:rgba(0,0,0,0.06);overflow:hidden}
+.trust-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1)}
+.trust-val{font-size:0.58rem;color:var(--ink3);margin-top:2px;font-variant-numeric:tabular-nums}
+.evidence-counter{text-align:center;margin-top:6px;font-size:0.65rem;color:var(--amber);letter-spacing:0.1em}
+
+/* TESTIMONY */
+.case-tab{display:inline-block;background:var(--amber-dim);border:1px solid rgba(160,112,48,0.2);color:var(--amber);font-size:0.7rem;padding:4px 12px;border-radius:2px;letter-spacing:0.15em;margin:28px 0 8px}
+.testimony-header{display:flex;align-items:center;gap:12px;margin:16px 0 12px;padding:12px 14px;background:var(--card);border-radius:6px;border:1px solid rgba(0,0,0,0.04)}
+.testimony-ava{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#fff;flex-shrink:0}
+.testimony-info{flex:1}
+.testimony-name{font-size:0.95rem;font-weight:600;color:var(--ink)}
+.testimony-role{font-size:0.72rem;color:var(--amber)}
+.testimony-label{font-size:0.6rem;color:var(--ink4);letter-spacing:0.15em;margin-top:2px}
+.testimony-text{font-size:0.88rem;line-height:2;color:var(--ink2);margin:12px 0;padding:14px 16px;background:var(--card);border-radius:6px;border-left:3px solid var(--amber-light);position:relative}
+.testimony-text::before{content:'"';position:absolute;top:-8px;left:8px;font-size:2.5rem;color:var(--ink4);font-family:Georgia,serif;line-height:1}
+.testimony-action{font-size:0.78rem;color:var(--ink3);margin:8px 0;font-style:italic;padding-left:16px}
+.scene-narr{font-size:0.85rem;line-height:1.9;color:var(--ink2);margin:14px 0;padding-left:14px;border-left:2px solid rgba(160,112,48,0.2)}
+
+/* EVIDENCE */
+.evidence-found{display:inline-flex;align-items:center;gap:6px;background:rgba(74,128,80,0.08);border:1px solid rgba(74,128,80,0.2);color:var(--green);font-size:0.72rem;padding:5px 10px;border-radius:3px;margin:8px 0;animation:evidenceIn 0.5s ease}
+@keyframes evidenceIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.evidence-found::before{content:'🔍'}
+
+/* CHOICES */
+.choices{margin:18px 0}
+.choice-prompt{font-size:0.72rem;color:var(--amber);letter-spacing:0.2em;margin-bottom:10px}
+.choice-btn{display:block;width:100%;background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:6px;padding:14px 16px;margin-bottom:8px;text-align:left;color:var(--ink);font-size:0.84rem;line-height:1.7;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);position:relative}
+.choice-btn:hover{background:var(--card-hover);border-color:var(--amber-light);transform:translateX(4px);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.choice-btn.disabled{opacity:0.2;pointer-events:none}
+
+/* FEEDBACK */
+.feedback-box{margin:14px 0;animation:feedIn 0.4s ease}
+@keyframes feedIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.feedback-result{background:var(--card);border-radius:6px;padding:12px 14px;font-size:0.84rem;line-height:1.8;color:var(--ink);margin-bottom:8px;border-left:3px solid var(--amber)}
+.trust-change{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.trust-chip{font-size:0.7rem;padding:3px 8px;border-radius:2px;font-weight:600}
+.trust-chip.up{background:rgba(74,128,80,0.1);color:var(--green)}
+.trust-chip.down{background:rgba(160,64,48,0.1);color:var(--red)}
+.analysis-box{background:linear-gradient(135deg,rgba(160,112,48,0.05),rgba(64,96,128,0.04));border:1px solid rgba(160,112,48,0.1);border-radius:6px;padding:12px 14px;margin:8px 0 16px}
+.analysis-label{font-size:0.62rem;letter-spacing:0.2em;color:var(--amber);margin-bottom:5px}
+.analysis-text{font-size:0.78rem;line-height:1.8;color:var(--ink2)}
+.analysis-text strong{color:var(--red);font-weight:600}
+.btn-continue{display:block;margin:18px auto;background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--ink3);padding:10px 30px;font-size:0.8rem;cursor:pointer;border-radius:2px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-continue:hover{border-color:var(--amber);color:var(--amber)}
+
+/* JUDGMENT */
+.judgment-box{background:var(--card);border:2px solid var(--amber-light);border-radius:8px;padding:20px;margin:20px 0;text-align:center}
+.judgment-title{font-family:var(--font-accent);font-size:1.1rem;color:var(--amber);margin-bottom:12px;letter-spacing:0.15em}
+.judgment-btn{display:block;width:100%;background:rgba(255,250,240,0.5);border:1px solid rgba(0,0,0,0.06);border-radius:6px;padding:14px;margin-bottom:8px;text-align:left;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);font-size:0.84rem;color:var(--ink);line-height:1.6}
+.judgment-btn:hover{background:var(--card-hover);border-color:var(--amber-light);transform:translateX(4px)}
+.judgment-btn.disabled{opacity:0.2;pointer-events:none}
+
+/* ENDINGS */
+.ending-icon{font-size:2.8rem;text-align:center;margin:32px 0 12px}
+.ending-title{font-size:1.3rem;text-align:center;color:var(--ink);margin-bottom:6px;font-weight:700}
+.ending-text{font-size:0.86rem;line-height:2;color:var(--ink2);margin:16px 0}
+.ending-comment{background:linear-gradient(135deg,rgba(160,112,48,0.06),rgba(64,96,128,0.04));border:1px solid rgba(160,112,48,0.12);border-radius:8px;padding:16px;margin:18px 0}
+.ending-comment-label{font-size:0.62rem;color:var(--amber);letter-spacing:0.2em;margin-bottom:6px}
+.ending-comment-text{font-size:0.8rem;line-height:1.85;color:var(--ink2)}
+.summary-card{background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:10px;padding:20px;margin:20px 0;text-align:center}
+.summary-item{margin:12px 0}
+.summary-label{font-size:0.68rem;color:var(--ink3);letter-spacing:0.12em;margin-bottom:3px}
+.summary-value{font-size:0.95rem;color:var(--ink);font-weight:600}
+.summary-trusts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
+.summary-trust{background:rgba(0,0,0,0.02);padding:8px 10px;border-radius:4px;text-align:left}
+.summary-trust-name{font-size:0.68rem;color:var(--ink3)}
+.summary-trust-val{font-size:0.9rem;font-weight:600;color:var(--ink)}
+.summary-tip{font-size:0.78rem;color:var(--ink2);line-height:1.8;text-align:left;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.05)}
+.reflect-box{margin:20px 0;padding:18px;border-radius:8px;background:linear-gradient(135deg,rgba(180,140,80,0.04),rgba(140,100,60,0.03));border:1px solid rgba(180,140,80,0.18)}
+.reflect-label{font-size:0.65rem;letter-spacing:0.25em;color:var(--warm);margin-bottom:10px;font-weight:600}
+.reflect-q{font-size:0.78rem;line-height:1.85;color:var(--ink2);margin:10px 0;padding-left:14px;border-left:2px solid rgba(180,140,80,0.3)}
+.reflect-hint{font-size:0.68rem;color:var(--ink3);margin-top:12px;font-style:italic}
+.btn-restart{display:inline-block;margin-top:18px;background:var(--amber-dim);border:1px solid rgba(160,112,48,0.3);color:var(--amber);padding:10px 34px;font-size:0.85rem;cursor:pointer;border-radius:2px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-restart:hover{background:rgba(160,112,48,0.15)}
+.btn-back{display:inline-block;margin-top:10px;background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--ink4);padding:9px 28px;font-size:0.78rem;cursor:pointer;border-radius:2px;transition:all 0.3s;font-family:var(--font-body);text-decoration:none}
+.btn-back:hover{border-color:var(--amber);color:var(--amber)}
+.archive-section{margin:18px 0;padding:16px;background:linear-gradient(135deg,rgba(160,112,48,0.06),rgba(64,96,128,0.04));border:1px dashed rgba(160,112,48,0.3);border-radius:8px;text-align:center}
+.archive-label{font-size:0.62rem;color:var(--amber);letter-spacing:0.25em;margin-bottom:8px}
+.archive-code{font-family:var(--font-ui);font-size:0.82rem;color:var(--ink);background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.08);border-radius:4px;padding:10px 14px;margin:6px 0 10px;letter-spacing:0.08em;word-break:break-all;user-select:all}
+.btn-copy{background:var(--amber-dim);border:1px solid rgba(160,112,48,0.3);color:var(--amber);padding:7px 20px;font-size:0.75rem;cursor:pointer;border-radius:2px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.1em}
+.btn-copy:hover{background:rgba(160,112,48,0.15)}
+.archive-hint{font-size:0.62rem;color:var(--ink4);margin-top:8px}
+.scroll-anchor{height:1px}
+/* === MY RECORDS === */
+.my-records-block{width:100%;max-width:380px;margin:0 auto 20px}
+.my-records-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;cursor:pointer;background:rgba(160,112,48,0.06);border:1px solid rgba(160,112,48,0.12);border-radius:8px;transition:all 0.3s;user-select:none}
+.my-records-toggle:hover{background:rgba(160,112,48,0.1)}
+.my-records-label{font-size:0.75rem;letter-spacing:0.1em;color:inherit;opacity:0.6}
+.my-records-arrow{font-size:0.7rem;opacity:0.4;transition:transform 0.3s}
+.my-records-block.expanded .my-records-arrow{transform:rotate(180deg)}
+.my-records-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease;opacity:0}
+.my-records-block.expanded .my-records-list{max-height:600px;opacity:1;margin-top:8px}
+.my-record-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;background:rgba(160,112,48,0.04);border:1px solid rgba(160,112,48,0.06);border-radius:6px;transition:background 0.2s}
+.my-record-item:hover{background:rgba(160,112,48,0.08)}
+.my-record-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.my-record-info{flex:1;min-width:0}
+.my-record-title{font-size:0.78rem;font-weight:600;line-height:1.4;color:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.my-record-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.my-record-code{font-family:'Courier New',monospace;font-size:0.65rem;opacity:0.5;letter-spacing:0.03em}
+.my-record-date{font-size:0.62rem;opacity:0.4}
+@media(max-width:540px){#app{padding:0 16px}.title-main{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title-screen" class="screen active">
+    <div class="title-seal">案</div>
+    <div class="title-main">借出去的钱</div>
+    <div class="title-sub">大学 · 心理事件簿</div>
+    <button class="btn-start" onclick="startGame()">开 始 调 查</button>
+  </div>
+  <div id="gender-screen" class="screen">
+    <div class="sel-heading">选择案件版本</div>
+    <div class="sel-sub">不同的宿舍，不同的隐情</div>
+    <div class="gender-grid">
+      <div class="gender-card" onclick="selectGender('F')"><div class="gender-icon">🌙</div><div class="gender-label">女生宿舍</div><div class="gender-desc">407寝室<br>妈妈生病 · 奶茶与谎言</div></div>
+      <div class="gender-card" onclick="selectGender('M')"><div class="gender-icon">🔥</div><div class="gender-label">男生宿舍</div><div class="gender-desc">312寝室<br>三角债 · 义气与面子</div></div>
+    </div>
+  </div>
+  <div id="game-screen" class="screen">
+    <div class="trust-bar" id="trust-bar"></div>
+    <div id="story-container"></div>
+  </div>
+</div>
+
+<script>
+/* === RECORD STORAGE === */
+function saveGameRecord(eid,code,title,icon,ec){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');if(!a[eid])a[eid]=[];a[eid].unshift({code:code,title:title,icon:icon,endingCode:ec,ts:Date.now()});if(a[eid].length>20)a[eid]=a[eid].slice(0,20);localStorage.setItem('psych_game_records',JSON.stringify(a));}catch(e){}}
+function getGameRecords(eid){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');return a[eid]||[];}catch(e){return[];}}
+function renderRecordsBlock(eid){var recs=getGameRecords(eid);if(!recs.length)return;var ts=document.getElementById('title-screen');if(!ts)return;var btn=ts.querySelector('.btn-start');if(!btn)return;var b=document.createElement('div');b.className='my-records-block';b.innerHTML='<div class="my-records-toggle" onclick="this.parentElement.classList.toggle(\'expanded\')"><span class="my-records-label">\uD83D\uDCCB 我的记录 ('+recs.length+')</span><span class="my-records-arrow">\u25BE</span></div><div class="my-records-list">'+recs.map(function(r){var d=new Date(r.ts);var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return '<div class="my-record-item"><span class="my-record-icon">'+r.icon+'</span><div class="my-record-info"><div class="my-record-title">'+r.title+'</div><div class="my-record-meta"><span class="my-record-code">'+r.code+'</span><span class="my-record-date">'+ds+'</span></div></div></div>';}).join('')+'</div>';ts.insertBefore(b,btn);}
+renderRecordsBlock('E3');
+// ============================================================
+//  EVENT 3: 借出去的钱 — RASHOMON + TRUST SCALES
+// ============================================================
+let gender='F',choices=[],evidenceCount=0,judgmentChoice=-1,skippedTestimonies=false;
+let trust={A:50,B:50,C:50,D:50};
+let lastEndingTitle='';
+const storyEl=document.getElementById('story-container');
+
+const CHARS={
+  F:{
+    A:{name:'小A',color:'#a07030',role:'借钱的人',desc:'确实有苦衷——妈妈生病了。但也确实花了钱买贵的奶茶，有选择性隐瞒。'},
+    B:{name:'小B',color:'#406080',role:'被借的人',desc:'确实受伤了。但反应也许有些过度——她自己也有经济焦虑。'},
+    C:{name:'小C',color:'#a04030',role:'公开说破的人',desc:'出发点是正义——但她跟小A有旧怨。这次"仗义执言"有几分真心？'},
+    D:{name:'小D',color:'#4a8050',role:'旁观者',desc:'看似中立，其实知道关键内情——但一直没说。'}
+  },
+  M:{
+    A:{name:'小A',color:'#a07030',role:'借钱的人',desc:'把钱借给了另一个哥们应急。三角债的中间人——两头都不好说。'},
+    B:{name:'小B',color:'#406080',role:'被借的人',desc:'下学期学费还没着落。他不是小气——他是真的急需这笔钱。'},
+    C:{name:'小C',color:'#a04030',role:'公开说破的人',desc:'"兄弟们该讲义气也该讲规矩。"但他自己赌球欠了钱，这次火力是否另有目的？'},
+    D:{name:'小D',color:'#4a8050',role:'旁观者',desc:'那天亲眼看到了一些事情。一直在犹豫该不该说——因为说了，所有人都会受伤。'}
+  }
+};
+
+function getTestimonies(){
+  const F=gender==='F';
+  return [
+    // ACT 1: C's version (accusatory)
+    {tab:'证词一',who:'C',
+      intro:F?'你坐在小C对面。她的咖啡还没动，眼神里有一种克制的愤怒。':'你和小C在烧烤摊坐下。他先点了两瓶啤酒，一口灌了半瓶。',
+      action:F?'她把手机递过来，屏幕上是一张朋友圈截图——小A昨天晒的一杯38块的奶茶。':'他掏出手机，翻到一张消费记录截图——小A上周在某潮牌店花了三百多。',
+      testimony:F?'你看看这个。欠着小B五百块钱不还，发朋友圈晒三十八块的奶茶。我就看不下去。\n\n小B跟我说了好多次了——她不好意思开口要，但她下学期的书本费还没着落。你知道小B家境不好吗？她从来不说。\n\n我跟你说，小A这个人平时看着大方，其实特别会算计。上学期借我笔记，说好请我吃饭，后来就没了。这次借小B的钱，我敢打赌她根本就没打算还。\n\n我在群里说破是因为——有些事不说，就烂在那里了。'
+        :'你看看这张截图。欠着小B五百不还，转头去买三百的鞋。这叫什么事？\n\n小B下学期学费还差着呢，你知道吗？他找我借过两次了。结果他借给小A的钱，小A当没这回事。\n\n你说讲义气对吧？义气是互相的。他不把兄弟的钱当回事，我凭什么替他兜着？\n\n我在群里说了，没什么不对的。有些话总得有人说。',
+      evidence:F?'信息碎片：小C上学期曾向小A借笔记被拒，两人关系有过摩擦':'信息碎片：小C最近频繁向同学借钱，疑似有赌球习惯',
+      choices:[
+        {text:F?'你觉得小C说的有道理——欠钱不还还晒消费，确实说不过去。':'你觉得小C说的没错——有借有还，天经地义。',
+         deltas:{A:-15,B:5,C:15,D:0}},
+        {text:F?'你注意到小C提到了"上学期借笔记"的事——她的动机也许不完全是为了小B。':'你注意到小C说话时一直在喝酒——他的情绪似乎不只是为了小B。',
+         deltas:{A:5,B:0,C:-10,D:5}},
+        {text:F?'你觉得还需要听听其他人的说法，现在下结论太早了。':'你觉得事情没这么简单，得听听其他人怎么说。',
+         deltas:{A:0,B:0,C:0,D:3}}
+      ],
+      feedback:[
+        {result:F?'你点了点头。小C的表情放松了一些——她觉得终于有人站在她这边了。\n\n但你心里有个微小的疑问没有问出口：如果只是为了帮小B，为什么要在群里公开说？为什么不私下提醒小A？':'你表示认同。小C灌了口酒："就是嘛。兄弟们心里都有数。"\n\n但你注意到他说这话的时候，眼神飘了一下。',
+         analysis:'<strong>确认偏误</strong>（confirmation bias）——当一个故事逻辑完整、证据充分时，我们很容易立刻采信。但心理学提醒我们：<strong>最先听到的版本往往获得最多的信任</strong>，这被称为"首因效应"（primacy effect）。一个人可以同时说真话和有私心——这两件事并不矛盾。'},
+        {result:F?'小C顿了一下。"……那是另外一回事。"\n\n她的声音变低了。你碰到了一个她不想展开的话题。也许她的"正义"里，混杂着一些她自己都没完全意识到的私人情绪。':'小C放下酒瓶，沉默了几秒。"那跟这事没关系。"\n\n他的语气变了。你可能触碰到了什么。',
+         analysis:'<strong>动机的多重性</strong>——人的行为很少只有单一动机。小C"揭发"小A的行为可能同时出于正义感AND个人恩怨——心理学称之为<strong>"动机叠加"</strong>（motivational layering）。这不意味着她/他说的是假话，但意味着你需要把"事实"和"解读"分开来看。'},
+        {result:F?'小C皱了皱眉。"你不信我？"\n\n你摇头："不是。但我想听完所有人的说法。"\n\n她看了你一眼，似乎有些不满，但也没再说什么。你感觉到——在"罗生门"里，保持中立本身就需要勇气。':'小C盯着你："你不觉得我说的对？"\n\n"不是。我只是想多听听。"\n\n他耸耸肩。"随你。"\n\n你知道中立是最难的立场——因为每个人都会觉得你不站他那边。',
+         analysis:'<strong>悬置判断的智慧</strong>——在信息不完整的情况下拒绝下结论，是一种被低估的能力。心理学中的<strong>"认知需求"</strong>（need for cognition）理论指出，大多数人倾向于尽快形成判断以减少不确定感带来的焦虑。你选择了承受这种焦虑——这是做出公正判断的前提。'}
+      ]
+    },
+    // ACT 2: A's version (sympathetic)
+    {tab:'证词二',who:'A',
+      intro:F?'你坐到小A对面。她手里攥着一杯白开水——在以前，这个位置放的总是奶茶。她的眼睛是红的。':'你和小A在食堂角落坐下。他低着头，一直在搓手。',
+      action:F?'她深吸一口气，像是下定了某种决心。声音很轻，但每个字都很清楚。':'他沉默了很久。然后开口了。声音比平时低很多。',
+      testimony:F?'那杯奶茶……是别人请我的。我不是不想还小B的钱。\n\n我妈上个月查出来了。甲状腺的问题。医生说要做进一步检查，可能要手术。我爸走得早，家里就我妈一个人。我把这学期的生活费全寄回去了。\n\n我每天就吃食堂最便宜的。那杯奶茶——真的是室友请的，我不好意思拒绝。但发了朋友圈之后我就后悔了……看起来好像我过得很好。\n\n我不是故意不还。我是真的……拿不出来。我一直在想办法——想去打工，但时间排不开。\n\n我没跟任何人说我妈的事。因为我不想被同情。我只是想正常地活着。'
+        :'那笔钱……我借给另一个兄弟了。他家里出事了，急需用钱。\n\n我没跟你们说，因为他求我保密。我答应了。\n\n结果他到现在都没还我。我去找他要过两次，他说马上马上，然后就没了。\n\n我不是不想还小B。我是被夹在中间了。那边要不回来，我这边也没钱还。\n\n那个鞋——那是我帮人代购赚的差价买的，不是用小B的钱买的。但我没法解释这些，说出来太复杂了……',
+      evidence:F?'信息碎片：小A最近一个月没有点过外卖，食堂消费记录显示只吃最低价套餐':'信息碎片：小A的支付宝转账记录显示，借到钱后当天就转给了另一个人',
+      choices:[
+        {text:F?'你相信小A。她的眼泪不像假的——那种痛苦没法演。':'你相信小A。一个人不会无缘无故编出这种故事。',
+         deltas:{A:15,B:0,C:-5,D:0}},
+        {text:F?'你理解她的困难，但也觉得——再难也不应该借了钱不说。沉默本身就是一种隐瞒。':'你同情他，但也觉得他应该早说。不说的后果就是让所有人误会。',
+         deltas:{A:5,B:5,C:0,D:3}},
+        {text:F?'你想起小C说的话。也许两个人说的都是真的——小A确实有苦衷，但也确实在隐瞒。':'你想起小C的说法。两个版本都有道理——但谁省略了什么？',
+         deltas:{A:3,B:0,C:3,D:5}}
+      ],
+      feedback:[
+        {result:F?'小A哭了。她趴在桌上，肩膀在抖。\n\n你递过去纸巾。在这一刻，你很确定她的痛苦是真实的。\n\n但你也知道——痛苦和责任不是非此即彼的。一个人可以同时值得同情AND需要承担后果。':'小A深呼吸了一下。"谢了。至少有人信我。"\n\n你拍了拍他的肩。但心里有个声音在说——信他不等于这事就结了。',
+         analysis:'<strong>同理心陷阱</strong>——当我们为某人感到心疼时，我们的判断力会自动下降。心理学称之为<strong>"情感启发式"</strong>（affect heuristic）——情绪会替代理性分析来指导决策。小A的眼泪是真实的，但这不等于她/他在这件事上没有任何过错。同理心应该是理解的起点，而不是判断的终点。'},
+        {result:F?'小A沉默了一会儿。"你说得对……我应该早说的。我只是……怕开口。"\n\n她的声音很小。你感觉到，她的沉默不只是害怕——还有一种深深的羞耻感。在中国文化里，"借了钱还不起"是一种特别难以启齿的耻辱。':'小A点了点头。"我知道。但你让我怎么说？说我把兄弟的钱借给了别人？那不是卖了两边？"\n\n你明白了——他不是不知道该说，而是无论怎么说都会伤害某个人。',
+         analysis:'<strong>羞耻与沉默的恶性循环</strong>——心理学家Brené Brown指出，<strong>羞耻感</strong>（shame）是导致人们沉默的最强大力量。它不同于内疚（"我做了一件坏事"），而是一种更深层的自我否定（"我是一个坏人"）。越是羞耻，越难开口；越不开口，误解越深；误解越深，羞耻越重。打破这个循环需要一个<strong>"不评判的倾听者"</strong>。'},
+        {result:F?'你没有立刻表态。小A看着你，等了一会儿，然后说："你是不是觉得我在骗你？"\n\n"不是。我在想。"\n\n她苦笑了一下。"也是。换我听到两个版本，我也会想。"':'你没有表态。小A看着你："你信不信我？"\n\n"我在综合考虑。"\n\n他苦笑："行。也好。至少你没有像小C一样直接给我定罪。"',
+         analysis:'<strong>三角验证</strong>（triangulation）——在调查研究中，可靠的结论需要至少三个独立来源的交叉验证。你正在做的就是这件事：不急于认定任何一个版本为"真相"，而是等待更多信息来拼凑全貌。这在情感上很困难——因为面对一个正在哭泣的人保持冷静需要极大的自制力——但在认知上，这是最负责任的做法。'}
+      ]
+    },
+    // ACT 3: B's version (hurt)
+    {tab:'证词三',who:'B',
+      intro:F?'小B坐在你对面，一直在撕杯套。她看起来比生气更多的是——累了。':'小B靠在椅背上，脸上没什么表情。他看起来不想聊。',
+      action:F?'你问她还好吗。她说"还好"。然后沉默了十几秒。然后开口了。':'你递了瓶水。他接了。喝了一口。然后开始说了。',
+      testimony:F?'我不想当那种斤斤计较的人。五百块钱，说多不多。但对我来说……\n\n我爸妈是做小生意的。每个月给我的生活费都算好了的。我借出去那五百，是我整整两周的饭钱。我后面半个月都在吃白馒头配咸菜。\n\n我不怪小A。我怪自己——我为什么不敢开口要？每次想说，又觉得"催人还钱太难看了"。就这么拖着。\n\n然后小C在群里一说，我反而成了那个"让人可怜"的角色。我不想被可怜。我只想要回我的钱。\n\n但说出来这话，又好像我只在乎钱。我也不是只在乎钱……我在乎的是：为什么借了我的钱，还能那么心安理得地发朋友圈？'
+        :'五百块。对你们可能没什么。\n\n我下学期的学费还差两千。家里出不了。我在攒。\n\n借给小A的时候没多想——兄弟开口了，能不借吗？但到期了不还，我催了两次他都说"快了快了"。\n\n我脸皮薄。我不想当那个"追着人要钱"的人。但我是真的需要这笔钱。\n\n小C在群里说了之后，小A可能觉得我在背后告状。但我没有。我只是跟小C随口提了一句"那笔钱还没回来"。我不知道他会直接在群里说。\n\n我现在的感觉就是——我借了钱出去，钱没回来，人也丢了。',
+      evidence:F?'信息碎片：小B最近两周的外卖记录为零，只在食堂最便宜的窗口打饭':'信息碎片：小B的兼职简历在三个求职平台同时上线，时间是借钱之后的第二周',
+      choices:[
+        {text:F?'你完全理解小B。她是这件事里最无辜的人——借了钱，没回来，还被夹在中间。':'你理解小B的处境。他什么都没做错——但他承受了最多。',
+         deltas:{A:-5,B:15,C:0,D:0}},
+        {text:F?'你觉得小B也有需要反思的地方——如果当初直接开口要，就不会拖到现在。':'你觉得小B的问题是不敢开口。沉默有时候不是礼貌，是懦弱。',
+         deltas:{A:0,B:-8,C:4,D:4}},
+        {text:F?'你注意到小B说了一个细节——她"随口"跟小C提了。这个"随口"很关键。':'你注意到小B说他只是"随口"跟小C提的。但"随口"有时候就是"找人评理"。',
+         deltas:{A:3,B:-5,C:5,D:5}}
+      ],
+      feedback:[
+        {result:F?'小B的眼眶红了。"谢谢你理解。"\n\n你心里很复杂——她确实是最受伤的人，但这件事没有谁是纯粹的"加害者"。每个人都在自己的困境里挣扎。':'小B点了点头。"至少有人听到了我的版本。"\n\n你知道他需要的不只是钱——他需要被认真对待。',
+         analysis:'<strong>被看见的需求</strong>——小B的核心痛苦不是五百块钱，而是"我的需求不被重视"。心理学中的<strong>自我价值感</strong>（self-worth）理论指出：当一个人的合理需求被长期忽视时，他会开始怀疑"是不是我不够重要"。你的倾听本身就是一种修复——因为它传递了"你的感受是合理的"。'},
+        {result:F?'小B沉默了很久。然后说："我知道。我也恨自己不敢说。"\n\n你看到了一种你熟悉的自我攻击——不是对别人的怒气，而是对自己的愤怒："为什么我总是这样？"':'小B苦笑："你说的对。但每次想开口，就觉得——催人还钱太low了。"\n\n你意识到——在"面子文化"里，维护自身权益反而成了一件丢人的事。',
+         analysis:'<strong>"不配感"与自我压抑</strong>——很多人不是"不想要"，而是觉得"不配要"。心理学中的<strong>自我价值条件化</strong>（conditions of worth）指出：在某些文化环境中，人们被教导"好人不应该计较""开口要钱是不体面的"。这种内化的规则让小B把本该指向外部的诉求转化为了<strong>对自己的攻击</strong>。'},
+        {result:F?'小B停顿了一下。"我就是随口说了一句……"\n\n"但你选择了跟小C说。为什么是她？"\n\n小B垂下了眼睛。也许她也知道——"随口"有时候是"希望有人替自己出头"。':'小B犹豫了。"我就是……聊天的时候带了一嘴。"\n\n"但你知道小C是什么性格。"\n\n他沉默了。也许——他不完全是"无辜"的旁观者。他也做了一个选择。',
+         analysis:'<strong>间接求助的代价</strong>——当一个人不敢直接面对问题时，他可能会选择一个"代言人"来替自己表达。心理学称之为<strong>三角化</strong>（triangulation）——把第三方拉入两人的冲突中。小B"随口"告诉小C这件事，客观上创造了小C公开揭发的条件。这不是"阴谋"，但也不完全是"意外"。'}
+      ]
+    },
+    // ACT 4: D's version (observer with hidden info)
+    {tab:'证词四',who:'D',
+      intro:F?'小D是最后一个。她坐下来的时候，你注意到她一直在观察你——像是在判断你会不会公正。':'小D最后来。他没坐下，站着靠在栏杆上。',
+      action:F?'她说："在我说之前——我有些事一直没告诉任何人。"':'他点了根烟。"我知道一些你们不知道的事。"',
+      testimony:F?'好，我说。\n\n那杯三十八块的奶茶——是小C请的。对，你没听错。是小C请的。\n\n那天小C约小A出来"聊天"，其实是在逼她还钱。小A说自己没钱了，小C不信。小C说"那我请你喝奶茶，你发朋友圈"。小A照做了。\n\n然后小C截了图，在群里说"你看她不还钱还喝奶茶"。\n\n我全程在旁边桌坐着。她们没看到我。\n\n我之前没说，是因为——说了小C会恨我。但现在我觉得你应该知道。\n\n另外，小A妈妈的事是真的。我帮她查过医院的挂号记录。她没有骗人。\n\n但她也确实——没有第一时间告诉小B实情。这一点，她有错。'
+        :'行，我说个你们都不知道的。\n\n小C欠着校外的赌球钱。三千多。这两个月他借遍了半个年级。\n\n他在群里说小A的事——不全是为了小B。他是想让大家觉得"小A不靠谱"，这样下次他自己借钱欠着不还的时候，就有个先例："你看小A也一样"。\n\n另外，小A把钱借给的那个人——我认识。他确实家里出了事。但他也确实有还钱的能力，只是在拖。\n\n我之前没说，是因为……这些事说出来，每个人都会受伤。但不说，更不公平。',
+      evidence:F?'关键证据：奶茶是小C故意设的局，截图是预谋的':'关键证据：小C自身有赌债，揭发小A的动机不纯',
+      choices:[
+        {text:F?'你觉得小D说的改变了一切。小C不是正义的——她是在利用小B的痛苦来满足自己的私怨。':'你觉得小D说的揭开了真相。小C的"正义"只是他自保的手段。',
+         deltas:{A:8,B:3,C:-18,D:8}},
+        {text:F?'你觉得每个人都有问题：小C有私心，小A有隐瞒，小B不敢开口，小D旁观太久。':'你觉得没有谁是完全清白的——包括小D自己，他也旁观了太久。',
+         deltas:{A:3,B:3,C:-5,D:-3}},
+        {text:F?'你问小D："你为什么现在才说？"':'你问小D："你看了这么久的戏，现在才说。你觉得你没问题吗？"',
+         deltas:{A:0,B:0,C:0,D:-10}}
+      ],
+      feedback:[
+        {result:F?'小D说完了。你沉默了很久。\n\n画面在脑子里重新组合：小C的愤怒、小A的眼泪、小B的无助——现在多了一个关键碎片。\n\n但你也知道：即使小C有私心，她说的"欠钱该还"本身没有错。真相不是非黑即白的——它是灰色的。':'小D说完了。你靠在椅背上。\n\n这个故事从"有人不还钱"变成了"每个人都有自己的秘密"。\n\n没有谁是纯粹的受害者，也没有谁是纯粹的加害者。',
+         analysis:'<strong>"新信息效应"与判断修正</strong>——当我们在已经形成判断之后获得新信息时，心理学中会出现两种反应：<strong>确认偏误</strong>（忽略新信息以维护已有判断）和<strong>锚定调整</strong>（在原有判断基础上做最小修正）。真正困难也真正公正的做法是<strong>彻底重新评估</strong>——放下之前的所有结论，像第一次听到一样重新思考。'},
+        {result:F?'你说完这句话的时候，四个人的脸都不好看。\n\n但你说的是对的。每个人都在指责别人的同时忽略了自己的问题。也许这就是"罗生门"的本质——不是有人在撒谎，而是每个人只说了对自己有利的那一半真相。':'四个人都沉默了。\n\n你说了一句最不讨好但最接近真相的话。没有谁完全无辜——包括你自己（你也沉默了太久）。\n\n但至少，现在真相摊开了。',
+         analysis:'<strong>系统性归因 vs 个体性归因</strong>——大多数人倾向于把问题归结为"某个人的错"——心理学称之为<strong>基本归因错误</strong>（fundamental attribution error）。但复杂的人际冲突几乎从来不是一个人的问题。你选择了"系统性归因"——看到了每个人在这个系统中的角色和责任——这是最成熟也最困难的判断方式。'},
+        {result:F?'小D愣了一下。然后苦笑："我知道。我也有错。我看到了一切但什么都没说——因为我怕得罪人。"\n\n你点了点头。旁观者的沉默，有时候和加害者的行动一样有分量。':'小D沉默了很久。"你说得对。我是旁观了太久。"\n\n他掐灭了烟。"但你呢？你听了四个版本——你打算怎么办？"\n\n现在该你做决定了。',
+         analysis:'<strong>旁观者的责任</strong>——心理学中的"旁观者效应"（bystander effect）通常用于描述陌生人之间的冷漠。但在亲密关系中，旁观者的沉默伤害更大——因为它发生在<strong>"明明可以说但选择不说"</strong>的前提下。小D知道真相但选择沉默，本质上是在用别人的痛苦换取自己的安全。质问她/他这一点，本身就是一种纠正。'}
+      ]
+    }
+  ];
+}
+
+function getEnding(){
+  const F=gender==='F';const t=trust;
+  const max=Math.max(t.A,t.B,t.C,t.D);
+  const min=Math.min(t.A,t.B,t.C,t.D);
+  const range=max-min;
+  const avg=(t.A+t.B+t.C+t.D)/4;
+  const balanced=range<=22&&avg>=42;
+  const allLow=max<=55&&avg<=48;
+  const allMid=min>=32&&max<=68;
+  const cHighest=t.C>=t.A&&t.C>=t.B&&t.C>=t.D&&t.C>=58;
+  const cLow=t.C<=28;const aHigh=t.A>=62;
+  const oneVeryHigh=max>=68&&(max-avg)>=15;
+
+  let ending;
+
+  // Priority 1: 草率判断 — skipped testimonies
+  if(skippedTestimonies){
+    ending={icon:'⏭️',title:'草率判断·「未听完的故事」',
+      text:F?'你只听了小C和小A的证词就做出了决定。\n\n小C说小A欠钱不还还炫耀消费。小A说她有不得已的苦衷。两个故事各执一词、截然相反。你觉得自己已经听到了事情的两面——一面是控诉，一面是辩解——够了。\n\n但你不知道的是：小B——那个真正借出钱的人——还在外面等着跟你说话。她准备了很久的话，最后没有机会说出口。你不知道她那两周吃馒头咸菜的日子。你不知道她不敢开口要钱的原因不是因为不在乎，而是因为觉得"催人还钱太丢人"。\n\n你更不知道的是小D手里的关键证据——那杯三十八块的奶茶，根本就是小C故意设的局。截图是预谋的。小C的"正义"里藏着她自己的旧怨和私心。\n\n你做了一个判断。也许这个判断在某些层面上是"对"的——但它建立在一半的信息之上。就像拼一幅一千片的拼图，你拼了两百片就觉得看到了全貌。\n\n后来的事情你是断断续续听说的。有人哭了。有人转了宿舍。群聊变得安静了。你不知道这些结果里有多少是你的判断导致的——也许很少，也许很多。但你心里总有一个挥之不去的疑问：\n\n"如果我多听两个人的话，结果会不会不一样？"\n\n你永远不会知道答案了。因为你选择了不去听。'
+        :'你只听了小C和小A的说法就决定不再听了。\n\n小C说小A欠钱不还还装大方。小A说自己被夹在中间身不由己。两个人说的都有道理，也都有漏洞。你觉得自己已经看清了——这就是一笔烂账，公说公有理婆说婆有理。\n\n但你不知道的是：小B还在等你。他准备了一肚子的话——不是控诉，不是辩解——只是想让人知道他有多难。五百块对别人也许不算什么，但对他来说是下学期的学费缺口。他不是小气，他是真的急。\n\n你更不知道的是小D掌握着翻盘的证据——小C自己欠着三千多的赌球债，他在群里揭发小A根本就不完全是为了小B，而是为了转移火力、自我保护。\n\n你少听了两个人的故事。少了那两块拼图，你看到的"全貌"其实千疮百孔。\n\n你做了决定。事情在表面上有了结果——但那是一个建立在不完整信息上的结果。就像法庭上只传了两个证人就宣判一样，也许结论碰巧是对的——但过程是错的。\n\n后来你偶尔会想起这件事。不是因为结果多糟——而是因为你永远不知道结果是不是最好的那个。\n\n"如果当时多听两个人的话呢？"\n\n这个问题没有答案。因为你选择了不去找答案。',
+      comment:'这个结局的核心教训是关于<strong>认知闭合需求</strong>（need for cognitive closure）。\n\n心理学家Arie Kruglanski提出：当面对矛盾、模糊的信息时，人的大脑会产生一种强烈的冲动——尽快"关闭"信息通道，做出一个确定的判断，以摆脱不确定感带来的焦虑。这种冲动在压力大、信息多、情绪强的情况下尤为突出。\n\n你听了两份截然不同的证词之后，大脑的不确定感达到了峰值。"够了"——这个判断不是理性分析的结果，而是情绪自我保护的产物。你不是"不想听"，而是"不想再焦虑了"。\n\n问题在于：<strong>你跳过的不是两段重复的信息，而是两块关键的拼图</strong>。小B的证词揭示了"受害者"的真实处境，小D的证词揭示了"控诉者"的隐藏动机。没有这两块，你的判断注定是片面的——即使碰巧方向正确，也缺乏深度和公正性。\n\n<strong>下次当你觉得"我已经听够了"的时候，停下来问自己：这是因为信息真的够了，还是因为我的焦虑够了？真相不会因为你停止寻找就自动完整。</strong>'};
+  }
+  // Priority 2: 四散 — all trust low
+  else if(allLow){
+    ending={icon:'💨',title:'四散·「信任的废墟」',
+      text:F?'你没有做任何事。\n\n不是因为不想——而是因为你已经不知道该相信谁了。四个人的故事互相矛盾、互相解构，听完之后你脑子里只剩下一团灰色的噪音。每个人都在撒谎，每个人又都没有完全撒谎。你找不到一个可以站立的支点。\n\n后来的事情你是从别人那里听说的。小A在月底转了五百块给小B，备注写着"还钱"。没有多余的话。小B收了。也没有回复。\n\n钱还了，但所有人都知道——有些东西比钱更难归还。群聊里再也没有人发过"今晚吃什么"。偶尔有人转发一条学校通知，底下的回复永远是"收到"两个字。没有表情包。没有语气词。像工作群一样的效率和冰冷。\n\n期末的时候小A申请换了宿舍。没有告别。她走的那天你经过407门口，看到她的床位已经被清空了，只剩下墙上一个用胶带粘过的痕迹——以前那里贴着她们四个人的合照。\n\n你有时候会想：如果你当初做了什么——任何事——结局会不会不一样？但你也知道：你当时真的不知道该做什么。\n\n怀疑是一种保护机制，但过度的怀疑会把保护变成牢笼。你保护了自己不被任何人欺骗——但代价是，你也失去了帮助任何人的可能。'
+        :'你什么都没做。\n\n四个版本在你脑子里打架，你分不出哪个是真的哪个是假的。也许都是真的。也许都是假的。也许真假根本不重要——因为你已经不在乎了。\n\n后来小A还了钱。五百块，支付宝转账，到账提醒响了一声就过去了。没有附言。没有后续。\n\n寝室的氛围从"兄弟"变成了"室友"。早上起床有人说"早"，晚上睡觉有人说"灯关了"。多余的话一句没有。打游戏各打各的。吃饭各吃各的。像四个住在同一个空间里的陌生人。\n\n学期结束的时候小C搬出去住了。说是在外面租了房子方便实习。大家都知道那是借口——他只是不想再待在这个没有人说真话的地方了。\n\n偶尔你会想起那个下午听四个人说话的场景。每个人脸上都有一种你当时没看懂的表情——现在你懂了。那叫"希望被理解"。但你谁都没有理解。不是因为他们不值得被理解，而是因为你已经不相信理解这件事了。\n\n信任不是被某一个人杀死的。它是被所有人一起弄丢的——包括你。',
+      comment:'这是最让人遗憾的结局——不是因为发生了什么可怕的事情，而是因为<strong>什么都没有发生</strong>。\n\n心理学中有一个概念叫<strong>习得性无助</strong>（learned helplessness）：当一个人反复经历"无论做什么都没用"的体验时，他会停止尝试。你在听完四个矛盾的版本之后，经历了一种"认知过载"——信息太多、太矛盾，大脑选择了关机。\n\n但这里有一个悖论：<strong>真相其实已经浮出水面了</strong>。如果你把四个人的证词像拼图一样拼起来，答案并不难找到——小A有真实的困难，小C有私人动机，小B是最无辜的受伤者，小D手里有关键证据。只是你选择了不去拼凑它。\n\n<strong>过度的怀疑和过度的轻信一样危险。前者让你错过可能的和解，后者让你被利用。真正的智慧在于：即使不确定，也愿意迈出一步。</strong>'};
+  }
+  // Priority 3: 正义裁决 — A high, C low
+  else if(aHigh&&cLow){
+    ending={icon:'🌙',title:'正义裁决·「被原谅的人」',
+      text:F?'你去找了小B。\n\n你没有带任何"结论"去找她。你只是把你知道的所有事情，一件一件地讲了出来。小A妈妈生病的事。小C设局让小A晒奶茶的事。小D旁观但一直沉默的事。你尽量只说事实，不加判断——因为你知道，判断应该由小B自己来做。\n\n小B听完之后沉默了很久。你看到她的表情经历了好几个阶段——先是震惊，然后是愤怒（对小C的），然后是某种你说不清的东西。也许是心疼。也许是对自己这两个月来的自责的释然。\n\n"我去找小A聊聊。"她说。声音很轻但很稳。\n\n那天下午你远远地看到她们两个在图书馆门口站着。没有哭。没有拥抱。就是在说话。偶尔有一个人低下头，另一个人就等着。交替着说，交替着听。你不知道她们具体说了什么，但从她们的肩膀慢慢放松的弧度来看，那些堵了两个月的东西终于开始流动了。\n\n一周后，你在朋友圈看到小A发了一张兼职的照片——在学校附近的奶茶店做兼职。配文只有一句："从现在开始。"下面第一个点赞的人是小B。\n\n至于小C——没有人去"声讨"她。但小D找她单独谈了一次。谈了什么你不知道。你只知道后来小C在群里发了一段很长的文字，大意是"对不起，那件事是我做得不对"。群里没有人回复。但有三个人点了"表情回应"——一个拥抱的表情。\n\n你觉得这不是一个完美的结局。但也许完美的结局只存在于电视剧里。在现实中，"彼此理解了对方的不容易"就已经足够好了。'
+        :'你找到了小B。\n\n在操场的看台上，你把所有的事情从头到尾讲了一遍。小A的三角债——那个借了钱的哥们确实家里出事了，但也确实有能力还却在拖。小C的赌球债——他在群里揭发小A有很大一部分是在转移别人对自己的注意力。小D知道一切但沉默了太久。\n\n小B一直在听。脸上的表情从"愤怒"慢慢变成了"复杂"。你能看出他在重新处理过去两个月的记忆——那些他以为是"小A不把他当兄弟"的瞬间，现在有了完全不同的解读。\n\n"行。我去找小A谈谈。"他站起来的时候拍了拍裤子上的灰，动作很平静。\n\n第二天你听说小A把那个欠钱的哥们约了出来。小B也去了。三个人在烧烤摊上把事情理清楚了。该还的钱列了时间表，该说的话说开了。没有人翻桌子。没有人摔瓶子。就是三个成年人坐下来解决一个具体的问题。\n\n钱开始分期还了。不快，但确实在还。更重要的是——小A和小B之间那层隔阂消失了。不是"恢复原样"，而是变成了一种更成熟的关系。他们不再是那种"有事一定帮"的热血兄弟——而是"有事先说清楚"的成年朋友。\n\n至于小C，他后来自己处理了赌球的事。戒了。过程很痛苦，但他做到了。没有人帮他——但也没有人落井下石。也许这就是最好的距离。',
+      comment:'你做出了一个基于证据的判断——识别了谁有真实的困难（小A），谁有隐藏的动机（小C），谁是核心的受伤者（小B）。这种判断力在心理学中叫做<strong>情境敏感性</strong>（situational sensitivity）——它要求你同时处理事实、情感和动机三个层面的信息。\n\n更难能可贵的是，你没有把这个判断变成一种"审判"。你没有召集所有人来"公审"小C，也没有强迫小A"交代一切"。你选择了<strong>最小干预原则</strong>——只做必要的事情，把最终的决定权交给当事人。\n\n<strong>有温度的公正</strong>是一种稀缺能力。它要求你同时拥有共情力（理解每个人的处境）、判断力（分辨对错的边界）和克制力（知道什么时候该停下来）。三者缺一不可。\n\n<strong>这个结局告诉我们：正义不是惩罚"坏人"——而是为"好的可能性"创造条件。</strong>'};
+  }
+  // Priority 4: 误判 — C highest trust
+  else if(cHighest){
+    ending={icon:'🎭',title:'误判·「被操控的正义」',
+      text:F?'你站在了小C这边。\n\n客观地说，小C的叙述确实最完整、最有说服力。她有截图，有证据，有明确的道德立场——"欠钱不还还炫耀消费"。这个叙事简单、有力、容易理解。人天然喜欢简单的故事。\n\n所以你帮小C"主持了正义"。你在群里支持了她的说法。小A被推到了"不守信用"的审判台上。小B的钱确实要回来了——但方式是在群里被公开讨论、公开施压之后的"认错还钱"。\n\n钱还了。但小A也碎了。\n\n你后来才知道那杯奶茶的真相——小C买的，小C拍的，小C截的图。你后来才知道小A妈妈住院的事。你后来才知道小A那两个月每天只吃一顿食堂最便宜的套餐。\n\n你后来才知道这些的时候，胃里翻涌的那种感觉，心理学有个名字叫"道德伤害"（moral injury）——不是别人伤害了你，而是你发现自己伤害了别人，并且无法撤回。\n\n小A后来再也没有在群里说过话。她开始一个人吃饭、一个人上课、一个人在图书馆待到闭馆。有一次你在走廊上遇到她，她对你笑了一下——但那个笑容里有一种你一辈子都忘不掉的东西。不是恨。是一种比恨更安静的失望。\n\n你做了一个"正确"的判断——至少在当时看来是正确的。但正确和公正是两回事。你被一个精心构造的叙事操控了，而最可怕的是，被操控的感觉和"做了对的事"的感觉几乎一模一样。'
+        :'你基本上站在了小C这边。\n\n因为他的版本最清晰：小A借了钱不还，还有闲钱买鞋。有图有真相。简单直接。你喜欢简单直接的答案。大多数人都喜欢。\n\n所以你在兄弟们面前表态了——小A这事做得不地道。小C的说法传开了。小A被贴上了"不讲义气"的标签。小B的钱要回来了——但是以一种让小A社死的方式。\n\n你后来才知道真相。那双鞋是代购赚的差价。小A的钱当天就转给了另一个家里出事的哥们。小C自己欠着三千多的赌债，他揭发小A是为了转移火力。\n\n知道这些的时候你在操场上坐了很久。你抽了半包烟。不是因为愤怒——而是因为一种深深的恶心感。你发现自己被利用了。你以为自己在主持正义，其实你只是小C手里的一把刀。\n\n小A后来没有翻脸。没有在群里发长文自证清白。他只是慢慢地、安静地从你们的社交圈里消失了。聚餐不来了。打球不来了。有人叫他他说"有事"。所有人都知道那不是"有事"——那是"不想来了"。\n\n一个被冤枉的人最可怕的反应不是愤怒，而是沉默。因为沉默意味着他已经放弃了被你们理解的希望。\n\n而你，作为那个"帮助传播了不完整叙事"的人——你要用很长的时间来消化这个教训。',
+      comment:'这是一个关于<strong>叙事操控</strong>的教训。\n\n心理学研究表明，人类对<strong>"好故事"的偏好远超对"真相"的追求</strong>。一个结构清晰、有明确好人坏人的叙事，比一个灰色的、复杂的、没有简单答案的真实情况更容易被大脑接受。这叫做<strong>叙事偏误</strong>（narrative bias）。\n\n小C提供的正是这样一个"好故事"——借钱不还+炫耀消费=不守信用的坏人。它简洁有力，唤起道德愤怒，让你觉得"站出来说话"是正义的。但你没有意识到：这个叙事是被精心剪辑过的。\n\n<strong>每当你觉得一个复杂问题有一个简单答案的时候，停下来。真相很少是简单的。简单的答案通常意味着——有人在操控叙事。</strong>'};
+  }
+  // Priority 5: 偏听偏信 — one trust very high, others low
+  else if(oneVeryHigh){
+    const highChar=Object.keys(t).reduce((a,b)=>t[a]>t[b]?a:b);
+    const hn=CHARS[gender][highChar].name;
+    ending={icon:'🌗',title:'偏听偏信·「'+hn+'的版本」',
+      text:F?'你选择了相信'+hn+'。\n\n也许是因为她的故事最先打动你。也许是因为她的逻辑最缜密。也许是因为她在讲述的时候，有一个微小的表情让你觉得"这个人不会骗我"。人类的信任判断很多时候建立在这种微妙的直觉上——而直觉未必可靠。\n\n你按照'+hn+'的版本理解了整个事件。然后你做了你认为正确的事情——帮了某个人，疏远了某个人，沉默了某些事。\n\n事情在表面上解决了。钱还了。群里又开始有人发表情包了。聚餐的时候笑声也回来了。但你偶尔会注意到一些不对的细节——某个人在笑的时候眼睛没有跟着笑，某个话题被有意识地绕开了，某个人接话的速度比以前快了，像是在赶紧说完好让话题过去。\n\n你有一种隐隐的不安。好像你看到的是经过修复的裂缝——胶水干了，看起来完整了，但你知道那条线还在。\n\n更让你不安的是偶尔冒出来的想法："如果我多听一遍其他人的说法，是不是会得出不同的结论？"你压下了这个想法。因为如果答案是"是"，那你之前做的一切就都要推翻重来。而推翻已有的判断需要的勇气，比形成新判断大得多。\n\n也许真相从来不属于任何一个人。它散落在四个人的故事里，需要你把碎片拼起来。你拼了一块。剩下的——你选择了不去看。'
+        :'你基本站在了'+hn+'这边。\n\n不是完全被说服——但如果非要选一个"最可信的版本"，你选了他的。也许是因为他最先跟你说的。也许是因为他的情绪最真实。也许只是因为——他的故事最像你自己会遇到的那种事。\n\n你按照这个版本采取了行动。帮了一个人，冷落了另一个人。在该说话的时候说了，在不该说话的时候也说了。\n\n结果如何？表面上还行。钱的问题解决了。寝室关系修修补补地维持着。但你偶尔会感觉到一些奇怪的东西——比如有人当着你的面欲言又止，比如有个话题永远不会被提起，比如某个人看你的眼神比以前多了一层你读不懂的东西。\n\n有一天夜里你失眠了。翻来覆去想的不是"我做错了什么"，而是"我是不是漏掉了什么"。这种感觉比做错更难受——因为做错了可以改正，但漏掉了意味着你根本不知道错在哪里。\n\n你开始怀疑自己当初的判断。但怀疑来得太晚了。有些话已经说出去了。有些人已经受伤了。有些距离已经拉开了。不是因为你做了什么十恶不赦的事——只是因为你把一个人的版本当成了全部的真相。\n\n而在罗生门里，没有人拥有全部的真相。',
+      comment:'这个结局反映了一个经典的心理学现象：<strong>锚定效应</strong>（anchoring effect）与<strong>确认偏误</strong>（confirmation bias）的叠加。\n\n当你先被某个人的叙述打动时，后续所有的信息都会被用来"验证"这个叙述——支持的证据被放大，矛盾的证据被忽视或合理化。这不是你的"错"——这是人类大脑的默认设置。但了解这个机制可以帮助你在下次面对罗生门时多一份警觉。\n\n<strong>罗生门的核心教训不是"每个人都在说谎"——而是"每个人只说了对自己有利的那一半真相"。真正的全貌需要你抵抗"选边站"的冲动，把所有碎片都拼起来看。</strong>'};
+  }
+  // Priority 6: 真相大白 — balanced trust, good avg, enough evidence
+  else if(balanced&&avg>=42&&evidenceCount>=3){
+    if(judgmentChoice===1){
+      ending={icon:'⚖️',title:'真相大白·「精准介入的和解」',
+        text:F?'你没有把四个人叫到一起——你知道，核心矛盾在小A和小B之间。其他人只是催化剂。\n\n你先去找了小A。在教学楼后面的长椅上，你把你知道的一切告诉了她——包括小C设局的事，包括小D旁观但沉默的事。你没有替谁辩护，也没有要求她原谅谁。你只是把拼图的碎片交到她手里，让她自己去看完整的画面。\n\n小A沉默了很久。她没有哭。她只是一直看着地上的蚂蚁搬家，好像那些小东西比人类的纠葛更容易理解。最后她说："我去找小B吧。有些话，应该我自己说。"\n\n那天傍晚你远远看到她们两个在操场边走着。没有拥抱。没有戏剧性的和好。就是两个人并排走着，偶尔停下来，一个人说，另一个人听。你看不清她们的表情，但从她们越来越放松的步伐来看——那些堵了两个月的话终于开始流动了。\n\n后来小A写了一个还款计划。小B说"不急"。但小A坚持了："这不只是钱的问题。这是我欠你的一个交代。"\n\n至于小C和小D——你没有刻意去处理。但奇怪的是，当核心矛盾解开之后，周围的紧张关系也在慢慢松弛。小D后来私下跟你说了一句"谢谢"。小C在群里沉默了几天之后，发了一句"那件事是我不对"。不长，但足够了。\n\n你做对了一件事——你没有把简单的问题复杂化。你找到了那根最紧的弦，然后小心地把它松开了。其他的弦跟着震动、调整、归位。不是所有问题都需要一次"大摊牌"来解决。'
+          :'你没有把四个人叫到一起。你判断得很清楚——这件事的核心是小A和小B之间的事。\n\n你先找了小A。在篮球场边的台阶上，你把你了解到的一切摊开了——那个欠钱的哥们的真实情况、小C揭发他背后的动机、小D知道一切却沉默的原因。你没有评判，只是把信息给到他，让他自己做决定。\n\n小A抽了半根烟没说话。然后把烟掐了，说："我去找小B聊聊。有些事我该自己跟他说清楚。"\n\n第二天，你听说小A和小B去了学校对面的馆子。就两个人。点了几个菜，喝了点酒。小A把前因后果、三角债、自己的难处都讲了。小B听完沉默了一会儿，说："五百块不是大事。但你瞒了我两个月——这比钱伤人。"小A点头："我知道。以后不会了。"\n\n钱列了时间表开始还。更重要的是——两个人之间那层膜破了。不是回到从前那种"铁哥们"，而是变成了一种更实在的关系：有事说事，别藏着。\n\n至于小C和小D，你没有特意去管。但当核心问题解决了，其他矛盾也跟着降温了。小C后来自己处理了赌球的事，没声张，但做了。小D有一天在食堂碰到你，犹豫了一下，说了句"你做得对"。\n\n你做了最务实的选择——不搞大场面，不追求所有人围坐在一起的"完美结局"。你只是找到了那个最关键的结，然后把它解开了。',
+        comment:'你展现了一种精准的判断力——在复杂的多人冲突中，你准确识别了核心矛盾所在，选择了<strong>最小有效干预</strong>。\n\n心理学中的<strong>焦点解决短期治疗</strong>（Solution-Focused Brief Therapy）有一个核心理念：不是所有问题都需要"追根溯源式"的全面处理。有时候，找到那个最关键的支点，轻轻推一下，整个系统就会自行调整。\n\n你的做法之所以有效，有两个原因：第一，你把决定权还给了当事人——你没有替小A和小B"调解"，而是提供信息、创造条件，让'+(F?'她们':'他们')+'自己完成对话。第二，你控制了冲突的范围——不是每个矛盾都需要公开讨论，有些私下的、一对一的对话反而更容易让人卸下防御。\n\n<strong>这个结局告诉我们：最好的干预不一定是最大的干预。找到关键矛盾、精准介入，有时候比"把所有人叫到一起说清楚"更有效。</strong>'};
+    } else if(judgmentChoice===2){
+      ending={icon:'⚖️',title:'真相大白·「信使的选择」',
+        text:F?'你去找了小B。\n\n没有把四个人叫到一起，没有搞什么"公开审判"。你只是约了小B在图书馆门口的长椅上坐了一会儿，把你知道的一切——小A妈妈生病的事，小C设局让小A晒奶茶的事，小D旁观但沉默的事——一件一件地讲了出来。\n\n你尽量只说事实。不加判断，不替任何人辩护。因为你知道，这些事情该怎么处理，应该由小B自己来决定。\n\n小B听完之后沉默了很久。你看到她的表情经历了好几个阶段——先是震惊，然后是愤怒，然后是某种你说不清的东西。也许是心疼。也许是释然。\n\n"谢谢你告诉我。"她最后说。声音很轻但很稳。"我知道该怎么做了。"\n\n后来的事情你是陆续听说的。小B自己去找了小A，两个人在奶茶店聊了很久。小A哭了。小B也哭了。但出来的时候两个人都在笑——那种哭过之后轻松的笑。小A写了还款计划，小B说不急，小A坚持了。\n\n至于小C，小B没有去"声讨"她，但在群里发了一条很平静的消息："有些事我都知道了。不想追究，但希望以后大家坦诚一些。"小C没有回复，但第二天在群里发了一句"之前的事是我不对"。小D后来私下跟你说了声谢谢。\n\n你没有当法官，你当了信使。你把决定权交给了最该拥有它的人——而她做出了比你预想中更好的选择。'
+          :'你找到了小B。\n\n没有搞什么四人会议，没有"把牌摊开"的大场面。你只是在操场的看台上，把你知道的一切告诉了他——小A的三角债，那个欠钱哥们的真实情况，小C揭发小A背后的动机，小D知道一切但选择沉默的原因。\n\n你只说事实，不做评判。因为你觉得，这些事该怎么处理，应该由小B自己决定。他是被伤害最深的那个人，他有权知道全部真相。\n\n小B听完，脸上的表情从愤怒慢慢变成了一种复杂的东西。他没有立刻说话，点了根烟，抽了一半才开口："行。我知道了。"\n\n后来你听说小B自己去找了小A。两个人在学校对面的馆子里喝了顿酒。该说的都说了，该还的钱列了时间表。没有翻桌子，没有摔瓶子。就是两个成年人把事情摊开了，然后各自把自己该扛的部分扛起来。\n\n小C那边，小B没去找他算账。但有一天在寝室里，小B平静地说了一句："有些事我都清楚了。过去的就过去了，但以后别再搞这种事。"小C愣了一下，点了点头。小D松了口气。\n\n你没有当裁判，你当了信使——把真相交到该知道的人手里，然后退出。他做的比你预想的更好。',
+        comment:'你做出了一个精准的判断——把真相交给最该拥有它的人，然后尊重他的选择。这在心理学中叫做<strong>赋权</strong>（empowerment）——不是替别人做决定，而是给他做决定所需要的信息和空间。\n\n你没有召集所有人"摊牌"，也没有替小B做主。你只做了一件事：让'+(F?'她':'他')+'从"被蒙在鼓里的人"变成了"掌握全部信息的人"。这种克制需要信任——你得相信对方有能力处理这些信息。而事实证明，你的信任没有被辜负。\n\n<strong>最好的帮助不是替别人解决问题，而是给他解决问题的工具。你的角色是信使，不是法官——而这恰恰是最难也最有效的位置。</strong>'};
+    } else if(judgmentChoice===3){
+      ending={icon:'⚖️',title:'真相大白·「旁观者的意外」',
+        text:F?'你什么都没做。\n\n不是因为冷漠——而是因为你真的觉得，这不该由你来插手。四个人的事情，应该由她们自己解决。你只是一个听了四段证词的旁观者，凭什么替她们做决定？\n\n但奇怪的是——事情居然自己好转了。\n\n也许是因为你在听证词的过程中，每个人都感受到了"有人在认真听"。那种被认真对待的感觉，本身就是一种疗愈。小D后来说："其实从跟你聊完之后，我就觉得轻松了一些。"\n\n后来小A主动找了小B。没有人安排，没有人推动——她自己想通了。也许是你听她说话时的那个眼神让她觉得"这件事可以面对"。两个人在奶茶店聊了一个下午，出来的时候小B的眼圈红红的，但表情是松弛的。\n\n小A写了还款计划。小C在群里沉默了几天后发了一句道歉。小D不再假装看不见。\n\n你没有做任何事——至少你是这么认为的。但心理学有一个概念叫"见证效应"：有时候，一个认真倾听的旁观者，比一个积极干预的调解者更有力量。因为你的倾听让每个人都觉得自己的故事是重要的、值得被听到的。而当人觉得被听到的时候，她们会开始自己寻找出路。'
+          :'你选择了不管。\n\n不是因为不在乎——而是你觉得这事不该由你来裁判。四个人的恩怨，你一个外人插什么嘴？每个人都有自己的理由，你凭什么替他们做决定？\n\n但后来发生的事出乎你意料——事情居然慢慢好转了。\n\n也许是你在听每个人说话的时候太认真了。那种"有人在听我说"的感觉，比任何建议都管用。小D后来跟你说："跟你聊完那天，我第一次觉得这事没那么堵了。"\n\n小A自己想通了，主动去找了小B。两个人在烧烤摊上把事情说开了。该还的钱列了时间表，该道的歉道了。没有人强迫，没有人推动——就是两个人自己走到了那一步。\n\n小C后来也消停了。小B没去找他算账，但在寝室里平静地说了句"有些事我知道了"。那句话比任何质问都有分量。\n\n你什么都没"做"——但你的倾听本身就是一种行动。有时候，最有力的干预不是站出来指挥，而是安静地在场。',
+        comment:'这是一个意料之外的好结局——你选择了不干预，但结果反而不错。这不是巧合。\n\n心理学中有一个概念叫<strong>见证效应</strong>（witness effect）：当一个人的痛苦被另一个人认真倾听和见证时，即使倾听者没有给出任何建议或采取任何行动，当事人也会感受到一种深层的被接纳感。这种感觉本身就具有治愈力。\n\n你在听四份证词的过程中，无意中做了一件很重要的事：你让每个人都感觉到自己的故事是重要的、值得被认真对待的。当人感觉被"看到"的时候，他们更容易放下防御，主动去面对问题。\n\n<strong>但要注意：这个结局之所以好，是因为当事人本身有修复关系的意愿。如果情况更严重（比如涉及霸凌或严重伤害），不干预就不再是智慧——而是失职。判断何时该出手、何时该旁观，本身就是最难的功课。</strong>'};
+    } else {
+      ending={icon:'⚖️',title:'真相大白·「灰色地带的正义」',
+        text:F?'你把四个人叫到了一起。\n\n宿舍楼下的小花园里，四把椅子围成一个不太规则的圈。黄昏的阳光把她们的影子拉得很长。你站在旁边——不是法官席，而是一个见证者的位置。\n\n你没有一上来就"宣判"。你把每个人的故事重新讲了一遍——包括那些她们以为只有自己知道的部分。小A妈妈生病的事。小B两周吃馒头咸菜的事。小C借笔记那次的旧怨。小D在旁边桌目睹奶茶事件的全过程。\n\n讲到一半的时候，小A先哭了。不是那种需要纸巾的大哭——而是眼泪顺着脸颊无声地滑下来，她自己都没有去擦。然后小B的眼圈也红了。她们坐在对面，谁都没有说话，但你看到了一种久违的东西——那叫"被看见"。\n\n小C低着头沉默了很久。你以为她会辩解，但她没有。她说了一句很轻的"对不起，那杯奶茶是我的主意"。声音轻得像是怕把什么东西震碎。小D叹了口气，说"我也有错。我看到了一切但什么都没做"。\n\n后来小A写了一个还款计划——每月100，五个月还清。小B推了推手说"不急"。但小A坚持了。她说"这不只是钱的问题。这是我欠你的一个交代"。\n\n你看着她们四个人慢慢松弛下来，从对峙变成对话，从互相猜忌变成互相理解。五百块钱的故事到此为止——但某种更珍贵的东西刚刚开始生长。她们第一次看到了彼此最真实、最脆弱、最不完美的样子。而真正的关系，恰恰建立在这种不完美之上。'
+          :'你把四个人叫到了一起。\n\n食堂三楼的角落，四个人面对面坐着。你把桌上的菜点了，但没人动筷子。空气里有一种紧绷的安静。\n\n你没有拐弯抹角。你把所有的牌摊开了——小A的三角债，那个欠钱哥们的真实情况，小C的赌球债，小B的学费焦虑，小D目睹的一切却选择的沉默。每说一件事，就有一个人的脸色变了。\n\n最先开口的是小A。他深吸一口气，说："我错了。我不该瞒着。"他的声音有点抖，但每个字都很清楚。"小B，钱的事，我给你一个时间表。一个月内我把那边的钱要回来，然后马上还你。"\n\n小C坐在那里，一直在搓手。沉默了大概两分钟——两分钟在那种氛围里像两个小时——他说："我也有我的事。我不该拿你的事来转移注意力。"他没有细说赌球的事，但在座的每个人都听懂了。\n\n小B一直没说话。等所有人都说完了，他才开口："五百块不是大事。但你们瞒着我的那些事，比五百块伤人多了。"这句话让所有人都安静了。\n\n小D最后说："我旁观了太久。以后有事我会说。"\n\n那天的饭最后还是吃了。菜凉了重新热了一遍。没有人提什么"大团圆"，但有些东西确实不一样了。四个人第一次把最不想让别人知道的事情摆在了桌面上——而桌子没有塌。',
+        comment:'你做到了最困难的事情——在一个所有人都在自我保护的局面中，创造了一个"安全空间"，让每个人都可以放下防御、展示脆弱。\n\n心理学中的<strong>修复式正义</strong>（restorative justice）理论认为，真正的公正不是惩罚加害者、补偿受害者这么简单。它的核心是一个过程：让所有当事人坐在一起，<strong>共同面对"到底发生了什么"</strong>，然后<strong>共同决定"接下来怎么办"</strong>。\n\n你的做法之所以有效，是因为你没有预设任何人是"坏人"。你只是呈现了事实——而事实本身就有力量。当每个人听到完整的故事时，那些基于碎片信息构建的愤怒、委屈和猜忌就开始自行瓦解了。\n\n<strong>这个结局提醒我们：在复杂的人际冲突中，最有力的干预不是"裁判"，而是"翻译"——把每个人无法表达的需求翻译给其他人听。</strong>'};
+    }
+  }
+  // Priority 7: 和稀泥 — all trust in middle range
+  else if(allMid){
+    ending={icon:'🌫️',title:'和稀泥·「没有人满意的平衡」',
+      text:F?'你没有做出任何明确的判断。\n\n你理解小A的苦衷。你同情小B的处境。你看到了小C的私心。你也明白小D的犹豫。每个人都有道理。每个人都有错。你在四个人之间走来走去，每个人那里说一些安慰的话，做一些模棱两可的表态。\n\n"都不容易。""互相理解吧。""这事过去就过去了。"\n\n你以为这叫"中立"。其实这叫"回避"。\n\n钱最终还是还了——倒不是因为你做了什么，而是时间拖得太久了，小A自己找了份兼职把钱还上了。群里没有人提这件事。像是大家默契地决定了"当这事没发生过"。\n\n但你知道它发生过。每个人都知道。\n\n在食堂吃饭的时候，四个人偶尔还是会坐在一起。聊天的话题永远是课程、作业、八卦——那些安全的、不会触碰任何伤疤的内容。像是在一个布满地雷的空地上跳舞，每个人都小心翼翼地避开那些看不见的标记。\n\n你有时候觉得这样也不错。至少没有人受到更多的伤害。但你心里有一个声音一直在说：这不是"和平"——这是"冷战"。真正的和平需要真相。而真相是你不敢碰的东西。\n\n因为碰了真相就意味着必须做判断。而你最怕的，就是做判断。'
+        :'你谁都没有得罪。也谁都没有帮到。\n\n你在四个人之间当了一个月的"老好人"。跟小A说"兄弟理解你"。跟小B说"钱肯定会还的"。跟小C说"你也不容易"。跟小D说"你做得对"。每句话都对。每句话也都没用。\n\n因为你什么立场都没有。你像一面镜子，每个人照进去看到的都是自己想看的。小A以为你站他这边。小B也以为你站他这边。小C觉得你认同他。小D觉得你理解他。\n\n直到有一天他们发现——你跟每个人说的都不一样。\n\n没有人翻脸。但有一种更微妙的东西消失了——他们不再跟你说真话了。因为你不值得被信任。不是因为你撒了谎——而是因为你什么都没说。\n\n钱在某个时间点还了。你不记得具体是什么时候了。也不重要了。这件事像一块石头沉入了水底。水面恢复了平静。但水底的地形已经永远改变了。\n\n你以为"不做判断"就不会犯错。但你忘了——在所有人都需要你说一句真话的时候，沉默本身就是一种选择。而它的代价是：你成了那个"哪边都不站"的人——也就是"哪边都不被需要"的人。',
+      comment:'你选择了最"安全"的路线——不得罪任何人，不做任何可能犯错的判断。心理学上这叫做<strong>冲突回避</strong>（conflict avoidance），它通常伪装成"尊重"或"中立"，但本质上是一种<strong>对不确定性的恐惧</strong>。\n\n问题在于：在复杂的人际冲突中，"不选择"本身就是一种选择。当你说"都有道理"的时候，你实际上是在说"我拒绝深入思考"。这对当事人来说不是安慰——而是一种被敷衍的感觉。\n\n<strong>真正的中立不是"什么都不说"——而是"在充分了解之后，说出你真正的判断，同时尊重别人可以不同意"。前者是逃避，后者是勇气。</strong>'};
+  }
+  // Default/fallback
+  else {
+    const highChar=Object.keys(t).reduce((a,b)=>t[a]>t[b]?a:b);
+    const hn=CHARS[gender][highChar].name;
+    ending={icon:'🌗',title:'偏听偏信·「'+hn+'的版本」',
+      text:F?'你选择了相信'+hn+'。\n\n也许是因为她的故事最先打动你。也许是因为她的逻辑最缜密。也许是因为她在讲述的时候，有一个微小的表情让你觉得"这个人不会骗我"。人类的信任判断很多时候建立在这种微妙的直觉上——而直觉未必可靠。\n\n你按照'+hn+'的版本理解了整个事件。然后你做了你认为正确的事情——帮了某个人，疏远了某个人，沉默了某些事。\n\n事情在表面上解决了。钱还了。群里又开始有人发表情包了。聚餐的时候笑声也回来了。但你偶尔会注意到一些不对的细节——某个人在笑的时候眼睛没有跟着笑，某个话题被有意识地绕开了，某个人接话的速度比以前快了，像是在赶紧说完好让话题过去。\n\n你有一种隐隐的不安。好像你看到的是经过修复的裂缝——胶水干了，看起来完整了，但你知道那条线还在。\n\n更让你不安的是偶尔冒出来的想法："如果我多听一遍其他人的说法，是不是会得出不同的结论？"你压下了这个想法。因为如果答案是"是"，那你之前做的一切就都要推翻重来。而推翻已有的判断需要的勇气，比形成新判断大得多。\n\n也许真相从来不属于任何一个人。它散落在四个人的故事里，需要你把碎片拼起来。你拼了一块。剩下的——你选择了不去看。'
+        :'你基本站在了'+hn+'这边。\n\n不是完全被说服——但如果非要选一个"最可信的版本"，你选了他的。也许是因为他最先跟你说的。也许是因为他的情绪最真实。也许只是因为——他的故事最像你自己会遇到的那种事。\n\n你按照这个版本采取了行动。帮了一个人，冷落了另一个人。在该说话的时候说了，在不该说话的时候也说了。\n\n结果如何？表面上还行。钱的问题解决了。寝室关系修修补补地维持着。但你偶尔会感觉到一些奇怪的东西——比如有人当着你的面欲言又止，比如有个话题永远不会被提起，比如某个人看你的眼神比以前多了一层你读不懂的东西。\n\n有一天夜里你失眠了。翻来覆去想的不是"我做错了什么"，而是"我是不是漏掉了什么"。这种感觉比做错更难受——因为做错了可以改正，但漏掉了意味着你根本不知道错在哪里。\n\n你开始怀疑自己当初的判断。但怀疑来得太晚了。有些话已经说出去了。有些人已经受伤了。有些距离已经拉开了。不是因为你做了什么十恶不赦的事——只是因为你把一个人的版本当成了全部的真相。\n\n而在罗生门里，没有人拥有全部的真相。',
+      comment:'这个结局反映了一个经典的心理学现象：<strong>锚定效应</strong>（anchoring effect）与<strong>确认偏误</strong>（confirmation bias）的叠加。\n\n当你先被某个人的叙述打动时，后续所有的信息都会被用来"验证"这个叙述——支持的证据被放大，矛盾的证据被忽视或合理化。这不是你的"错"——这是人类大脑的默认设置。但了解这个机制可以帮助你在下次面对罗生门时多一份警觉。\n\n<strong>罗生门的核心教训不是"每个人都在说谎"——而是"每个人只说了对自己有利的那一半真相"。真正的全貌需要你抵抗"选边站"的冲动，把所有碎片都拼起来看。</strong>'};
+  }
+
+  // --- Expanded style/tips system ---
+  let style,tip;
+  const aCount=choices.filter(c=>c===0).length;
+  const bCount=choices.filter(c=>c===1).length;
+  const cCount=choices.filter(c=>c===2).length;
+
+  if(skippedTestimonies){
+    style='冲动型决策者·认知闭合者';
+    tip='你在只听了两份证词之后就选择了不再继续。心理学家称这种倾向为<strong>"高认知闭合需求"</strong>（high need for cognitive closure）——面对矛盾信息时，你更倾向于尽快做出判断以摆脱不确定感。这种特质在需要快速决策的场景中是优势，但在需要全面调查的场景中可能导致偏颇。建议：下次面对复杂问题时，试着对自己说"我还不够了解"——允许自己在不确定中多待一会儿。';
+  } else if(aCount>=3){
+    if(evidenceCount>=4){
+      style='直觉型判官·证据收集者';
+      tip='你倾向于快速形成判断——但同时你也没有放过任何一条线索。这说明你的"直觉"不是盲目的，它建立在大量信息处理的基础上。心理学家Gary Klein称之为<strong>"基于识别的决策"</strong>（recognition-primed decision）——经验丰富的人确实可以在短时间内做出高质量的判断。但前提是：你需要对自己的盲点保持警觉。快速判断的风险在于，一旦锚定了某个叙事，后续的证据都会被用来确认而非挑战它。';
+    } else {
+      style='直觉型判官·信念驱动者';
+      tip='你倾向于快速形成判断并坚持立场。这种决断力在紧急情况下很有价值——消防员、急诊医生都需要这种能力。但在复杂的人际冲突中，它可能让你错过重要的灰色地带。心理学家Daniel Kahneman的<strong>"快思慢想"</strong>理论指出：我们的直觉系统（System 1）擅长快速反应但容易出错，而审慎系统（System 2）更准确但需要刻意激活。试着在下结论之前多问一个"如果我是错的呢？"';
+    }
+  } else if(cCount>=3){
+    if(evidenceCount>=4){
+      style='怀疑型分析师·全面调查者';
+      tip='你对每个人的叙述都保持怀疑，同时没有遗漏任何证据。这种"系统性怀疑"是科学思维的核心——不轻信，不偏信，用证据说话。但在人际关系中，这种方式也有代价：<strong>别人可能觉得你"不近人情"</strong>。信任不是一个理性决策——它是一个情感承诺。试着学会在"保持警觉"和"给予信任"之间找到平衡点。';
+    } else {
+      style='怀疑型旁观者·防御优先者';
+      tip='你对所有人的叙述都保持距离。这种防御机制让你很难被欺骗——但也很难建立真正的连接。心理学家John Bowlby的<strong>依恋理论</strong>（attachment theory）指出：回避型依恋的人倾向于在亲密关系中保持距离，不是因为不需要连接，而是因为害怕被伤害。信任确实有风险——但不信任的代价往往更大。试着学会"先相信，再验证"，而不是"先怀疑，再考虑"。';
+    }
+  } else if(bCount>=3){
+    style='共情型调解者·深度理解者';
+    tip='你在每段证词中都选择了更深层的理解——不只是听对方说了什么，而是听他们没说的东西。这是心理咨询师最核心的能力，叫做<strong>"深层共情"</strong>（deep empathy）。你能感知到话语背后的情绪、恐惧和需求。但要注意：过度共情可能导致<strong>"同理心疲劳"</strong>（empathy fatigue）——你吸收了太多别人的情绪，却忘了照顾自己的。记住：你可以理解所有人，但你不需要承担所有人的痛苦。';
+  } else if(aCount===2&&bCount===1||aCount===1&&bCount===2){
+    if(evidenceCount>=3){
+      style='审慎型调查者·平衡决策者';
+      tip='你在信任和怀疑之间找到了平衡，在果断和审慎之间游走。你的判断风格接近心理学所说的<strong>"整合思维"</strong>（integrative thinking）——不是非此即彼地选择一个答案，而是尝试把矛盾的信息整合成一个更完整的图景。这种能力在复杂决策中极为珍贵。你的风险点在于：有时候"完美的整合"是不存在的，你需要学会<strong>在不完美中行动</strong>。';
+    } else {
+      style='审慎型调查者·信息不足';
+      tip='你的判断风格是审慎的——你既能被故事打动，也能保持一定的距离。但你可能遗漏了一些关键证据。心理学中的<strong>"选择性注意"</strong>（selective attention）理论指出：我们的大脑在处理大量信息时会自动"过滤"——但被过滤掉的信息有时恰恰是最重要的。下次做判断时，试着问自己："有什么信息是我还没有看到的？"';
+    }
+  } else {
+    if(judgmentChoice===0){
+      style='公正型调解者·全局思维者';
+      tip='你的选择模式不拘一格，最终选择了公开透明的方式。这说明你具备<strong>"元认知"</strong>能力——你不只是在做判断，你还在观察自己做判断的过程。心理学研究表明，元认知能力强的人在面对复杂问题时犯的错误更少，因为他们能及时发现并修正自己的偏差。保持这种"既在局内又在局外"的双重视角——它是你最大的认知优势。';
+    } else if(judgmentChoice===3){
+      style='独立型思考者·边界意识强';
+      tip='你的判断不拘一格，最终选择了不介入。这种"边界意识"在心理学中被称为<strong>"自我分化"</strong>（differentiation of self）——知道哪些是你的事、哪些不是你的事。这是一种成熟的能力。但要注意区分"尊重边界"和"回避责任"——当你有能力帮助但选择不帮时，需要诚实地问自己：这是智慧，还是恐惧？';
+    } else {
+      style='灵活型判断者·情境适应者';
+      tip='你的选择模式没有明显的倾向性——每一次判断都是根据当下的情境做出的。心理学上这叫做<strong>"情境敏感性"</strong>（situational sensitivity），它是情商的核心维度之一。你不会用同一套标准应对所有情况——这是一种优势。但风险在于：缺乏一致的判断框架可能让别人觉得你"不可预测"。试着建立一些核心原则（比如"宁可多听一遍"），在灵活性中找到稳定的锚点。';
+    }
+  }
+  return {ending,style,tip};
+}
+
+// --- UI ---
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function appendHTML(html){const d=document.createElement('div');d.innerHTML=html;storyEl.appendChild(d);setTimeout(()=>{try{const rect=d.getBoundingClientRect();const vh=window.innerHeight||document.documentElement.clientHeight;if(rect.top>vh*0.6){window.scrollBy({top:rect.top-vh*0.25,behavior:'smooth'})}else if(rect.top>vh){d.scrollIntoView({behavior:'smooth',block:'center'})}}catch(e){window.scrollBy(0,200)}},150)}
+function disableChoices(){document.querySelectorAll('.choice-btn:not(.disabled),.judgment-btn:not(.disabled)').forEach(b=>b.classList.add('disabled'))}
+
+function renderTrustBar(){
+  const ch=CHARS[gender];let html='<div class="trust-grid">';
+  ['A','B','C','D'].forEach(k=>{
+    html+=`<div class="trust-item"><div class="trust-name">${ch[k].name} · 信任</div><div class="trust-track"><div class="trust-fill" id="tf-${k}" style="width:${trust[k]}%;background:${ch[k].color}"></div></div><div class="trust-val" id="tv-${k}">${trust[k]}</div></div>`;
+  });
+  html+=`</div><div class="evidence-counter" id="ev-count">已收集证据：${evidenceCount} / 4</div>`;
+  document.getElementById('trust-bar').innerHTML=html;
+}
+function updateTrust(deltas){
+  ['A','B','C','D'].forEach(k=>{
+    if(deltas[k]){
+      trust[k]=Math.max(0,Math.min(100,trust[k]+deltas[k]));
+      const f=document.getElementById('tf-'+k),v=document.getElementById('tv-'+k);
+      if(f)f.style.width=trust[k]+'%';if(v)v.textContent=trust[k];
+    }
+  });
+}
+
+// --- FLOW ---
+function startGame(){show('gender-screen')}
+function selectGender(g){
+  gender=g;trust={A:50,B:50,C:50,D:50};choices=[];evidenceCount=0;judgmentChoice=-1;skippedTestimonies=false;storyEl.innerHTML='';
+  renderTrustBar();show('game-screen');showTestimony(0);
+}
+
+function showTestimony(idx){
+  const ts=getTestimonies();const t=ts[idx];const ch=CHARS[gender][t.who];
+  let html=`<div class="case-tab">${t.tab}</div>`;
+  html+=`<div class="testimony-header"><div class="testimony-ava" style="background:${ch.color}">${ch.name[1]}</div><div class="testimony-info"><div class="testimony-name">${ch.name}</div><div class="testimony-role">${ch.role}</div><div class="testimony-label">证 词 录 入 中</div></div></div>`;
+  html+=`<div class="scene-narr">${t.intro}</div>`;
+  html+=`<div class="testimony-action">${t.action}</div>`;
+  t.testimony.split('\n\n').forEach(l=>{if(l.trim())html+=`<div class="testimony-text">${l}</div>`});
+  html+=`<div class="evidence-found">${t.evidence}</div>`;
+  html+='<div class="choices"><div class="choice-prompt">—— 你 的 判 断 ——</div>';
+  t.choices.forEach((c,i)=>{html+=`<button class="choice-btn" onclick="testimonyChoose(${idx},${i})">${c.text}</button>`});
+  html+='</div>';
+  appendHTML(html);
+}
+
+function testimonyChoose(tIdx,cIdx){
+  disableChoices();choices.push(cIdx);
+  // Conditional evidence: only grant when player engages with key info
+  const EVIDENCE_GRANTS=[[true,true,false],[true,true,false],[true,true,true],[true,true,false]];
+  if(EVIDENCE_GRANTS[tIdx][cIdx]) evidenceCount++;
+  const ts=getTestimonies();const t=ts[tIdx];const c=t.choices[cIdx];const fb=t.feedback[cIdx];
+  updateTrust(c.deltas);
+  const ec=document.getElementById('ev-count');if(ec)ec.textContent=`已收集证据：${evidenceCount} / 4`;
+
+  let chipHtml='<div class="trust-change">';
+  ['A','B','C','D'].forEach(k=>{
+    if(c.deltas[k]){const cls=c.deltas[k]>0?'up':'down';const s=c.deltas[k]>0?'+':'';chipHtml+=`<span class="trust-chip ${cls}">${CHARS[gender][k].name} ${s}${c.deltas[k]}</span>`}
+  });
+  chipHtml+='</div>';
+
+  let html=`<div class="feedback-box">${chipHtml}<div class="feedback-result">${fb.result}</div><div class="analysis-box"><div class="analysis-label">心 理 解 析</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  if(tIdx<3){
+    html+=`<button class="btn-continue" onclick="showTestimony(${tIdx+1})">听取下一份证词</button>`;
+    // Skip option after T2 if player flip-flopped emotionally (c0 for T1, c0 for T2)
+    if(tIdx===1 && choices[0]===0 && choices[1]===0){
+      html+=`<button class="btn-continue" style="margin-top:6px;color:var(--red);border-color:var(--red)" onclick="skipTestimonies()">我已经听够了，直接做判断</button>`;
+    }
+  } else {
+    html+=`<button class="btn-continue" onclick="showJudgment()">最 终 判 断</button>`;
+  }
+  html+='</div>';
+  appendHTML(html);
+}
+
+function skipTestimonies(){
+  disableChoices();
+  skippedTestimonies=true;
+  let html=`<div class="feedback-box"><div class="feedback-result" style="border-left-color:var(--red)">${gender==='F'?'你站起身来。"我不需要再听了。"两份证词已经够了——或者说，你觉得够了。剩下的两个人还在外面等着，但你已经做出了自己的判断。':'你起身推开椅子。"行了，不用再说了。"你觉得自己已经听够了。剩下两个人的话，也不过是各说各的——你不想再绕了。'}</div><div class="analysis-box"><div class="analysis-label">心 理 解 析</div><div class="analysis-text"><strong>认知闭合需求</strong>（need for cognitive closure）——当面对矛盾信息时，有些人会选择尽快"关闭"信息输入通道，以减少不确定感带来的焦虑。你听了两个完全不同的版本，心里已经"够乱了"，所以选择不再听下去。这是大脑的自我保护机制——但代价是，你将带着<strong>不完整的信息</strong>做出判断。</div></div>`;
+  html+=`<button class="btn-continue" onclick="showJudgment()">做 出 判 断</button></div>`;
+  appendHTML(html);
+}
+
+function showJudgment(){
+  const F=gender==='F';
+  let html=`<div class="judgment-box"><div class="judgment-title">—— 最 终 判 断 ——</div>`;
+  html+=`<div class="scene-narr" style="text-align:left;margin:12px 0 16px;border:none;padding:0">${skippedTestimonies?(F?'你只听了两份证词就决定不再听了。两个完全不同的故事在脑子里打架——但你觉得够了。也许你是对的。也许不是。\n\n不管怎样，你需要做一个决定。':'你只听了两个人的说法就不想再听了。一个说的信誓旦旦，另一个说的声泪俱下。你觉得自己已经看清了全貌——虽然还有两个人在等着。\n\n但你已经决定了——该做选择了。'):(F?'四份证词听完了。你坐在宿舍楼下的长椅上，手里的笔记本记满了矛盾的陈述、隐藏的动机、和每个人脸上那些一闪而过的表情。\n\n现在，你需要做一个决定。':'四份证词听完了。你站在操场边，脑子里装着四个完全不同的版本。每个人都有自己的理由，每个人都省略了某些东西。\n\n现在该你做选择了。')}</div>`;
+  html+=`<div style="font-size:0.82rem;color:var(--ink2);margin-bottom:14px;font-weight:600">你会怎么做？</div>`;
+  html+=`<button class="judgment-btn" onclick="handleJudgment(0)">${F?'把四个人叫到一起，公开所有信息——让真相摊在阳光下。':'把四个人叫到一起，把所有的牌都摊开——信息透明才有可能解决。'}</button>`;
+  html+=`<button class="judgment-btn" onclick="handleJudgment(1)">${F?'私下帮小A和小B调解——核心矛盾在她们俩之间，其他人只是催化剂。':'私下帮小A和小B调解——这本质上是两个人之间的事，不需要让所有人参与。'}</button>`;
+  html+=`<button class="judgment-btn" onclick="handleJudgment(2)">${F?'告诉小B所有你知道的真相，让她自己决定怎么办。':'告诉小B你了解到的全部真相，让他自己决定该怎么处理。'}</button>`;
+  html+=`<button class="judgment-btn" onclick="handleJudgment(3)">${F?'不介入。这不是你的事——每个人都要为自己的选择负责。':'不介入，这不是你的事。你只是一个旁听者，不是法官。'}</button>`;
+  html+=`</div>`;
+  appendHTML(html);
+}
+
+function handleJudgment(idx){
+  disableChoices();
+  judgmentChoice=idx;
+  const F=gender==='F';
+  const deltas=[
+    {A:2,B:2,C:1,D:1},
+    {A:2,B:2,C:0,D:0},
+    {A:0,B:3,C:0,D:0},
+    {A:-3,B:-3,C:-3,D:-3}
+  ];
+  const feedbacks=[
+    F?'你选择了最困难也最彻底的方式——让所有人面对面，让所有信息公开。这需要极大的勇气，因为公开意味着没有人能继续躲在自己的版本里。'
+     :'你决定把所有人拉到一起。这是最冒险的做法——但也可能是唯一能真正解决问题的方式。',
+    F?'你选择了精准介入——只处理核心矛盾，不扩大战场。这是一种成熟的判断：不是所有人都需要参与到解决方案中。'
+     :'你选择只处理小A和小B之间的事。这是一种务实的做法——把复杂的问题简化成可以解决的大小。',
+    F?'你选择把决定权交给最受伤的人。你不做法官——你做信使。这背后的逻辑是：小B作为最大的利益相关者，有权知道全部真相并自己做出选择。'
+     :'你把知道的一切告诉了小B，然后退出。你尊重他作为当事人的选择权——但这也意味着后续的一切，你都无法控制了。',
+    F?'你选择了不介入。不是因为冷漠——而是因为你意识到：你的任何判断都可能是不完整的。你只听了四个小时的故事，她们一起生活了四年。'
+     :'你选择了退出。也许这是一种智慧——也许只是一种逃避。你自己也分不清楚。'
+  ];
+  updateTrust(deltas[idx]);
+
+  let chipHtml='<div class="trust-change">';
+  ['A','B','C','D'].forEach(k=>{
+    if(deltas[idx][k]){const cls=deltas[idx][k]>0?'up':'down';const s=deltas[idx][k]>0?'+':'';chipHtml+=`<span class="trust-chip ${cls}">${CHARS[gender][k].name} ${s}${deltas[idx][k]}</span>`}
+  });
+  chipHtml+='</div>';
+
+  let html=`<div class="feedback-box">${chipHtml}<div class="feedback-result">${feedbacks[idx]}</div>`;
+  html+=`<button class="btn-continue" onclick="showEnding()">查 看 结 局</button></div>`;
+  appendHTML(html);
+}
+
+function showEnding(){
+  const {ending,style,tip}=getEnding();
+  lastEndingTitle=ending.title;
+  let html=`<div class="ending-icon">${ending.icon}</div><div class="ending-title">${ending.title}</div>`;
+  ending.text.split('\n\n').forEach(l=>{if(l.trim())html+=`<div class="ending-text">${l}</div>`});
+  html+=`<div class="ending-comment"><div class="ending-comment-label">案 件 评 语</div><div class="ending-comment-text">${ending.comment}</div></div>`;
+  html+=`<div class="summary-card"><div class="summary-item"><div class="summary-label">你的判断风格</div><div class="summary-value">${style}</div></div>`;
+  html+=`<div class="summary-trusts">`;
+  ['A','B','C','D'].forEach(k=>{html+=`<div class="summary-trust"><div class="summary-trust-name">${CHARS[gender][k].name} · ${CHARS[gender][k].role}</div><div class="summary-trust-val">${trust[k]} / 100</div></div>`});
+  html+=`</div><div class="summary-item"><div class="summary-label">收集证据</div><div class="summary-value">${evidenceCount} / ${skippedTestimonies?2:4}${skippedTestimonies?' (跳过了2份证词)':''}</div></div>`;
+  html+=`<div class="summary-tip">${tip}</div>`;
+  html+=`<div class="reflect-box"><div class="reflect-label">课 后 反 思</div>`;
+  html+=`<div class="reflect-q">你在做判断的时候，更依赖"证据"还是"直觉"？当两者冲突时，你倾向于相信哪一个？</div>`;
+  html+=`<div class="reflect-q">在现实生活中，朋友之间借钱是一件常见但很少被认真讨论的事。你有没有因为"不好意思拒绝"而借出过不想借的钱？当时的感受是什么？</div>`;
+  html+=`<div class="reflect-q">"每个人都有自己的版本"——当你听到完全矛盾的说法时，你会假设"一定有人在说谎"，还是"每个人看到的确实不一样"？这两种假设会如何影响你的判断？</div>`;
+  html+=`<div class="reflect-hint">这些问题没有标准答案。可以写在纸上，也可以带到课堂讨论中。</div></div>`;
+  const archiveCode=generateArchiveCode();
+  saveGameRecord('E3',archiveCode,ending.title,ending.icon,archiveCode.split('-').pop());
+  html+=`<div class="archive-section"><div class="archive-label">存 档 码</div><div class="archive-code" id="archive-code">${archiveCode}</div><button class="btn-copy" id="copy-btn" onclick="copyCode()">复制存档码</button><div class="archive-hint">保存此代码，可记录你的调查风格与结局</div></div>`;
+  html+=`<button class="btn-restart" onclick="restartGame()">重 新 调 查</button><br><a href="index.html" class="btn-back">返回事件选择</a></div>`;
+  appendHTML(html);
+  document.getElementById('trust-bar').style.display='none';
+}
+
+function generateArchiveCode(){
+  const gCode=gender==='F'?'F':'M';
+  const titleKeys={'草率判断':'RSH','四散':'SCT','正义裁决':'JST','误判':'MIS','偏听偏信':'BIA','真相大白':'TRU','和稀泥':'MUD','悬而未决':'UNR'};
+  const tPart=lastEndingTitle.split('·')[0].replace(/\s/g,'');
+  const eCode=titleKeys[tPart]||'UNK';
+  return `E3-${gCode}-${choices.join('')}-${eCode}`;
+}
+
+function copyCode(){
+  const code=generateArchiveCode();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>{
+      const btn=document.getElementById('copy-btn');
+      if(btn){btn.textContent='已复制 ✓';setTimeout(()=>{btn.textContent='复制存档码'},2000)}
+    }).catch(()=>fallbackCopy(code));
+  } else {
+    fallbackCopy(code);
+  }
+}
+
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');const btn=document.getElementById('copy-btn');if(btn){btn.textContent='已复制 ✓';setTimeout(()=>{btn.textContent='复制存档码'},2000)}}catch(e){}
+  document.body.removeChild(ta);
+}
+
+function restartGame(){
+  trust={A:50,B:50,C:50,D:50};choices=[];evidenceCount=0;judgmentChoice=-1;skippedTestimonies=false;storyEl.innerHTML='';
+  document.getElementById('trust-bar').style.display='';
+  show('title-screen');
+}
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

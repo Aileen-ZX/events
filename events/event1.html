@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>未读消息 · 大学心理事件簿</title>
+<style>
+/* === EVENT 1: MUTED BLUE-GREY DIARY AESTHETIC === */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#e8ecf0;
+  --bg-dark:#d5dce3;
+  --card:rgba(255,255,255,0.55);
+  --card-hover:rgba(255,255,255,0.85);
+  --ink:#2c3e50;
+  --ink2:#5a6d7e;
+  --ink3:#8fa3b5;
+  --ink4:#b8c8d4;
+  --blue:#5b8cb5;
+  --rose:#b07a8a;
+  --amber:#c49a6c;
+  --sage:#7a9e8a;
+  --red:#c46b6b;
+  --font-body:Georgia,"Songti SC","SimSun","Noto Serif CJK SC",serif;
+  --font-accent:"Kaiti SC","STKaiti","KaiTi",cursive;
+  --font-ui:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 800px 600px at 30% 20%,rgba(91,140,181,0.07) 0%,transparent 70%),radial-gradient(ellipse 600px 400px at 70% 80%,rgba(176,122,138,0.06) 0%,transparent 70%)}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+#app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh;padding:0 20px}
+.screen{display:none;opacity:0}
+.screen.active{display:block;opacity:1;animation:diaryFadeIn 1s ease forwards}
+@keyframes diaryFadeIn{from{opacity:0;transform:translateY(16px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes rewind{0%{filter:blur(0);opacity:1}30%{filter:blur(6px);opacity:0.4}70%{filter:blur(6px);opacity:0.4}100%{filter:blur(0);opacity:1}}
+
+/* TITLE SCREEN */
+#title-screen{flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center}
+#title-screen.active{display:flex;opacity:1;animation:diaryFadeIn 1s ease forwards}
+.title-moon{width:90px;height:90px;margin-bottom:36px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#dce4eb 0%,rgba(180,200,215,0.4) 50%,transparent 75%);box-shadow:0 0 60px rgba(91,140,181,0.15);animation:moonGlow 4s ease-in-out infinite}
+@keyframes moonGlow{0%,100%{opacity:0.7;box-shadow:0 0 40px rgba(91,140,181,0.1)}50%{opacity:1;box-shadow:0 0 80px rgba(91,140,181,0.2)}}
+.title-main{font-family:var(--font-body);font-size:2rem;font-weight:700;letter-spacing:0.12em;color:var(--ink);margin-bottom:8px}
+.title-ep{font-family:var(--font-accent);font-size:0.9rem;color:var(--ink3);letter-spacing:0.3em;margin-bottom:48px}
+.btn-start{background:transparent;border:1px solid var(--ink4);color:var(--ink2);padding:14px 48px;font-size:0.9rem;letter-spacing:0.25em;cursor:pointer;border-radius:1px;transition:all 0.4s;font-family:var(--font-body)}
+.btn-start:hover{border-color:var(--blue);color:var(--blue);box-shadow:0 0 30px rgba(91,140,181,0.1)}
+
+/* GENDER/CHAR SELECT */
+#gender-screen,#char-screen{display:none;min-height:100vh;padding-top:20px;text-align:center}
+#gender-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;opacity:1;animation:diaryFadeIn 0.8s ease forwards}
+#char-screen.active{display:block;opacity:1;animation:diaryFadeIn 0.8s ease forwards}
+.sel-heading{font-family:var(--font-body);font-size:1.1rem;color:var(--ink);margin-bottom:6px}
+.sel-sub{font-size:0.78rem;color:var(--ink3);margin-bottom:28px;letter-spacing:0.1em}
+.gender-grid{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.gender-card{width:140px;background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:10px;padding:24px 18px;cursor:pointer;transition:all 0.3s;text-align:center}
+.gender-card:hover{background:var(--card-hover);border-color:rgba(91,140,181,0.3);transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,0.05)}
+.gender-icon{font-size:2rem;margin-bottom:8px}
+.gender-label{font-size:0.92rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.gender-desc{font-size:0.73rem;color:var(--ink2);line-height:1.5}
+.char-grid{display:flex;flex-direction:column;gap:10px;padding:0 4px}
+.char-card{display:flex;align-items:flex-start;gap:12px;background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:8px;padding:16px 14px;cursor:pointer;transition:all 0.3s}
+.char-card:hover{background:var(--card-hover);border-color:rgba(91,140,181,0.3);transform:translateX(4px);box-shadow:0 3px 12px rgba(0,0,0,0.04)}
+.char-ava{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:#fff}
+.char-body{flex:1;min-width:0}
+.char-name{font-size:0.9rem;font-weight:600;color:var(--ink);margin-bottom:3px}
+.char-trait{font-size:0.72rem;color:var(--blue);margin-bottom:4px}
+.char-desc{font-size:0.78rem;line-height:1.65;color:var(--ink2)}
+
+/* EMOTION THERMOMETER */
+.thermo-bar{position:sticky;top:0;z-index:100;padding:14px 0 10px;background:linear-gradient(to bottom,var(--bg) 70%,transparent)}
+.thermo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.thermo-item{text-align:center}
+.thermo-label{font-size:0.65rem;color:var(--ink3);margin-bottom:4px;letter-spacing:0.05em}
+.thermo-track{height:4px;border-radius:2px;background:rgba(0,0,0,0.06);overflow:hidden}
+.thermo-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1)}
+.thermo-val{font-size:0.6rem;color:var(--ink3);margin-top:2px;font-variant-numeric:tabular-nums;transition:color 0.3s}
+.thermo-val.flash-up{color:var(--sage)}
+.thermo-val.flash-down{color:var(--red)}
+
+/* DIARY NARRATION */
+.diary-date{font-family:var(--font-accent);font-size:0.85rem;color:var(--ink4);letter-spacing:0.15em;margin:28px 0 6px}
+.diary-entry{font-size:0.88rem;line-height:2;color:var(--ink2);margin:16px 0;text-indent:2em;position:relative}
+.diary-entry em{color:var(--ink);font-style:normal;font-weight:600}
+.diary-entry::before{content:'';position:absolute;left:-12px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--ink4),transparent);border-radius:1px}
+.scene-label{font-size:0.72rem;color:var(--rose);letter-spacing:0.2em;margin:32px 0 4px;text-transform:uppercase}
+.memory-tag{display:inline-block;background:rgba(91,140,181,0.08);color:var(--blue);font-size:0.7rem;padding:3px 10px;border-radius:2px;margin-bottom:12px;letter-spacing:0.1em}
+.rewind-label{text-align:center;font-family:var(--font-accent);font-size:0.85rem;color:var(--ink4);letter-spacing:0.3em;margin:24px 0;animation:rewindPulse 2s ease-in-out}
+@keyframes rewindPulse{0%{opacity:0}50%{opacity:1}100%{opacity:0.7}}
+.rewind-intro{font-size:0.85rem;line-height:2;color:var(--ink3);font-style:italic;text-align:center;margin:20px 0 8px}
+.transition-hint{font-size:0.84rem;line-height:1.8;color:var(--ink3);font-style:italic;text-align:center;margin:18px 0 6px}
+
+/* TIMELINE */
+.timeline-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:10px 0 4px;padding:6px 0}
+.timeline-node{display:flex;flex-direction:column;align-items:center;min-width:42px}
+.timeline-dot{width:9px;height:9px;border-radius:50%;background:var(--ink4);border:2px solid var(--ink4);transition:all 0.5s ease}
+.timeline-dot.active{background:var(--blue);border-color:var(--blue);box-shadow:0 0 8px rgba(91,140,181,0.4)}
+.timeline-dot.visited{background:var(--ink3);border-color:var(--ink3)}
+.timeline-txt{font-size:0.56rem;color:var(--ink4);margin-top:3px;letter-spacing:0.05em;white-space:nowrap;transition:color 0.5s}
+.timeline-txt.active{color:var(--blue);font-weight:600}
+.timeline-txt.visited{color:var(--ink3)}
+.timeline-line{width:18px;height:2px;background:var(--ink4);margin-bottom:13px;transition:background 0.5s}
+.timeline-line.visited{background:var(--ink3)}
+
+/* CHOICES */
+.choices{margin:20px 0}
+.choice-prompt{font-size:0.72rem;color:var(--blue);letter-spacing:0.2em;margin-bottom:12px;font-family:var(--font-accent)}
+.choice-btn{display:block;width:100%;background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:6px;padding:14px 16px;margin-bottom:8px;text-align:left;color:var(--ink);font-size:0.85rem;line-height:1.6;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);position:relative;overflow:hidden}
+.choice-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(91,140,181,0.05),transparent);opacity:0;transition:opacity 0.3s}
+.choice-btn:hover{background:var(--card-hover);border-color:rgba(91,140,181,0.3);transform:translateX(4px);box-shadow:0 2px 8px rgba(0,0,0,0.03)}
+.choice-btn:hover::before{opacity:1}
+.choice-btn:active{transform:translateX(2px) scale(0.99)}
+.choice-btn.disabled{opacity:0.25;pointer-events:none}
+
+/* FEEDBACK */
+.feedback-box{margin:16px 0;animation:feedIn 0.5s ease forwards}
+@keyframes feedIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.feedback-result{background:rgba(255,255,255,0.5);border-radius:6px;padding:14px 16px;font-size:0.85rem;line-height:1.8;color:var(--ink);margin-bottom:10px;border-left:3px solid var(--blue)}
+.thermo-change{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.thermo-chip{font-size:0.72rem;padding:3px 8px;border-radius:3px;font-weight:600}
+.thermo-chip.up{background:rgba(122,158,138,0.12);color:var(--sage)}
+.thermo-chip.down{background:rgba(196,107,107,0.12);color:var(--red)}
+.analysis-box{background:linear-gradient(135deg,rgba(91,140,181,0.06),rgba(176,122,138,0.04));border:1px solid rgba(91,140,181,0.12);border-radius:6px;padding:14px 16px;margin:10px 0 20px}
+.analysis-label{font-size:0.65rem;letter-spacing:0.2em;color:var(--blue);margin-bottom:6px}
+.analysis-text{font-size:0.8rem;line-height:1.8;color:var(--ink2)}
+.analysis-text strong{color:var(--rose);font-weight:500}
+.btn-continue{display:block;margin:20px auto;background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--ink3);padding:10px 32px;font-size:0.82rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-continue:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ENDINGS */
+.ending-icon{font-size:2.8rem;text-align:center;margin:36px 0 12px}
+.ending-title{font-family:var(--font-body);font-size:1.3rem;text-align:center;color:var(--ink);margin-bottom:6px;font-weight:700}
+.ending-text{font-size:0.88rem;line-height:2;color:var(--ink2);margin:18px 0;text-indent:2em}
+.ending-comment{background:linear-gradient(135deg,rgba(91,140,181,0.06),rgba(176,122,138,0.04));border:1px solid rgba(91,140,181,0.12);border-radius:8px;padding:18px;margin:20px 0}
+.ending-comment-label{font-size:0.65rem;color:var(--blue);letter-spacing:0.2em;margin-bottom:8px}
+.ending-comment-text{font-size:0.82rem;line-height:1.85;color:var(--ink2)}
+.summary-card{background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:10px;padding:22px;margin:22px 0;text-align:center}
+.summary-item{margin:14px 0}
+.summary-label{font-size:0.7rem;color:var(--ink3);letter-spacing:0.15em;margin-bottom:3px}
+.summary-value{font-size:1rem;color:var(--ink);font-weight:600}
+.summary-meters{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:16px 0;text-align:left}
+.summary-meter{background:rgba(0,0,0,0.02);padding:8px 12px;border-radius:4px}
+.summary-meter-name{font-size:0.7rem;color:var(--ink3)}
+.summary-meter-val{font-size:0.95rem;font-weight:600;color:var(--ink)}
+.summary-tip{font-size:0.8rem;color:var(--ink2);line-height:1.8;text-align:left;margin-top:16px;padding-top:14px;border-top:1px solid rgba(0,0,0,0.05)}
+.reflect-box{margin:20px 0;padding:18px;border-radius:8px;background:linear-gradient(135deg,rgba(91,140,181,0.04),rgba(176,122,138,0.03));border:1px solid rgba(91,140,181,0.15)}
+.reflect-label{font-size:0.65rem;letter-spacing:0.25em;color:var(--blue);margin-bottom:10px;font-weight:600}
+.reflect-q{font-size:0.8rem;line-height:1.85;color:var(--ink2);margin:10px 0;padding-left:14px;border-left:2px solid rgba(91,140,181,0.25)}
+.reflect-hint{font-size:0.68rem;color:var(--ink3);margin-top:12px;font-style:italic}
+.btn-restart{display:inline-block;margin-top:20px;background:rgba(91,140,181,0.06);border:1px solid rgba(91,140,181,0.25);color:var(--blue);padding:11px 36px;font-size:0.85rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-restart:hover{background:rgba(91,140,181,0.12);box-shadow:0 2px 12px rgba(91,140,181,0.08)}
+.btn-back{display:inline-block;margin-top:10px;background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--ink4);padding:9px 28px;font-size:0.8rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.1em;text-decoration:none}
+.btn-back:hover{border-color:rgba(91,140,181,0.3);color:var(--blue)}
+.archive-area{margin-top:20px;text-align:center}
+.btn-archive{display:inline-block;background:rgba(91,140,181,0.06);border:1px solid rgba(91,140,181,0.25);color:var(--blue);padding:9px 28px;font-size:0.8rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.1em}
+.btn-archive:hover{background:rgba(91,140,181,0.12)}
+.archive-code-box{margin-top:12px;background:rgba(91,140,181,0.06);border:1px dashed rgba(91,140,181,0.3);border-radius:6px;padding:12px 16px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;animation:feedIn 0.4s ease}
+.archive-code{font-family:'Courier New',monospace;font-size:1.1rem;font-weight:700;color:var(--blue);letter-spacing:0.08em}
+.archive-label{font-size:0.72rem;color:var(--ink3);margin-top:4px}
+.btn-copy{background:rgba(91,140,181,0.1);border:1px solid rgba(91,140,181,0.25);color:var(--blue);padding:5px 14px;font-size:0.75rem;cursor:pointer;border-radius:3px;transition:all 0.25s;font-family:var(--font-body)}
+.btn-copy:hover{background:rgba(91,140,181,0.2)}
+.btn-copy.copied{background:rgba(122,158,138,0.12);border-color:rgba(122,158,138,0.3);color:var(--sage)}
+.scroll-anchor{height:1px;width:1px}
+/* === MY RECORDS === */
+.my-records-block{width:100%;max-width:380px;margin:0 auto 20px}
+.my-records-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;cursor:pointer;background:rgba(91,140,181,0.06);border:1px solid rgba(91,140,181,0.12);border-radius:8px;transition:all 0.3s;user-select:none}
+.my-records-toggle:hover{background:rgba(91,140,181,0.1)}
+.my-records-label{font-size:0.75rem;letter-spacing:0.1em;color:inherit;opacity:0.6}
+.my-records-arrow{font-size:0.7rem;opacity:0.4;transition:transform 0.3s}
+.my-records-block.expanded .my-records-arrow{transform:rotate(180deg)}
+.my-records-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease;opacity:0}
+.my-records-block.expanded .my-records-list{max-height:600px;opacity:1;margin-top:8px}
+.my-record-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;background:rgba(91,140,181,0.04);border:1px solid rgba(91,140,181,0.06);border-radius:6px;transition:background 0.2s}
+.my-record-item:hover{background:rgba(91,140,181,0.08)}
+.my-record-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.my-record-info{flex:1;min-width:0}
+.my-record-title{font-size:0.78rem;font-weight:600;line-height:1.4;color:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.my-record-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.my-record-code{font-family:'Courier New',monospace;font-size:0.65rem;opacity:0.5;letter-spacing:0.03em}
+.my-record-date{font-size:0.62rem;opacity:0.4}
+@media(max-width:540px){#app{padding:0 16px}.title-main{font-size:1.6rem}.choice-btn{padding:12px 12px}.timeline-txt{font-size:0.5rem}.timeline-node{min-width:34px}.timeline-line{width:12px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- TITLE -->
+  <div id="title-screen" class="screen active">
+    <div class="title-moon"></div>
+    <div class="title-main">未读消息</div>
+    <div class="title-ep">大学 · 心理事件簿</div>
+    <button class="btn-start" onclick="startGame()">翻 开 日 记</button>
+  </div>
+  <!-- GENDER -->
+  <div id="gender-screen" class="screen">
+    <div class="sel-heading">选择你的宿舍</div>
+    <div class="sel-sub">不同的宿舍，不同的人际暗流</div>
+    <div class="gender-grid">
+      <div class="gender-card" onclick="selectGender('F')"><div class="gender-icon">🌙</div><div class="gender-label">女生宿舍</div><div class="gender-desc">407寝室<br>细腻 · 隐忍 · 暗涌</div></div>
+      <div class="gender-card" onclick="selectGender('M')"><div class="gender-icon">🔥</div><div class="gender-label">男生宿舍</div><div class="gender-desc">407寝室<br>粗线条 · 直接 · 硬撑</div></div>
+    </div>
+  </div>
+  <!-- CHAR -->
+  <div id="char-screen" class="screen">
+    <div class="sel-heading">你是谁？</div>
+    <div class="sel-sub">选择你的视角，感受不同的内心独白</div>
+    <div class="char-grid" id="char-grid"></div>
+  </div>
+  <!-- GAME -->
+  <div id="game-screen" class="screen">
+    <div id="timeline-container" style="position:sticky;top:0;z-index:100;padding:14px 0 10px;background:linear-gradient(to bottom,var(--bg) 70%,transparent)"></div>
+    <div id="story-container"></div>
+  </div>
+</div>
+
+<script>
+/* === RECORD STORAGE === */
+function saveGameRecord(eid,code,title,icon,ec){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');if(!a[eid])a[eid]=[];a[eid].unshift({code:code,title:title,icon:icon,endingCode:ec,ts:Date.now()});if(a[eid].length>20)a[eid]=a[eid].slice(0,20);localStorage.setItem('psych_game_records',JSON.stringify(a));}catch(e){}}
+function getGameRecords(eid){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');return a[eid]||[];}catch(e){return[];}}
+function renderRecordsBlock(eid){var recs=getGameRecords(eid);if(!recs.length)return;var ts=document.getElementById('title-screen');if(!ts)return;var btn=ts.querySelector('.btn-start');if(!btn)return;var b=document.createElement('div');b.className='my-records-block';b.innerHTML='<div class="my-records-toggle" onclick="this.parentElement.classList.toggle(\'expanded\')"><span class="my-records-label">\uD83D\uDCCB 我的记录 ('+recs.length+')</span><span class="my-records-arrow">\u25BE</span></div><div class="my-records-list">'+recs.map(function(r){var d=new Date(r.ts);var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return '<div class="my-record-item"><span class="my-record-icon">'+r.icon+'</span><div class="my-record-info"><div class="my-record-title">'+r.title+'</div><div class="my-record-meta"><span class="my-record-code">'+r.code+'</span><span class="my-record-date">'+ds+'</span></div></div></div>';}).join('')+'</div>';ts.insertBefore(b,btn);}
+renderRecordsBlock('E1');
+// ============================================================
+//  EVENT 1: 未读消息 — REVERSE CHRONOLOGY + EMOTION THERMOMETER
+// ============================================================
+
+// --- STATE ---
+let gender='F', playerChar='A', currentAct=0, choices=[];
+let lastEnding=null;
+let meters={A:50,B:50,C:50,D:50};
+let endingStyle='';
+let endingPattern='';
+const storyEl=document.getElementById('story-container');
+
+// --- CHARACTER DATA ---
+const CHARS={
+  F:{
+    A:{name:'小A',color:'#5b8cb5',trait:'寝室长 · 表面开朗 · 焦虑隐藏者',desc:'寝室里的社交达人，朋友圈永远在线。但最近焦虑发作越来越频繁——凌晨三点还在刷手机，是因为不敢面对黑暗中的安静。',meterName:'安全感'},
+    B:{name:'小B',color:'#b07a8a',trait:'新转来的 · 小心翼翼',desc:'上学期才从隔壁寝室转过来。还在努力记住每个人的习惯和雷区，总觉得自己像个局外人。',meterName:'归属感'},
+    C:{name:'小C',color:'#c49a6c',trait:'有对象 · 时常缺席',desc:'男朋友在校外租房，她经常不回寝室。偶尔回来，就像闯入了一个已经形成默契的小世界。',meterName:'参与感'},
+    D:{name:'小D',color:'#7a9e8a',trait:'考研党 · 濒临崩溃',desc:'每天六点起床去图书馆，对噪音极度敏感。忍了整整一个学期，快要撑不住了。',meterName:'忍耐值'}
+  },
+  M:{
+    A:{name:'小A',color:'#5b8cb5',trait:'寝室长 · 游戏主播 · 自我中心',desc:'每晚直播到凌晨两点，戴着耳机沉浸在自己的世界里。真心觉得自己"很安静"——毕竟他戴着耳机。',meterName:'自觉度'},
+    B:{name:'小B',color:'#b07a8a',trait:'转专业 · 还不太熟',desc:'这学期才转过来的，跟大家还处于"点头之交"的阶段。想融入，但不知道从哪里开口。',meterName:'归属感'},
+    C:{name:'小C',color:'#c49a6c',trait:'女友派 · 偶尔出没',desc:'基本住女朋友那边，偶尔半夜回来。开门、洗漱的动静在安静的寝室里格外刺耳。',meterName:'存在感'},
+    D:{name:'小D',color:'#7a9e8a',trait:'考公狂人 · 睡眠刚需',desc:'准备考公务员，每天早上五点半的闹钟。对他来说，睡眠不是享受，是续命。',meterName:'忍耐值'}
+  }
+};
+
+// --- STORY SCENES (CHRONOLOGICAL: opening→memory1→2→3→4→reveal) ---
+function getScenes(){
+  const ch=CHARS[gender];
+  const F=gender==='F';
+  const p=playerChar;
+
+  // OPENING SCENE: ambiguous result
+  const openingNarr=F
+    ? ({A:'九月的第一天。\n\n我站在407门口，手里攥着钥匙。门上还贴着去年的贴纸——四个人的名字，用彩色便利贴写的，边角已经翘起来了。\n\n有一张便利贴被撕掉了。\n\n我不确定这意味着什么。也许只是旧了。也许不是。\n\n我深吸一口气，转动钥匙——',
+       B:'九月一日。\n\n我拖着行李箱站在407门口。这是我在这间寝室的第二个学期——说"回来"好像不太对，因为上学期结束的时候，我都不确定自己算不算真正住在这里过。\n\n门上的便利贴少了一张。\n\n我的心沉了一下。然后告诉自己别多想。\n\n推门——',
+       C:'九月一日。\n\n从男朋友那边打车回来。行李不多——大部分东西一直放在寝室里，虽然我很少回来用。\n\n门口，有一张便利贴掉在了地上。我弯腰捡起来——上面是小D的字。\n\n我站了一会儿，然后推开了门——',
+       D:'九月一日。凌晨五点半到的学校。\n\n我是第一个回来的。407的门开了，空气里有一股夏天积攒的闷热。\n\n我放下行李，坐在自己的床沿上。对面那张床——被褥叠得整整齐齐，桌面空空荡荡。\n\n我盯着那张空床看了很久。\n\n然后拉开窗帘，让光透进来——'})[p]
+    : ({A:'九月一号。\n\n我扛着行李箱上了四楼，在407门口站了一会儿。门半开着——里面有一张床空了，被褥叠得整整齐齐，桌面干干净净。\n\n一种说不清的感觉涌上来。像是少了点什么。\n\n我把行李往自己床上一扔——',
+       B:'九月一号。新学期。\n\n我在407门口站了好一会儿才推门。上学期转过来的时候，我连敲门都要鼓起勇气。现在嘛……至少不用敲了。\n\n进门发现少了一张床的被褥。\n\n我不知道该是什么表情。就在自己的位子坐下了——',
+       C:'九月一号傍晚才回学校。推门进407，发现少了个人。\n\n他的东西搬得很干净。桌上只留了一个打火机——我们以前一起抽烟用的。\n\n我把打火机揣进口袋。然后往床上一躺——',
+       D:'九月一号。凌晨五点半到的学校。\n\n407的灯没开。推门进去，黑暗中摸到了自己的床。对面那张床——空了。\n\n我打开手机手电筒照了一下。桌面擦得很干净。\n\n我关掉手电筒，在黑暗中坐着。心里说不清是轻松还是遗憾——'})[p];
+
+  // MEMORY 4 (最近的记忆)
+  const memory4={
+    date: F ? '六月二十八日 · 深夜' : '六月二十八日 · 凌晨一点',
+    label: '六月末 · 最后的对话',
+    narr: (function(){
+      // Count positive choices (index 0) from previous memories to adapt narration
+      const posCount=choices.filter(c=>c===0).length;
+      const narrByChar=F
+      ? ({
+          A:'关了灯，我假装已经睡了。\n\n小D在上铺翻来覆去。我知道她想说什么——关于上次的事，关于那条消息，关于这一整个学期积攒的沉默。\n\n但她没开口。\n\n我也没有。\n\n手机屏幕在被子里亮着。我盯着407群最后一条消息——上个月的。\n\n也许……我应该先说。',
+          B:'最后一晚了。\n\n我躺在床上，听着其他三个人的呼吸声。这间寝室我才住了一个学期，但此刻我分不清自己是"融入了"还是"习惯了假装融入"。\n\n小D翻了个身。我感觉她没睡着。\n\n小A的手机屏幕还亮着——她也没睡。\n\n也许……我可以开口问一句。',
+          C:'难得回来住的一晚。\n\n手机震了——男朋友发来消息："明天来接你。"我没回。盯着天花板，想着这个学期自己有多少个夜晚不在这里。\n\n小D的闹钟定在五点半。她从来不说什么，但那种疲惫，我看得见。她瘦了很多。\n\n也许我应该……说点什么。',
+          D: posCount>=3
+            ?'最后一晚了，明天大家就各回各家。\n\n说来奇怪——这学期的结尾比我想象的要平静。三月那次我鼓起勇气开了口，四月的消息风波后我们私下聊过，五月面对面谈的时候，小A的道歉是真心的。\n\n现在躺在床上，寝室很安静。不是那种让人窒息的安静——是一种大家都在、都心安的安静。\n\n但还有一些话没说完。也许趁今晚最后一个夜晚，可以把那些还卡在嗓子眼里的话说出来。'
+            : posCount>=2
+            ?'最后一晚了，明天大家就各回各家。\n\n比起学期初，情况好了一些。至少小A知道了我的感受，至少有过那次面对面的谈话。但"好了一些"不等于"好了"——有些夜晚我还是会失眠，只是原因从噪音变成了心事。\n\n我拿着手机，想在群里说点什么。犹豫了一下——这次不是因为害怕没人回复，而是不知道该怎么表达这种复杂的感觉。\n\n也许今晚，可以试着把这学期真正的感受说出来。'
+            :'最后一晚了，明天大家就各回各家。\n\n我握着手机，看着群里最后一条消息——三个月前我发的那条。没有人回复。\n\n那条消息说的是："我真的快撑不住了。"\n\n三个月了。零回复。已读四人。\n\n也许这次，我应该用嘴说，而不是用手机。'
+        })
+      : ({
+          A:'凌晨一点，我刚下播。\n\n摘下耳机的那一刻，寝室安静得发慌。小D的床帘拉着，小B背对着我，不知道睡没睡。\n\n我知道他们不满意。我只是……一直在假装不知道。\n\n明天就放假了。如果今晚不说，下学期回来可能更说不出口。\n\n也许今晚，我应该主动说一句。',
+          B:'最后一晚了。\n\n我躺在这张还不太习惯的床上，数着天花板的裂纹。一个学期过去了，我跟他们的关系停留在"借个充电器"的程度。\n\n小D又在叹气。小A刚关了电脑，键盘终于不响了。\n\n如果我再不说话，下学期回来我还是那个"新来的"。\n\n也许我可以问一句怎么了。',
+          C:'难得回来住。\n\n十一点多推门进来，小D明显被惊醒了——他猛地坐起来，然后认出是我，又躺下了。\n\n我尽量轻手轻脚，但寝室实在太安静了。每一个动作都像在放大器里。\n\n我知道自己总是打扰到别人。但这是最后一晚了。\n\n也许应该说声抱歉。',
+          D: posCount>=3
+            ?'最后一晚了。\n\n躺在床上，刷着手机。这学期的群聊比我想象中活跃——三月我开口说了失眠的事之后，小A真的把键盘换了，小C回来的时候也会轻手轻脚了。五月那次撸串聊开了之后，关系明显缓和了。\n\n睡眠还是不算好，但至少不是因为噪音了。更多是考公的压力——但这个锅不该让室友来背。\n\n最后一晚。也许可以好好说声谢谢，或者……把这学期还没说完的话说完。'
+            : posCount>=2
+            ?'最后一晚了。\n\n比起三月那会儿，情况好了一些。至少他们知道我的处境了，至少有过那次正式的谈话。但有些东西改了，有些东西没改——小A的键盘声小了，但偶尔还是会到很晚。\n\n我把手机翻到群聊。最近的消息是上周的，不算冷清，也谈不上热络。\n\n也许今晚可以再聊聊。不是抱怨——是想在离开之前，把话说清楚。'
+            :'最后一晚了。\n\n躺在床上，把手机翻到那条消息——我发在群里的，三个月前。\n\n"你们能不能他妈的小声点？"\n\n没有人回复。但也许，今晚可以换一种方式说。一种不带脏字的方式。\n\n如果今晚不说……也许就再也不会说了。'
+        });
+      return narrByChar[p];
+    })(),
+    choices:[
+      {text:F?'轻声开口："还没睡吧？……我想跟你们说点事。"':'坐起来，开了小夜灯："都没睡吧？聊聊？"',
+       deltas:{A:8,B:5,C:3,D:8}},
+      {text:F?'犹豫了一下，在群里打了一句："大家这学期辛苦了"':'在群里发了条消息："兄弟们，这学期辛苦了"',
+       deltas:{A:3,B:3,C:3,D:3}},
+      {text:F?'翻了个身，把被子蒙上头。算了，太晚了。':'闭上眼。算了，明天就走了，说什么都没用。',
+       deltas:{A:-5,B:-5,C:-3,D:-8}}
+    ],
+    feedback: (function(){
+      const posCount=choices.filter(c=>c===0).length;
+      if(p==='D' && posCount>=2){
+        // 小D with mostly positive prior choices — feedback reflects improved situation
+        return [
+          {result:F?'黑暗中，有人"嗯"了一声。这次不是那种尴尬的沉默——更像是一种默契。\n\n小A先说了："这学期我确实做得不好。谢谢你三月份那次跟我说。"\n\n你没想到会听到这句话。鼻子一酸。原来那些鼓起勇气说出口的话，真的有人记住了。\n\n四个人在黑暗中聊了很久。这次不是诉苦，是回顾——回顾这半年来彼此是怎么一点一点学会相处的。':'小夜灯亮起来的那一刻，气氛和三月那次完全不同了。\n\n小A先开口："这学期你们忍了我不少。尤其是你——"他看着你。你摆了摆手。\n\n那晚你们没有吵，没有质问——是真的在回顾。从三月那次你开口说失眠，到五月那次撸串聊开，到现在。不是第一次对话了，但也许是最坦诚的一次。',
+           analysis:'<strong>累积信任的回报</strong>——前几次选择中你建立的沟通基础，让这最后一次对话的起点完全不同。心理学中的<strong>"信任螺旋"（trust spiral）</strong>理论指出：每一次成功的脆弱性暴露都会降低下一次的心理成本。你之所以能在最后一晚说出真心话，不是因为这一晚特别神奇——而是因为你在三月、四月、五月的每一次选择都在铺路。信任是一块一块砖垒起来的，你已经垒了好几个月。'},
+          {result:F?'群里亮了四个已读。这次不一样——小A秒回了一个拥抱的表情，小B说了句"你们人都超好的"。小C过了一会儿也回了条长消息。\n\n你盯着屏幕，有一瞬间觉得——也许文字也可以是温暖的。虽然最想说的话还是没打出来。':'群里响了几声。这次不一样——小A直接回了一大段话，说了这学期的感受和对你的歉意。小B跟了一句"下学期还住一块吧"。\n\n你看着这些消息，心里暖了一下。虽然最想说的话还是卡在键盘上没打出来——但至少，这个群不再是冷冰冰的了。',
+           analysis:'<strong>低风险社交信号</strong>——群聊文字是一种"安全"的表达方式，因为它不需要面对即时反应。在你们已经建立了一定信任基础的情况下，文字互动的质量也跟着提高了——不再是敷衍的表情包，而是带着真实情感的回应。但<strong>文字仍然无法替代在场</strong>。你迈出了一步，但还有更深的话可以说。'},
+          {result:F?'被子里很热。你听到自己的心跳。\n\n这学期明明已经好了很多——三月说开了，五月聊过了，但最后一晚，你还是选择了沉默。也许是累了。也许是觉得"已经够好了"。\n\n第二天一早起来，小A在桌上留了一杯奶茶和一张纸条："暑假快乐，下学期见。"你拿着纸条，心想：也许确实够好了。':'你盯着天花板。这学期其实比想象中好多了——但最后一晚你还是没说出那句话。\n\n也许是累了。也许是觉得已经说得够多了。\n\n第二天醒来，小A在你枕头旁边放了一瓶水和一张纸条："哥们，暑假好好休息。"你看了很久那张纸条。\n\n有些关系不需要完美收尾。它已经比三月好太多了。',
+           analysis:'<strong>适度满足与遗憾的平衡</strong>——你在前几个月的积极沟通让关系有了明显改善，所以最后一晚的沉默不再是"逃避"，更像是一种"足够了"的判断。心理学中的<strong>"满足化"（satisficing）</strong>概念指出：并非所有事情都需要达到最优解。有时候，"足够好"就是好的。你没有在最后一晚把所有话说完——但那些没说的话，也许可以留到下学期。'}
+        ];
+      }
+      // Default feedback for 小D with negative/mixed choices, and all A/B/C
+      // Build responder text dynamically to avoid player "replying to themselves"
+      var others=['A','B','C','D'].filter(function(x){return x!==p});
+      var oN=others.map(function(x){return ch[x].name});
+      return [
+        {result:F
+          ?(p==='D'
+            ?'黑暗中，有人"嗯"了一声。然后是沉默。\n\n你想开口——但又不知道怎么说。你这学期忍了太久了，话到嘴边全是苦涩。\n\n最后是小A先说话了："我知道我做得不好……"\n\n那是四个人第一次在关了灯之后认真地说话。没有手机屏幕，没有群聊的伪装，只有声音和呼吸。那些藏了一整个学期的话，终于在最后一晚被小心翼翼地说出来。\n\n不完美，但真实。'
+            :'黑暗中，有人"嗯"了一声。然后是沉默。然后小D说："……其实我也想说。"\n\n那是四个人第一次在关了灯之后认真地说话。没有手机屏幕，没有群聊的伪装，只有声音和呼吸。那些藏了一整个学期的话，终于在最后一晚被小心翼翼地说出来。\n\n不完美，但真实。')
+          :(p==='D'
+            ?'小夜灯亮起来的那一刻，三双眼睛都看向了你。沉默了几秒，小A先开口了："我知道之前是我的问题……"\n\n那晚你们第一次真正地聊了。不是群里的表情包，不是"哈哈哈"，是坐在各自床上，看着昏暗的灯光，说了一整个学期没说出口的话。'
+            :'小夜灯亮起来的那一刻，三双眼睛都看向了你。沉默了几秒，小D先开口了："其实我早就想说了……"\n\n那晚你们第一次真正地聊了。不是群里的表情包，不是"哈哈哈"，是坐在各自床上，看着昏暗的灯光，说了一整个学期没说出口的话。'),
+         analysis:'<strong>安全空间的创造</strong>——黑暗中的对话降低了"被注视"的社交压力，让人更容易表达真实感受。心理学研究表明，减少视觉接触可以促进自我暴露（self-disclosure），这就是为什么很多深夜对话比白天更走心。你选择了最脆弱的方式开场，也因此获得了最真实的回应。这种"主动创造安全空间"的能力，是人际关系中最珍贵的品质之一。'},
+        {result:F
+          ?'群里亮了四个"已读"。'+oN[0]+'回了个拥抱表情。'+oN[1]+'说"你也是"。'+oN[2]+'发了一个"抱拳"。\n\n很短的对话，但比整个学期的群聊都暖。只是——那些真正重要的话，还是没说出口。你盯着屏幕，想打更多，但手指僵在了那里。'
+          :'群里响了几声。'+oN[0]+'回了个"你们也是"。'+oN[1]+'发了个表情包。'+oN[2]+'半小时后才回了个"嗯"。\n\n简短的交互，但好歹不是沉默。不过那些真正该说的话，还是卡在了嗓子眼里。',
+         analysis:'<strong>低风险社交信号</strong>——群聊文字是一种"安全"的表达方式，因为它不需要面对即时反应。这种"最小努力的善意"虽然好过沉默，但<strong>文字无法替代在场</strong>。真正的修复需要声音、眼神和沉默中的等待。你迈出了一步，但还差最关键的一步——从屏幕后面走出来。'},
+        {result:F
+          ?(p==='D'
+            ?'被子里很热。你听到自己的心跳，和对面床传来的一声几乎听不见的叹息。\n\n第二天一早你醒来的时候，小A已经走了。床上留了一张纸条，写着"暑假愉快，下学期好好聊"。你把纸条翻过来——背面是空的。\n\n你想了很久那张纸条还能写什么。但它就是空的。'
+            :'被子里很热。你听到自己的心跳，和隔壁床传来的一声几乎听不见的叹息。\n\n第二天一早你醒来的时候，小D已经走了。床上留了一个纸条，写着"暑假愉快"。没有署名。你把纸条翻过来——背面是空的。\n\n你想了很久那张纸条还能写什么。但它就是空的。')
+          :(p==='D'
+            ?'你盯着天花板。对面床传来翻身的声音——小A好像也没睡着。\n\n第二天醒来，小A的东西已经收拾好了。桌上留了张纸条："下学期见，哥们。"你不确定这是客套还是某种承诺。\n\n拿起纸条的时候你才注意到——他的手写字很潦草。你以前从来没注意过。'
+            :'你盯着天花板。隔壁床传来翻身的声音——小D还是没睡着。\n\n第二天醒来，小D的东西已经搬走了一半。桌上留了张纸条："下学期见。"你不确定这是客套还是告别。\n\n拿起纸条的时候你才注意到——他的手写字很好看。你以前从来没注意过。'),
+         analysis:'<strong>情绪回避的代价</strong>——当一个人选择"算了"，看似是在保护自己，实际上是在放弃最后的修复窗口。心理学中的"情绪压抑"（emotional suppression）研究显示，长期回避会导致关系中的裂痕固化——不是因为伤害太大，而是因为<strong>修复的机会被一次次错过</strong>。你没有做错事，但你错过了一个做对事的机会。'}
+      ];
+    })()
+  };
+
+  const memory3={
+    date: F ? '五月十七日 · 下午' : '五月十七日 · 傍晚',
+    label: '五月中 · 说出口的和没说出口的',
+    narr: F
+      ? ({
+          A:'奶茶店里。\n\n小D坐在对面，搅着吸管不说话。这是她第一次同意单独出来——在群里吵完之后的第三天。\n\n我问她最近怎么样。她说"还行"。\n\n但她眼下的黑眼圈说了另一个故事。她的手指在桌面上无意识地敲着，像是在数什么——也许是失眠的夜晚。',
+          B:'小A约我去奶茶店。说要"聊聊寝室的事"。\n\n我买了杯最便宜的柠檬水，坐在她对面。手心在出汗。我不知道自己有没有做错什么——毕竟我才来一个学期，很多"规矩"我还不懂。\n\n小A看我的眼神很温和。但温和有时候比严厉更让人紧张。',
+          C:'小A说必须见面聊。我请了一下午的假，从男朋友那边赶回来。\n\n坐下来才发现，原来问题已经严重到这种程度了。小D瘦了一圈，小B说话的声音比上次见小了很多。\n\n而我之前完全不知道。或者说——我一直在假装不知道。因为不知道就不用负责。',
+          D:'小A非要拉我出来。\n\n我不想去。我不想解释自己为什么发了那条消息，也不想听"你说话太冲了"。\n\n但我还是去了。因为——考研的书看了一天也看不进去。也许不是因为书难，而是因为心里那块石头太重了。\n\n也许这是最后的机会了。'
+        })[p]
+      : ({
+          A:'烧烤摊。\n\n点了四串羊肉，啤酒没开。小D坐在对面，看手机，不说话。气氛像冰窖。\n\n我夹了串递过去："吃。"\n\n他接了，但没看我。我知道他在等我先开口——但我也在等他。',
+          B:'小A说"出来撸串"。\n\n我犹豫了很久才去。总觉得这种场合轮不到我说话——我是新来的，他们吵他们的，关我什么事？\n\n但小A特意叫了我。也许这意味着……我不完全是局外人。\n\n坐下之后他们聊他们的，我假装在看菜单。',
+          C:'推门进烧烤摊的时候，三个人都看我。\n\n小D的眼神尤其冷。像在说：你平时都不在，现在来干什么？\n\n我知道他觉得我没资格参与——毕竟我大部分时间都不在寝室。但这次，我回来了。我想看看自己还能不能做点什么。',
+          D:'啤酒还没开，我就已经不想待了。\n\n小A在旁边打圆场，说什么"都是兄弟"。我在想：如果真是兄弟，为什么我说了我睡不好，没有一个人当回事？\n\n"睡不好"三个字，我说过三次了。三次。'
+        })[p],
+    choices: p==='D'
+    ? [
+      {text:F?'把这几个月的感受全部说出来——失眠、崩溃、一个人扛的那些夜晚。':'把这几个月的事一股脑倒出来——失眠、考公、每天只睡三四个小时。',
+       deltas:{A:6,B:4,C:2,D:6}},
+      {text:F?'深吸一口气，先听听她们怎么说。也许她们也有自己的苦衷。':'先听他们说。也许他们也有不知道怎么开口的苦衷。',
+       deltas:{A:2,B:5,C:3,D:4}},
+      {text:F?'"你们知道我每天只睡四个小时吗？"——带着质问的语气。':'"我说过三次了，你们哪次当回事了？"',
+       deltas:{A:-3,B:-2,C:0,D:-5}}
+    ]
+    : [
+      {text:F?'主动说出自己的感受——不是指责，而是"我最近其实也很不好……"':'先开口："我先说，我知道我有不对的地方。"',
+       deltas:{A:6,B:4,C:2,D:6}},
+      {text:F?'询问对方的感受："你最近是不是很累？我想听听你的想法。"':'递啤酒过去："先吃。吃完慢慢聊，不急。"',
+       deltas:{A:2,B:5,C:3,D:4}},
+      {text:F?'试图讲道理："其实大家互相体谅一下就好了嘛。"':'直接说："咱们得定个规矩，几点之后别出声。"',
+       deltas:{A:-3,B:-2,C:0,D:-5}}
+    ],
+    feedback: p==='D'
+    ? [
+      {result:F?'你说了。从三月的第一个失眠夜开始说，说到发那条消息，说到每天凌晨四点盯着天花板的那种绝望。\n\n说到一半嗓子哽住了。你没想到自己会在奶茶店里哭——但那些话压了太久了，一旦开口就再也收不住。\n\n小A的眼睛红了。她说："我真的不知道……你怎么不早点跟我说？"\n\n你想说"我说了，你们没听"——但你选择了沉默。因为此刻，至少她在听。':'你说了。从三月的键盘声说起，说到每天五点半的闹钟，说到失眠，说到那种"整个人快要散架"的感觉。\n\n小A放下了筷子。他说了句你没想到的话："……哥们，对不起。"\n\n你愣了一下。你准备好了被反驳——但没准备好被道歉。那一刻，几个月的怨气突然就散了大半。不是因为道歉能解决什么，而是因为——终于有人承认了你的痛苦是真实的。',
+       analysis:'<strong>情绪倾诉的治愈机制</strong>——心理学中的"表达性写作"（expressive writing）研究发现，把痛苦的经历用语言讲述出来，本身就能降低生理应激水平。这个机制被称为<strong>"语言化"（labeling）</strong>——当你给痛苦一个具体的形状和语言，大脑的杏仁核活动就会显著降低。你终于说出了那些话——不是为了让别人道歉，而是为了让自己不再一个人扛。这不是软弱，这是自我疗愈的开始。'},
+      {result:F?'你没有急着说自己的事。你问了一句："你们……最近还好吗？"\n\n小A愣了一下，然后说了她焦虑发作的事。小B说了转学后的不适应。连小C都放下了手机。\n\n你发现——原来不止你一个人在扛。每个人都有自己的难处，只是谁都没说。\n\n这不能解决你的失眠。但至少，你不再觉得只有自己在受苦。':'你没有先开口。你拿起啤酒，说了句"先吃"。\n\n气氛松了一点。小A先说了几句，小B也接了两句。你听着，发现——原来他们也不是故意的。小A确实不知道键盘声那么大，小C确实没意识到半夜开门有多吵。\n\n不是恶意。是无知。这个区别很重要。\n\n它不能治好你的失眠，但它让你的怒气退了一些。',
+       analysis:'<strong>倾听的意外收获</strong>——当一个长期受苦的人选择先听对方的故事，这是一种需要极大心理能量的<strong>去中心化</strong>（decentering）。你放下了"我是唯一受害者"的框架，允许自己看到更完整的画面。心理学研究表明，互相理解不要求你否认自己的痛苦——而是在承认自己痛苦的同时，也承认对方可能没有恶意。这种双重认知是冲突解决中最关键的心理转变。'},
+      {result:F?'你的话像一把刀。\n\n"四个小时。"你说完之后，桌上安静了。小A低下了头。小B不知道往哪看。小C——小C在看手机。\n\n你的愤怒是真实的。你的痛苦也是真实的。但质问不等于沟通。你说完之后，心里并没有好受多少——因为你想要的不是让她们愧疚，而是让她们理解。但质问关闭了理解的门。':'你的话像一盆冷水泼在了桌上。\n\n小A半天没说话。最后憋出一句："……那你也没说啊。"\n\n你想反驳——你说过三次了。但你也知道，语气是另一个问题。你说得对，但你说的方式把所有人推到了对立面。\n\n那顿饭最后不了了之。串也没怎么吃。',
+       analysis:'<strong>质问 vs 诉说的区别</strong>——同样是表达痛苦，"你们知道我有多苦吗"和"我想告诉你们我有多苦"有着本质区别。前者是<strong>指控</strong>，后者是<strong>邀请</strong>。心理学家Marshall Rosenberg的"非暴力沟通"理论指出：当我们用"你"开头发起对话时，对方的防御机制会立即启动；而用"我"开头时，对方更容易进入倾听模式。你的痛苦是真实的——但表达方式决定了对方是听到了你的痛苦，还是只感受到了攻击。'}
+    ]
+    : [
+      {result:F?'你说到一半嗓子有点哽。你没想到自己会在奶茶店里哭——但你说了实话。你说了焦虑发作的时候手会抖，说了半夜刷手机不是因为不想睡而是不敢睡。\n\n小D的眼睛红了。她说："其实我也不想当那个坏人……但我真的快撑不住了。"\n\n那是这学期以来，你们第一次互相看见对方的脆弱。':'你话一出口，桌上安静了几秒。小D放下了手机。\n\n"……行，那我也说。"\n\n那顿饭，你们真的聊了。不是扯淡，是聊了。小D说了考公的压力，说了失眠，说了每天只睡四小时的那种濒临崩溃的感觉。你第一次觉得——原来他不是脾气差，他是扛不住了。',
+       analysis:'<strong>脆弱性的互惠效应</strong>——心理学家Brené Brown的研究表明，当一个人先展示脆弱（vulnerability），会激发对方的信任回应。你的坦诚不是"示弱"，而是创造了一个<strong>安全的情感出口</strong>——让对方知道"在这里说真话是被允许的"。这种互惠性的脆弱暴露，是建立深层信任的核心机制。'},
+      {result:F?'小D愣了一下，然后慢慢说了。说着说着，她的声音越来越小。你才知道，她不仅仅是被吵到——她在扛一个人扛不动的压力。考研、失眠、家里催……全部压在她一个人身上。\n\n你握住了她的手。什么都没说。但这比说什么都管用。':'小D接过啤酒，喝了一口。沉默了很久，开始说。说考试的压力，说失眠，说那条消息发出去之后的后悔。说到最后声音有点哑了。\n\n你没插嘴。有时候，不打断就是最好的回应。',
+       analysis:'<strong>积极倾听的力量</strong>——"你最近怎么样？"这个问题之所以有效，不在于它本身，而在于<strong>问完之后的等待</strong>。真正的倾听是"我不急着解决问题，我只是想知道你在经历什么"。心理咨询中称之为「无条件积极关注」（unconditional positive regard），它传递的核心信息是：你的感受是重要的，值得被认真对待。'},
+      {result:F?'小D听完"互相体谅"四个字，表情微妙地变了。\n\n"体谅？我体谅了一整个学期了。"\n\n空气突然变冷了。你意识到自己说了正确但无用的话。对一个已经忍到极限的人说"再忍忍"，等于在她的伤口上又撒了一把盐。\n\n小D站起来："我去结账。"但其实你们什么都还没聊开。':'小D听完，冷笑了一声。\n\n"定规矩？我之前提过三次了，你们哪次当回事了？"\n\n气氛凝固了。串也不吃了。你发现自己在用"解决方案"逃避真正的问题——他不需要规矩，他需要被听到。但你跳过了"听"这个步骤，直接奔向了"解决"。',
+       analysis:'<strong>"正确的废话"综合征</strong>——"互相体谅""各退一步"这类建议听起来理性，但对正在经历情绪痛苦的人来说，这是一种<strong>情绪否认</strong>（emotional invalidation）。它传递的隐含信息是"你的感受不够重要，可以用道理解决"。研究表明，有效的冲突沟通遵循一个顺序：先接住情绪，再讨论事实，最后谈方案。跳过前两步直接到方案，几乎必然失败。'}
+    ]
+  };
+
+  const memory2={
+    date: F ? '四月三日 · 凌晨两点' : '四月三日 · 凌晨',
+    label: '四月初 · 那条消息',
+    narr: F
+      ? ({
+          A:'手机屏幕亮了。\n\n群里——小D发了一条消息。很长。大意是：她已经连续失眠一个月了，没有一个人在意。\n\n我盯着那条消息，心跳加速。因为有一句是对我说的："小A，你每天晚上不睡觉刷手机，屏幕的光照得我整个人都在发抖，你知道吗？"\n\n我不知道。\n\n我真的不知道。我以为我已经把亮度调到最低了。',
+          B:'群消息震动。我点开——小D发了一大段话。\n\n看了两遍，松了口气：跟我没直接关系。但第三遍看完，有一句让我心里一紧："新来的同学也许还不了解情况，但我不想再假装一切正常了。"\n\n……她说的是我吗？她在暗示什么？\n\n我把那句话翻来覆去看了十遍，每一遍都在心里辩解。',
+          C:'男朋友那边信号不好，我切回流量的时候看到了群消息。99+。\n\n小D说了很多。有一句刺进来："有些人根本就不在这个寝室生活，凭什么对寝室的事指手画脚？"\n\n她说的是我。\n\n但是……她说得对吗？我确实不在。我有什么资格反驳？',
+          D:'我发了。\n\n手在抖，但我发了。把这一个月所有的憋屈、失眠、崩溃全部塞进了一条消息里。打了改，改了删，删了又打，最后闭着眼按了发送。\n\n发完之后群里一片安静。已读4人。零回复。\n\n我开始慌了。但也有一种奇怪的解脱感——至少，我不用再假装没事了。'
+        })[p]
+      : ({
+          A:'手机震了。\n\n群里，小D发了条语音——但马上撤回了，改成了文字。很长。说他一个月没睡好了，说我半夜直播吵得他抓狂，说忍了一学期了忍不下去了。\n\n我看着"你他妈戴耳机有什么用，你的键盘声整栋楼都能听见"这句话，愣了。\n\n……我键盘声有这么大？',
+          B:'群消息炸了。我点开——小D在发火。\n\n内容跟我没太大关系，但有一句："你们是真的看不见还是假装看不见？"\n\n我想回"我也没注意到啊"——但打完又删了。因为——"没注意到"是不是也是一种罪？\n\n也许沉默更安全。至少沉默不会得罪人。',
+          C:'凌晨收到消息。小D在群里爆了。\n\n翻了好几屏。有一句说我："某些人根本不住这儿，回来的时候能不能轻一点？凌晨两点开门关门洗漱，当这是自己家啊？"\n\n我确实每次回来都是半夜。我确实动静不小。\n\n我没有回复。因为我不知道说什么。',
+          D:'手指按下发送键之前犹豫了五分钟。\n\n按下去之后，有三秒钟的爽，然后是无尽的后悔。\n\n群里没人说话。已读4人。\n\n我把手机扣在枕头下面，盯着天花板。心想：完了，这下真的完了。关系全完了。\n\n但至少他们知道了。'
+        })[p],
+    choices: p==='D'
+    ? [
+      {text:F?'盯着屏幕等回复。如果有人回——哪怕只是一个"看到了"——也好。':'盯着群聊等。如果有人回一句"看到了"，至少说明有人在乎。',
+       deltas:{A:5,B:3,C:2,D:7}},
+      {text:F?'打开私聊，给小A发了一条："刚才那条消息……我是不是太冲了？"':'犹豫了一下，私聊小A："刚才那条……我话说重了。但我是真的扛不住了。"',
+       deltas:{A:3,B:2,C:1,D:5}},
+      {text:F?'把手机扣在枕头下面。不看了。说了也没用。':'把手机关了。后悔了。但不知道怎么收回。',
+       deltas:{A:-6,B:-3,C:-2,D:-8}}
+    ]
+    : [
+      {text:F?'立刻在群里回复："小D，我看到了。你说得对，我们该好好谈谈。"':'马上回了一句："看到了。我的锅。明天面对面聊。"',
+       deltas:{A:5,B:3,C:2,D:7}},
+      {text:F?'私聊小D："你今晚还好吗？要不要出来走走？"':'私聊小D："哥们，我不知道这么严重。你还好吗？"',
+       deltas:{A:3,B:2,C:1,D:5}},
+      {text:F?'截图给闺蜜看："你看小D是不是太敏感了……"':'截图发给别的朋友："你看小D是不是太上纲上线了"',
+       deltas:{A:-6,B:-3,C:-2,D:-8}}
+    ],
+    feedback: p==='D'
+    ? [
+      {result:F?'你盯着屏幕。十分钟。二十分钟。已读4人，零回复。\n\n你开始后悔了。开始想是不是太冲了、是不是不该说、是不是以后没法在这间寝室待了。\n\n然后——小A的头像亮了。她在打字。你屏住呼吸。\n\n"我看到了。"\n\n三个字。但这三个字，比沉默好一万倍。':'你盯着群聊。已读4人。十分钟过去了，没有人说话。\n\n你的手开始抖。"完了，"你想，"以后还怎么在一个寝室住？"\n\n就在你准备关掉手机的时候，小A发了一条："……看到了。明天聊。"\n\n只有四个字。但你长长地呼了一口气。至少，不是被无视。',
+       analysis:'<strong>等待回应的煎熬</strong>——当一个人鼓起勇气表达痛苦后，最脆弱的时刻不是表达本身，而是<strong>表达之后的等待</strong>。心理学中称之为"暴露后焦虑"（post-disclosure anxiety）——你把最脆弱的部分展示出来了，然后等着对方的反应决定这是"被接住"还是"被忽视"。研究表明，表达后的第一个回应对信任重建有决定性影响。哪怕只是"我看到了"这三个字，也能显著降低表达者的后悔感。'},
+      {result:F?'你给小A发了一条私聊。手指打字的时候在抖。\n\n小A过了几分钟回你："不冲。你说的是事实。只是我们之前都没注意到。"\n\n你愣了一下。你准备好了被指责——但没准备好被理解。眼眶突然就热了。\n\n"谢谢你告诉我。"小A又发了一句。\n\n也许，说出来没有你以为的那么可怕。':'你给小A发了私聊。犹豫了三次，才按下发送。\n\n小A秒回的："你说的对。我确实太吵了。"\n\n你又打了几句——说了考公的压力，说了失眠，说了那些夜晚。小A没有反驳。他只是说了一句："哥们，我不知道。"\n\n这句话不能解决任何问题。但它让你觉得——至少有人在听。',
+       analysis:'<strong>主动修补的勇气</strong>——发完情绪化的消息后选择私聊解释，是一种<strong>情绪调节的高级策略</strong>——心理学称之为"修复性沟通"（repair communication）。你没有等着对方来找你，而是主动跨出了修复的第一步。研究表明，冲突后的主动修补行为，比冲突本身对关系的影响更大。你展示的不只是脆弱，还有勇气。'},
+      {result:F?'你把手机扣在枕头下面。心跳砰砰砰的。\n\n你不想看到"已读不回"。更不想看到有人在背后议论你"太敏感了"。\n\n所以你选择了不看。\n\n那条消息成了群里最后一条。三个月后回头翻——还是零回复。你不知道是真的没人在乎，还是大家都不知道怎么接。但结果是一样的：沉默，和更深的孤立。':'你把手机关了。\n\n不是因为不在乎——恰恰相反，你太在乎了。你害怕看到的不是沉默，而是嘲笑。\n\n你盯着天花板。黑暗里什么都看不见，但脑子里那条消息的每一个字都在发光。"是不是说得太过了？是不是以后完了？"\n\n从那天起，你再也没在群里说过一句话。',
+       analysis:'<strong>情绪封闭的自我保护</strong>——"不看=不受伤"是一种典型的<strong>回避型应对策略</strong>（avoidant coping）。短期内它确实能减少焦虑——但长期来看，它切断了修复关系的可能性。当你选择不看回复，你也关闭了"也许有人在乎"的可能性。心理学家Bowlby的依恋理论指出：回避型策略的核心信念是"求助没有用"——但这个信念本身往往是错的。你以为的"没人在乎"，也许只是"没人知道怎么回应"。'}
+    ]
+    : (function(){
+      // Build responder text dynamically so the player never "replies to themselves"
+      var npdOthers=['A','B','C'].filter(function(x){return x!==p});
+      var npdNames=npdOthers.map(function(x){return ch[x].name});
+      return [
+      {result:F?'你的回复出现在群里的那一刻，空气变了。'+npdNames[0]+'跟着发了一个"我也觉得该聊聊"。'+npdNames[1]+'半小时后发了一句"抱歉之前没注意到"。\n\n小D没有回复。但已读了。而且过了一会儿，她的头像从灰色变成了在线。\n\n有时候，第一个回应的人，决定了所有人的态度。':'你的消息发出去五秒钟，小D回了一个句号。\n\n然后是一分钟的沉默。然后'+npdNames[0]+'也打字了。然后'+npdNames[1]+'。\n\n你知道这不算解决了什么——但至少，沉默被打破了。那片死寂的群聊，终于有了呼吸。',
+       analysis:'<strong>即时回应的信任修复效应</strong>——当一个人鼓起勇气表达痛苦时，<strong>第一个回应者</strong>决定了整个群体的反应模式。心理学中称之为"社会参照"（social referencing）——人们会观察他人的反应来决定自己的行为。你的即时回应不仅安抚了小D，还给了其他人"可以开口"的许可信号。研究表明，在群体冲突中，沉默每多持续一分钟，后续修复的难度就增加一个量级。'},
+      {result:F?'小D过了很久才回你的私聊。只说了三个字："还好吧。"\n\n你知道她不好。但至少她没有已读不回。你们聊了几句——她说最近考研压力大，说失眠，说到后面声音越来越小。\n\n有时候，一扇门只开了一条缝，也比紧闭着强。':'小D回了你："没事。"\n\n你知道他在说谎。但你没有戳穿。你只是说了句"明天请你吃饭"。他回了个"行"。\n\n有些对话就是这样——重要的不是内容，而是"我在"。',
+       analysis:'<strong>私域关怀的边界</strong>——私聊是一种更安全的关怀方式，因为它避开了群体压力，让对方在一对一的空间里更容易放下防备。但它的局限在于：当问题涉及整个群体时，私聊只能解决<strong>情绪</strong>，不能解决<strong>结构</strong>。最好的做法是私聊开路、公开跟进——先在私下建立安全感，再在群体中推动对话。'},
+      {result:F?'你把截图发出去的那一刻就后悔了。\n\n但已经来不及了。两天后，小D的室友转告她，有人在议论她"公主病"。她再也没在群里说过话。\n\n群里的最后一条消息停留在了那天。像一面裂了的镜子，谁都不敢碰。':'截图发出去的一瞬间，你觉得自己占了理。\n\n但后来你才知道——小D看到了那些聊天记录。不知道谁传的。他什么都没说，只是从那天起，再也没在群里发过消息。\n\n有些关系的死亡，不是因为吵架，而是因为在背后的那一刀。',
+       analysis:'<strong>背后议论的信任摧毁力</strong>——社会心理学中的"间接攻击"（indirect aggression）研究表明，在他人背后嘲笑其脆弱表达，是所有社交伤害中<strong>修复难度最高</strong>的一种。因为它传递的信号是："你以为你可以信任的人，其实在笑话你。"这种打击不仅会让当事人退缩，还会长期影响其在任何关系中的自我暴露意愿。信任一旦被这种方式摧毁，几乎不可逆。'}
+    ];})()
+  };
+
+  const memory1={
+    date: F ? '三月初 · 某个平常的晚上' : '三月初 · 某个普通的夜晚',
+    label: '三月初 · 最初的裂痕',
+    narr: F
+      ? ({
+          A:'如果要找一个"开始"的话——大概就是那个晚上。\n\n我在床上刷手机，耳机里放着白噪音。小D在对面翻身，翻了第七次。\n\n我注意到了。\n\n但我假装没注意到。因为如果注意到了，就要做点什么。而我不知道该做什么。\n\n所以我选了最简单的：低头，继续刷。',
+          B:'那时候我才转来两周。\n\n那天晚上，小D突然坐起来叹了口气。很大声的那种——像是已经忍了很久。\n\n我看到了。但我不敢问——万一问了她觉得我多管闲事呢？万一她说"跟你没关系"呢？\n\n"新来的就别插嘴了。"\n\n谁也没说这句话，但我脑子里一直在循环播放。',
+          C:'那天晚上我恰好在。难得。\n\n小D翻来覆去，叹了很多次气。小A在刷手机，屏幕的光一闪一闪的。寝室里弥漫着一种……压抑。\n\n我想说"你们都早点睡"，但手机响了——男朋友打来的电话。我去走廊接了。回来的时候小D已经蒙上了被子。\n\n后来想想，那通电话其实可以不接的。',
+          D:'那天是我第一次失眠。\n\n小A的手机屏幕亮着，蓝光一闪一闪的，像鬼火。小C在走廊打电话，笑声传进来，每一声都像针扎在太阳穴上。\n\n"你们能不能安静一点？"这句话在嗓子眼转了三圈，又咽回去了。\n\n万一她们觉得我小题大做呢？万一被贴上"难相处"的标签呢？\n\n于是我翻了个身，蒙上被子。\n\n那是第一次。后来还有一百多个这样的夜晚。'
+        })[p]
+      : ({
+          A:'大概就是那天晚上。\n\n我在打排位，戴着耳机，键盘啪啪响。我以为自己声音很小——毕竟我戴着耳机听不到外面。\n\n小D从上铺探出头来看了我一眼。那个眼神——我现在还记得。不是愤怒，是一种……快要碎掉的疲惫。\n\n但当时我只想：他怎么还没睡？',
+          B:'才来两周。\n\n那天晚上小A在打游戏，键盘声特别响。小D翻了好几次身，叹了两口气。我也没睡着——但我什么都没说。\n\n因为——我是新来的。新来的人没有资格抱怨。新来的人应该适应环境，而不是让环境适应自己。\n\n至少我当时是这么认为的。',
+          C:'那天半夜回来，推门的时候门轴响了一声——很刺耳的那种。\n\n借着走廊的光看到小D直接坐了起来。我说"不好意思"，他没理我，又躺下了。\n\n我应该修那个门轴的。我心想。\n\n但后来也没有修。一整个学期都没有修。',
+          D:'那是第一个失眠的夜晚。\n\n小A的键盘声像机关枪。小C半夜推门进来的时候我整个人弹了起来——心跳加速，冷汗直冒。\n\n"轻点。"这两个字在嘴边转了半天，又咽回去了。\n\n万一他们觉得我事儿多呢？万一说了也没用呢？\n\n谁知道这一咽，就是一个学期。一百多个夜晚。'
+        })[p],
+    choices: p==='D'
+    ? [
+      {text:F?'轻声说了一句："……你们能不能小声一点？我真的睡不着。"':'坐起来说了一句："哥们，能不能小点声？我明天五点半得起。"',
+       deltas:{A:4,B:6,C:2,D:8}},
+      {text:F?'攥着被角忍住了。也许再等一会儿就安静了。':'忍住了。翻个身，塞上耳塞，告诉自己习惯就好。',
+       deltas:{A:3,B:2,C:4,D:4}},
+      {text:F?'翻了个身，蒙上被子。算了，说了也没用。':'算了。说了也没人当回事。',
+       deltas:{A:-4,B:-4,C:-2,D:-6}}
+    ]
+    : [
+      {text:F?'对小D说："你睡不着吗？要不要聊两句？"':'坐起来问小D："哥们你没事吧？"',
+       deltas:{A:4,B:6,C:2,D:8}},
+      {text:F?'关掉手机屏幕，在黑暗中安静地等。也许安静本身就是一种回应。':'把键盘声调小/把门轻轻关上。不说话，但做了。',
+       deltas:{A:3,B:2,C:4,D:4}},
+      {text:F?'翻了个身，戴上耳机。不关我的事。':'不当回事。谁还没个睡不好的时候。',
+       deltas:{A:-4,B:-4,C:-2,D:-6}}
+    ],
+    feedback: p==='D'
+    ? [
+      {result:F?'"……你们能不能小声一点？"\n\n这句话从嗓子眼里挤出来的时候，你的心在狂跳。寝室突然安静了。\n\n小A愣了一下，默默关掉了手机屏幕。走廊里小C的电话声也停了——也许是巧合，也许不是。\n\n那是你第一次为自己说话。声音很小，但你被听到了。':'你坐起来了。声音有点哑，但你说出来了。\n\n小A的键盘声停了。过了几秒，他说："……抱歉，我不知道这么吵。"\n\n很短的一句话，但那一刻你觉得——也许说出来是对的。也许不是所有人都不在乎。',
+       analysis:'<strong>自我倡导的第一步</strong>——对于长期隐忍的人来说，第一次"说出来"是最难的。心理学中称之为<strong>自我倡导</strong>（self-advocacy）——为自己的需求发声。研究表明，自我表达本身就能降低压力荷尔蒙水平。你不需要完美的措辞，不需要让所有人满意——你只需要让自己的声音被听到。这一次开口，是打破沉默循环的第一步。'},
+      {result:F?'你咬着嘴唇，把话咽了回去。\n\n那晚你到凌晨四点才睡着。被子蒙着头，蒙住了一切声音，也蒙住了你想说的话。\n\n第二天上课昏昏沉沉。你告诉自己：再忍忍，也许明天就好了。\n\n但明天没有好。后天也没有。':'你塞上耳塞，把自己缩在被子里。\n\n耳塞隔不掉所有声音。你能感觉到键盘的震动通过床板传过来，一下一下，像敲在太阳穴上。\n\n第二天闹钟响的时候，你觉得自己根本没睡过。但你还是起来了。五点半。图书馆在等你。',
+       analysis:'<strong>隐忍的心理代价</strong>——"忍一忍就过去了"是中国文化中最常见的情绪管理策略之一。但心理学研究表明，长期的<strong>情绪压抑</strong>（emotional suppression）不仅无法解决问题，还会导致生理应激反应——失眠、头痛、免疫力下降。你选择了忍耐，保护了表面的和平，但代价是你自己的健康和安宁。每一次"再忍忍"，都在为未来的崩溃添一块砖。'},
+      {result:F?'你翻了个身，面朝墙壁。\n\n"说了也没用。"这五个字在脑子里转了一圈又一圈。你开始数绵羊——数到237的时候，天已经蒙蒙亮了。\n\n从那天起，你再也没想过开口。忍耐成了默认模式。一百多个夜晚，你都是这样过来的。':'你闭上了眼。\n\n"有什么用呢？"你想。说了他们也不会改。说了反而显得自己事儿多。\n\n那晚是第一个失眠夜。但不是最后一个。从那天起，每个夜晚你都重复着同一个选择：忍。\n\n直到有一天，你忍不住了。',
+       analysis:'<strong>习得性无助的起点</strong>——心理学家Martin Seligman的"习得性无助"（learned helplessness）理论描述了一种状态：当一个人反复经历"无论做什么都没用"的体验后，就会放弃尝试。你的"说了也没用"不是一个客观判断——你还没有说过。但过往的经验让你<strong>预判了失败</strong>，于是你连试都没试。这不是你的错，但它确实关闭了一扇本来可能打开的门。'}
+    ]
+    : [
+      {result:F?'"你睡不着吗？"\n\n这四个字在黑暗的寝室里轻轻落下来。像石子投入湖面，涟漪很小，但它碎了沉默。\n\n小D愣了一下，然后说："嗯……最近有点。"\n\n那是一个微小的瞬间——如果你没开口，它就会滑过去，像无数个其他的夜晚一样。但你开口了。那个瞬间，后来改变了很多。':'你的声音在黑暗中响起来。小D没立刻回答。\n\n过了大概十秒——你数了——他说："没事。就是……有点吵。"\n\n这是他第一次说出口。虽然轻描淡写，但门打开了一条缝。你看到了那条缝里透出来的光。',
+       analysis:'<strong>微小干预的蝴蝶效应</strong>——人际关系中最关键的时刻往往不是大事件，而是那些"差一点就错过"的微小瞬间。心理学家John Gottman的研究称之为<strong>"转身"（turning toward）</strong>——当对方发出微弱的情感信号时，你是否回应了它。他的研究发现，关系质量的最强预测因子不是"大事件时怎么做"，而是"小瞬间时是否在场"。你的这一句话，就是一次珍贵的"转身"。'},
+      {result:F?'你没说话。但你关掉了手机。\n\n黑暗和安静同时降临。你不确定小D有没有注意到——但过了一会儿，她翻身的频率变慢了。呼吸也慢慢变得均匀。\n\n也许安静是一种不够完美但足够真诚的关心。':'你什么都没说，但动作轻了。键盘不敲了，门关得很轻。\n\n小D没有任何表示。但第二天早上，他跟你打了个招呼——平时他从不主动跟人说话。\n\n也许有些善意不需要语言。身体比嘴诚实。',
+       analysis:'<strong>行为关怀 vs 语言关怀</strong>——不是每个人都擅长用语言表达关心。"把键盘声调小""关掉屏幕"是一种<strong>行为层面的共情</strong>——它说的不是"我理解你"，而是"我愿意为你改变"。心理学中称之为<strong>主动调节行为</strong>（proactive accommodation）。研究表明，行为改变的长期效果甚至优于语言安慰——因为它更可信、更持久。不过它的风险是：对方可能没有注意到你的改变，从而误以为你不在意。'},
+      {result:F?'你翻了个身。耳机里的音乐把一切隔绝在外。\n\n你不知道的是——小D那天晚上一直到四点才睡着。而那是她开始失眠的第一个夜晚。\n\n从那天起，每天都是四点。\n\n有时候，最大的伤害不是你做了什么，而是你本可以做什么但没做。':'你什么都没想。翻了个身就睡了。\n\n你不知道的是——小D那天盯着天花板到凌晨四点。那是整个学期痛苦的起点。那些失眠的夜晚像多米诺骨牌一样一个接一个地倒下去。\n\n如果用因果链来追溯，一切的"后来"，都从这个"没当回事"开始。',
+       analysis:'<strong>"旁观者冷漠"的亲密版本</strong>——在陌生人之间这叫"旁观者效应"（bystander effect），而在亲密关系中，这种冷漠的杀伤力翻倍。因为它传递的不是"我没注意到"，而是<strong>"我注意到了，但我不在乎"</strong>。对于正在经历痛苦的人来说，被无视比被反对更令人绝望——因为反对至少意味着对方看到了你，而无视意味着你根本不存在。'}
+    ]
+  };
+
+  return {opening:openingNarr,memories:[memory1,memory2,memory3,memory4]};
+}
+
+// --- ENDINGS (per-character, per-pattern) ---
+function getEnding(){
+  const F=gender==='F';
+  const m=meters;
+  const p=playerChar;
+  const myMeter=m[p];
+  const others=['A','B','C','D'].filter(k=>k!==p);
+  const othersAvg=others.reduce((s,k)=>s+m[k],0)/3;
+
+  // Per-character endings
+  const endings={
+    F:{
+      A:{
+        harmony:{icon:'🌙',title:'和解·「寝室长的夜灯」',
+          text:'推开门。四张床，四套被褥，桌上散着几本书和一盒没吃完的饼干。便利贴还在门上——四个名字都在。\n\n窗台上多了一盆小绿植。不知道谁放的。\n\n你放下行李，打开窗户。九月的风吹进来。手机震了——407群消息："谁先到的？帮我占个插排。"\n\n你笑了。回了一句："已到。等你们。"\n\n作为寝室长，你做了该做的事。不是完美的处理，但是真诚的尝试。407从来不完美，但它是你的。',
+          comment:'你在每一个记忆中都选择了回应而不是回避。作为寝室长，你没有用"权力"去定规矩，而是用"脆弱"去打开对话。这种领导力不来自于强硬，而来自于愿意第一个承认"我也不好"。心理学中称之为<strong>仆人式领导</strong>（servant leadership）——最好的引导者不是站在前面指路的人，而是站在人群中说"我们一起走"的人。'},
+        broken:{icon:'🌧️',title:'破裂·「辞去寝室长」',
+          text:'推开门。只有你的床还保持着原样。其他三张——被子叠得整齐，像酒店退房后的样子。\n\n便利贴被撕掉了。只剩下胶痕。\n\n你慢慢坐下来。手机里没有消息。407群最后一条还是三个月前的——那条没有人回复的求助。\n\n你想：也许不是她们离开了407，是407从某个夜晚开始，就已经不存在了。',
+          comment:'当寝室长选择了沉默和回避，整个寝室就失去了"主心骨"。大家都在等你，你却不在。心理学中的<strong>关系死亡</strong>不是一次爆炸，而是一千次微小的疏忽——每一次你选择"算了"，都在无声地告诉她们："你们的痛苦不值得我站出来。"'},
+        bias:{icon:'🌗',title:'偏爱·「只有一个人的寝室长」',
+          text:'推开门。%HIGH%的东西还在。其他人——有的搬走了，有的还在但已经不怎么出现了。\n\n你意识到，这个学期你把所有的注意力都给了一个人，而忽略了其他人。不是故意的。只是……你也只有这么多精力。\n\n%HIGH%给你发消息："到了？"\n\n你回了"嗯"。然后看着其他三个人的头像，发不出一句话。',
+          comment:'你的关心是真诚的，但也是<strong>不均匀的</strong>。心理学中的"关系投资模型"（investment model）表明，公平感对人际关系的稳定至关重要。当你的关注集中在一个人身上时，其他人会解读为"我不重要"。作为寝室长，平衡关注是最难但最重要的功课。'},
+        complex:{icon:'🌥️',title:'复杂·「说了一半的话」',
+          text:'推开门。四张床都在。但气氛说不上好也说不上坏——就像一杯放了太久的温水。\n\n有些话说了，有些没说。有些裂痕修补了，有些还裂着。\n\n你坐下来，翻到407群的聊天记录。有几条暖心的，也有几段尴尬的沉默。\n\n也许这才是真实——不是童话，也不是悲剧。只是……复杂。而你作为寝室长，还有一整个学期可以继续尝试。',
+          comment:'现实中的人际关系很少有"完美修复"或"彻底崩塌"——大多数时候它停留在灰色地带。心理学称之为<strong>"未完成的格式塔"</strong>（unfinished Gestalt）——那些说了一半的话、做了一半的善意。它不完美，但它是真实的。真正的成长不是追求完美结局，而是学会<strong>在不完美中继续相处</strong>。'}
+      },
+      B:{
+        harmony:{icon:'🌙',title:'和解·「不再是新来的」',
+          text:'推开门。小A在整理桌子，抬头看你："来啦！帮你占了插排。"\n\n你发现自己笑了——不是那种小心翼翼的笑，是真的笑。\n\n小D的闹钟还在床头。小C的化妆品还在桌角。门上的便利贴你的名字写得最大——是小A上学期末加上去的。\n\n你把行李放到自己的位子上，终于有了一种"这是我家"的感觉。',
+          comment:'你从"小心翼翼的新人"变成了"被看到的室友"。这个转变不是因为你做了什么惊天动地的事，而是因为你选择了参与——在每一个可以开口的瞬间，你开了口。心理学研究表明，<strong>归属感</strong>不是被动等来的，而是在一次次微小的互动中主动建立的。'},
+        broken:{icon:'🌧️',title:'破裂·「永远的局外人」',
+          text:'推开门。\n\n你的位子还在。但其他几张床——有的空了，有的换了新面孔。\n\n你不认识那个正在铺床的人。她看了你一眼，礼貌地笑了笑。\n\n你也笑了笑。然后想起来——你也是这样来的。而你花了一个学期，也没能从"客人"变成"家人"。',
+          comment:'作为新人，沉默是最自然的自我保护。但保护久了，就变成了隔阂。你习惯了不说话、不参与、不惹事——但这些"不"，在其他人眼里变成了"不想加入"。<strong>归属感</strong>的悖论在于：你越等待别人来接纳你，你就越孤立。'},
+        bias:{icon:'🌗',title:'偏爱·「只认识一个人的寝室」',
+          text:'推开门。%HIGH%在——她朝你挥了挥手。其他人的动静不大。\n\n你意识到自己这一个学期只真正认识了一个人。其他人你知道名字、知道专业、知道她们的习惯——但你们之间隔着一层透明的膜。\n\n%HIGH%问你暑假怎么样。你说还行。然后两个人都不知道聊什么了。',
+          comment:'在新环境中找到一个"安全港"是正常的，但如果你只停留在那个安全港里，就永远无法真正融入群体。你与%HIGH%的关系很好，但寝室是一个四人系统——你需要与每个人都建立连接，哪怕只是很浅的连接。'},
+        complex:{icon:'🌥️',title:'复杂·「踮着脚尖的日子」',
+          text:'推开门。四个人都在，或者说，四个人的东西都在。\n\n你放下行李。小A打了个招呼。你回了个"嗯"。然后是——不尴尬但也不亲密的安静。\n\n你还在适应。也许下学期会好一些。\n\n也许。',
+          comment:'融入一个已有默契的群体，本身就需要时间。你的谨慎不是缺点，但过度的谨慎会让人误以为你"不想参与"。下学期试着多主动一步——不需要很大的一步，一句"早安"就够了。'}
+      },
+      C:{
+        harmony:{icon:'🌙',title:'和解·「回来的那个人」',
+          text:'推开门。\n\n小D的闹钟还在床头。小A在整理桌面。小B在看书。\n\n你放下行李，突然觉得这间寝室比男朋友那边要……暖。不是温度的暖，是人的暖。\n\n手机响了——男朋友问你到了没。你回了"到了"，然后顿了顿，加了一句："今晚睡寝室。"\n\n你选择了回来。不只是身体回来，是心也回来了。',
+          comment:'你从"偶尔出没"变成了"选择留下"。这个转变是这个学期最重要的成长——它意味着你学会了在"舒适"和"责任"之间做选择。<strong>亲密关系不只是你和男朋友</strong>，你的室友也是你大学生活中不可替代的一部分。'},
+        broken:{icon:'🌧️',title:'破裂·「永远的过客」',
+          text:'推开门。你的床在，但上面落了一层薄灰。\n\n好像整个暑假都没人碰过你这边。\n\n你坐下来。手机里男朋友发来消息："来我这边住吧，反正你也不怎么回寝室。"\n\n你看着那条消息，想到的不是"好"，而是——"我什么时候变成了不回寝室的人？"',
+          comment:'缺席的代价比你想象的大。当你不在的时候，其他人的生活照样运转——但你在她们的记忆中慢慢变成了"那个不在的人"。最后，不是她们不想叫你，是她们习惯了你不在。<strong>存在感不会自动产生，它需要你"在"。</strong>'},
+        bias:{icon:'🌗',title:'偏爱·「只对一个人回来了」',
+          text:'推开门。%HIGH%朝你打了个招呼。其他人——有人在，但好像你们之间隔了点什么。\n\n你回来了，但只对一个人回来了。对其他人来说，你还是那个"偶尔出没的室友"。',
+          comment:'你确实努力了，但你的注意力只分给了一个人。寝室关系是一个网络，不是一根线——只维护一段连接，其他连接就会慢慢断裂。'},
+        complex:{icon:'🌥️',title:'复杂·「半个室友」',
+          text:'推开门。四个人的位子都有人。但你的那个位子……上面多了一盆花。小A说："你暑假不在我就放了盆花，你回来我挪走。"\n\n你笑了笑，心里不是滋味。\n\n你还是"半个室友"。一半在这里，一半在别处。但至少——你想成为"整个的"。也许下学期吧。',
+          comment:'你对407的参与是断断续续的——有时候在场也在心，有时候在场但心不在。这种"半参与"比完全缺席更让人困惑——因为它给了人希望又拿走了。下学期，试着做出一个明确的选择：要么真正回来，要么坦诚告知。'}
+      },
+      D:{
+        harmony:{icon:'🌙',title:'和解·「终于能睡了」',
+          text:'推开门。\n\n窗帘已经被换了——遮光的那种。床头多了一个便利贴："D姐，欢迎回来！——A"\n\n你放下行李。小A发消息说马上到。小B说给你带了新的耳塞。小C说"今晚在"。\n\n你躺在床上，闭上眼。寝室很安静。不是那种令人窒息的安静，而是一种——被照顾的安静。\n\n你想：今晚也许不用吃安眠药了。',
+          comment:'你勇敢地说出了自己的需求，也在过程中学会了更好的表达方式。冲突不可怕，可怕的是需求被压抑到爆炸。你证明了一件事：说出"我需要"不是矫情，而是对关系的尊重——因为你相信这段关系能接住你的真实。<strong>安全依恋基地</strong>不是没有冲突的地方，而是冲突可以被看到、被接住、被解决的地方。'},
+        broken:{icon:'🌧️',title:'破裂·「隔壁寝室有空位」',
+          text:'你没有回407。\n\n你跟辅导员申请了换寝室。新寝室在隔壁楼——安静，干净，没有人认识你。\n\n搬东西的时候，小A站在走廊看着你。她说了句"有空回来玩"。你笑了笑，说了"好"。\n\n但你知道你不会回去。\n\n新寝室的室友很安静。你终于能睡了。但闭上眼的时候，脑子里全是407的画面。',
+          comment:'你的需求是合理的，但当需求被长期忽视，它就从"请求"变成了"愤怒"，最终变成了"放弃"。你不是不想留下——你是撑不住了。记住：<strong>离开不丢人，但下一次，试着在离开之前先让所有人听到你。</strong>'},
+        bias:{icon:'🌗',title:'偏爱·「只有一个人听到了」',
+          text:'推开门。%HIGH%的东西在。其他人——有的搬了，有的还在但已经形同陌路。\n\n你的失眠改善了一些，因为%HIGH%在意你的感受。但一个人的在意，不够撑起一间四人寝室。\n\n你还是很累。只是不再是一个人的累了。',
+          comment:'你被一个人听到了，但不是所有人。这比完全的沉默好，但也不够——因为你的需求涉及整个寝室的生活方式，一个人的改变解决不了系统性的问题。'},
+        complex:{icon:'🌥️',title:'复杂·「睡了但没完全睡」',
+          text:'推开门。四张床都在。\n\n小A说了声"欢迎回来"。你说了声"嗯"。然后是——不冷不热的安静。\n\n问题解决了一些，但不彻底。你的睡眠好了一点，但还是会在凌晨三点醒来。有些夜晚是因为噪音，有些夜晚是因为——你已经忘了怎么在不焦虑的状态下入睡。\n\n但至少你们还在同一间屋子里。还有机会。',
+          comment:'你的需求得到了部分满足，但代价是一段变得小心翼翼的关系。问题不在于你提出了需求，而在于冲突处理中双方的感受没有被充分交换。下学期试试：在说"我需要"之后，再多问一句"你觉得呢"。'}
+      }
+    },
+    M:{
+      A:{
+        harmony:{icon:'🔥',title:'和解·「407永不散场」',
+          text:'推开门。四张床都在。桌上放着几罐没开的可乐。空调嗡嗡响着。\n\n你把行李往床上一扔，群里发了句："到了。"\n\n三个人几乎同时回复。小D说"给你留了插排"。小B发了个表情包。小C说"晚上一起吃"。\n\n你突然觉得——这间寝室闻起来像家。\n\n你把直播设备换了个位置——面向窗户。这样键盘声会小一些。你自己都没注意到自己在做这件事。',
+          comment:'你从"自我中心"的游戏主播变成了"会看别人脸色"的室友。这不是妥协，是成长。你终于意识到：戴着耳机的世界是安静的，但<strong>摘下耳机才能听到别人的声音</strong>。'},
+        broken:{icon:'🌧️',title:'破裂·「空了一个位」',
+          text:'推开门。一张床空了。被褥叠得整齐，像酒店退房。\n\n你坐在自己位子上，打开电脑。但今天不想开直播。\n\n你盯着对面那张空床。想到小D走的那天——他什么都没说，只是把钥匙放在了桌上。\n\n你摘下耳机。寝室安静得让人不舒服。',
+          comment:'你一直活在自己的世界里——戴着耳机，沉浸在游戏和直播中。你不是故意伤害别人，你只是<strong>没有注意到</strong>。但"没注意到"不是免责声明。下一次，摘下耳机，看看你身边的人。'},
+        bias:{icon:'🌗',title:'偏爱·「只照顾到一个人」',
+          text:'推开门。%HIGH%在。其他人——有的不在了，有的虽然在但几乎不说话。\n\n你对%HIGH%特别上心——调了键盘声，换了静音鼠标。但对其他人，你好像没怎么变。\n\n你做了改变。但不够多，也不够公平。',
+          comment:'你愿意为在乎的人改变，这很好。但寝室是个整体——只对一个人好，其他人看在眼里，心里的解读是"他能做到，只是不愿意为我做"。'},
+        complex:{icon:'🌥️',title:'复杂·「摘下耳机的时候」',
+          text:'推开门。大家都在。但互相之间的距离说不清楚——比陌生人近，比朋友远。\n\n你戴上耳机准备开机。然后顿了顿，又摘了下来。问了句："晚上一起吃啥？"\n\n三个人愣了一下，然后小C笑了："你今天没直播？"\n\n你说："今天不播了。"\n\n也许这就是开始。',
+          comment:'你的改变是断断续续的——有时候摘下耳机，有时候又戴上。但至少你开始意识到：<strong>耳机隔绝的不只是噪音，还有关系</strong>。继续摘下来。每一次摘下来，都是一次回到人群中的选择。'}
+      },
+      B:{
+        harmony:{icon:'🔥',title:'和解·「不再是新来的」',
+          text:'推开门。小A在打游戏——声音居然开得很小。他看了你一眼："来啦。"\n\n你发现自己没犹豫就回了句："嗯，到了。"\n\n不是"嗯"加句号的那种客气。是真正的"到了"。\n\n小D的闹钟还在床头。桌上有人给你留了一瓶水。你不知道是谁。\n\n但这不重要。重要的是——有人想到了你。',
+          comment:'你从"点头之交"变成了"被记住的人"。不是因为你做了什么惊天动地的事，而是因为你在每一个可以开口的瞬间，选择了开口。<strong>归属感</strong>不是等来的——它是一句句"我也想说"换来的。'},
+        broken:{icon:'🌧️',title:'破裂·「还是新来的」',
+          text:'推开门。你的位子还在。但一个学期过去了，这个位子还是"新来的那个人"的位子。\n\n你坐下来。群聊里最后一条消息是两个月前的。\n\n你打了一句"到了"——犹豫了五秒——删了。\n\n算了。反正也没人问。',
+          comment:'一个学期的沉默让你从"新人"变成了"隐形人"。不是他们排斥你——是你把自己藏得太好了。<strong>没有人能看到不存在的人。</strong>'},
+        bias:{icon:'🌗',title:'偏爱·「只认识一个兄弟」',text:'推开门。%HIGH%在，跟你打了个招呼。其他人你叫不太准名字——不对，你知道名字，但你们之间没有"名字以外"的东西。\n\n一个学期，你只交了一个朋友。不算差。但也谈不上"融入"。',
+          comment:'在陌生环境中抓住一个"安全锚点"是人之常情。但如果你只停留在那个锚点上，你永远是那个"只跟XX玩的人"。试着把圈子扩大一点。'},
+        complex:{icon:'🌥️',title:'复杂·「还在适应」',text:'推开门。四个人的东西都在。你放下行李。\n\n小A问你暑假怎么样。你说了三个字："还可以。"\n\n你还在适应。但比上学期好一点——至少你敢说三个字了。\n\n也许下学期能说一句话。然后两句。然后——也许有一天能开一个玩笑。',
+          comment:'融入需要时间。你的谨慎不是问题，但不要把谨慎变成退缩。下学期给自己定一个小目标：每天主动跟一个人说一句话。不需要多深刻——"今天食堂的菜不错"就够了。'}
+      },
+      C:{
+        harmony:{icon:'🔥',title:'和解·「回来住」',text:'推开门。\n\n你的床铺好了——是小A帮你铺的，还发了条消息："兄弟床给你铺好了，被子晒过了。"\n\n你给女朋友发了条消息："今晚睡寝室。"\n\n她回："好。"\n\n你往床上一躺，闻到了洗衣液的味道。这间寝室比你记忆中的好。也许因为你之前太少待在这里了。',
+          comment:'你选择了"回来"。不只是身体回来——是下决心把自己当成407的一份子，而不是一个偶尔出没的影子。存在感是需要经营的，而经营的第一步就是"在"。'},
+        broken:{icon:'🌧️',title:'破裂·「影子室友」',text:'推开门。你的床上落了一层灰。\n\n好像整个暑假都没人碰过你这边。也对——你本来就不怎么在。\n\n你看了眼群聊。最后一条消息是小A发的"新学期快乐"。你点了个赞。\n\n然后给女朋友发了条消息："今晚过去。"\n\n你又走了。',
+          comment:'你从来没有真正"在过"407。偶尔的出现和持续的缺席让你变成了一个"名义上的室友"。缺席不是罪，但不告而别是一种伤害——它让留下来的人觉得"我们不值得你留下"。'},
+        bias:{icon:'🌗',title:'偏爱·「只对一个人回来了」',text:'推开门。%HIGH%在。你们聊了几句。其他人——打了个招呼就各忙各的了。\n\n你回来了，但只对一个人回来了。',
+          comment:'你的存在感只聚焦在一个人身上——其他人依然不知道你什么时候来什么时候走。寝室不是酒店，你的来去影响着所有人。'},
+        complex:{icon:'🌥️',title:'复杂·「半个室友」',text:'推开门。四个人的位子都有人。\n\n你站在门口犹豫了一下——这种犹豫很微妙。不是不敢进去，是不确定自己属不属于这里。\n\n小A说："进来啊。"\n\n你笑了笑，走进去了。也许下学期可以多待一些。',
+          comment:'你还在"寝室"和"女朋友那边"之间摇摆。这种摇摆本身不是问题——但请给室友们一个预期。让他们知道你什么时候在、什么时候不在，好过每次推门都是一个意外。'}
+      },
+      D:{
+        harmony:{icon:'🔥',title:'和解·「今晚终于能睡了」',text:'推开门。\n\n窗帘被换成了遮光的。小A的键盘——换了静音轴。小C的东西多了不少——他说这学期打算多住寝室。\n\n你躺在床上，闭上眼。寝室很安静。不是那种让人发疯的安静——是一种被照顾的安静。\n\n手机震了。群消息。小A发了张游戏截图："今晚有没有人一起打？"\n\n你回了一句："打完十一点我就睡了。"\n\n小A秒回："绝对十一点收。"\n\n你笑了。今晚不用吃安眠药了。',
+          comment:'你勇敢地说出了需求，也学会了更好的表达方式。冲突不可怕，可怕的是需求被压抑到爆炸。你证明了：说出"我需要"不是矫情，是对关系的尊重。'},
+        broken:{icon:'🌧️',title:'破裂·「换寝申请」',text:'你跟辅导员交了换寝申请。\n\n新寝室在五楼——安静。没有键盘声，没有半夜推门声。你终于能睡了。\n\n但有时候醒来，会习惯性地去看对面的床。对面没人。\n\n你想起走之前小A说的那句话："兄弟，对不住了。"\n\n你没有回头。但那句话一直在脑子里。',
+          comment:'你的需求完全合理。但表达方式和后续处理让冲突滑向了不可逆的方向。"对的需求"+"错的方式"=受伤的结果。记住：<strong>你有权发声，但怎么说、什么时候说、说了之后怎么做，决定了结局。</strong>'},
+        bias:{icon:'🌗',title:'偏爱·「只有一个人听到了」',text:'推开门。%HIGH%在。他说："D哥，给你留了插排。"\n\n你点了点头。\n\n其他人——有的在但不怎么说话，有的干脆不在了。你的失眠好了一些，因为至少有一个人在意。但一个人的在意……扛不住整间寝室的问题。',
+          comment:'你被一个人听到了。这比完全的沉默好——但还不够。你的需求是系统性的，需要整个寝室的配合。一个人的善意是灭火器，不是防火墙。'},
+        complex:{icon:'🌥️',title:'复杂·「好了一些但没全好」',text:'推开门。四张床都在。小A戴着耳机但没打游戏。小B在看书。小C居然在。\n\n你躺下来。闭眼。\n\n大概半小时后你醒了——不是被吵醒的，是自然醒的。好久没有自然醒过了。\n\n外面有人在说话。你没有烦躁。\n\n也许事情在好转。慢慢地，不确定地，但确实在好转。',
+          comment:'问题解决了一部分，但不彻底。你的睡眠好了一点，但关系还在修复中。这很正常——真正的修复不是一次对话就能完成的，它需要持续的善意和持续的沟通。'}
+      }
+    }
+  };
+
+  // Determine ending pattern — primarily based on player's own meter
+  let pattern;
+  if(myMeter>=65) pattern='harmony';
+  else if(myMeter<=35) pattern='broken';
+  else if(myMeter>=45&&myMeter-othersAvg>=20) pattern='bias';
+  else pattern='complex';
+
+  let ending=endings[gender][p][pattern];
+  endingPattern=pattern;
+
+  // Replace %HIGH% placeholder for bias endings
+  if(pattern==='bias'){
+    const othersKeys=Object.keys(m).filter(k=>k!==p);
+    const highChar=othersKeys.reduce((a,b)=>m[a]>m[b]?a:b);
+    const highName=CHARS[gender][highChar].name;
+    ending={...ending,text:ending.text.replace(/%HIGH%/g,highName),comment:ending.comment.replace(/%HIGH%/g,highName)};
+  }
+
+  // Communication style per character
+  let aCount=choices.filter(c=>c===0).length;
+  let style,tip;
+  if(aCount>=3){
+    style=F?{A:'情感先行者',B:'温柔融入者',C:'归来的守护者',D:'忍耐的勇者'}[p]:{A:'摘下耳机的人',B:'开口的新人',C:'回来的室友',D:'冷静的表达者'}[p];
+    tip=F?{A:'你选择了在每一个关键时刻先展示自己的脆弱。这种勇气不是每个人都有的——它让你成为了那个"打破沉默"的人。记住：不需要每次都你先开口，但当你开口的时候，你给了所有人许可。',
+      B:'作为新人，你没有选择安全的沉默，而是选择了参与。这比你想象中更重要——因为你的"局外人"视角，往往能看到局内人看不到的盲区。你的存在不是负担，是礼物。',
+      C:'你选择了回来。不只是身体回来，而是真正把注意力带了回来。这不容易——当你有另一个更舒适的去处时，选择留下来面对问题需要很大的勇气。',
+      D:'你终于不再独自忍耐了。你学会了在崩溃之前开口，而不是崩溃之后爆发。这意味着你开始相信"说出来"可以改变什么——这种信任，是人际关系最珍贵的基石。'}[p]
+      :{A:'你开始意识到耳机外面有一个世界——那个世界里有人因为你而睡不着觉。你的改变不需要很大，只需要持续。每一次摘下耳机，都是一次回到人群中的选择。',
+      B:'你打破了"新人不说话"的魔咒。融入不需要资格——你的存在本身就是参与。下次开口之前不用犹豫那么久——他们在等你。',
+      C:'你从"影子室友"变成了"在场的人"。回来不只是推开寝室的门——是推开你心里那道"反正我也不属于这里"的门。',
+      D:'你学会了在愤怒到来之前用平静的语气说出需求。这是情商最高的表现之一——不是压抑情绪，而是在情绪和表达之间找到平衡。'}[p];
+  } else if(aCount>=1){
+    style=F?{A:'摇摆的回应者',B:'谨慎的观望者',C:'半心半意的参与者',D:'欲言又止者'}[p]:{A:'偶尔清醒的人',B:'犹豫的新人',C:'来了又走的人',D:'忍了又说的人'}[p];
+    tip=F?{A:'你在一些关键时刻回应了，在另一些时刻退缩了。这很正常——没有人能一直勇敢。但请记住：每一次"算了"都有代价，而每一次"我在"都有回报。关键不是完美，而是持续。',
+      B:'你在犹豫和行动之间摇摆。新环境中的谨慎是合理的，但过度的谨慎会让别人以为你"不想参与"。有时候，一句不完美的话，好过完美的沉默。',
+      C:'你回来了一半。有些时候你在场也在心，有些时候你在场但心不在。这种断断续续的参与比完全缺席更让人困惑——因为它给了人希望又拿走了。',
+      D:'你试着开口了，但有时候又咽了回去。你的忍耐是一种品质，但也是一种负担。学会在忍耐变成愤怒之前说出来——不是为了指责，而是为了让自己好过一点。'}[p]
+      :{A:'你有时候会摘下耳机，有时候又戴上。改变是断断续续的——但至少你开始有了意识。持续下去。',
+      B:'你在开口和沉默之间挣扎。这种挣扎本身就说明你在乎。下次挣扎的时候，选择开口。',
+      C:'你回来了几次，又走了几次。不稳定的存在比稳定的缺席更让人困惑。试着给自己定个规矩。',
+      D:'你在忍耐和爆发之间来回切换。试着找到中间地带——不是忍，也不是炸，是平静地说"我不舒服"。'}[p];
+  } else {
+    style=F?{A:'沉默的旁观者',B:'隐形的新人',C:'缺席的室友',D:'独自崩溃者'}[p]:{A:'戴着耳机的人',B:'透明人',C:'影子室友',D:'沉默到爆炸的人'}[p];
+    tip=F?{A:'你选择了沉默和回避。也许你觉得"不参与就不会受伤"——但在亲密关系中，不参与本身就是一种伤害。你的沉默被其他人解读为了"不在乎"。这不是真相，但这是她们感受到的。',
+      B:'你把"新人"当成了不参与的理由。但事实是——没有人在等你"有资格"才开口。你的存在本身就是参与。下学期，试着说第一句话。',
+      C:'缺席是一种选择，但它的代价比你想象的大。当你不在的时候，其他人的生活照样运转——但你在她们的记忆中慢慢变成了"那个不在的人"。',
+      D:'你扛到了最后，但代价是巨大的。独自承受不是勇敢，是对自己的不公平。下一次，请在崩溃之前寻求帮助——不是因为你弱，而是因为你值得被帮助。'}[p]
+      :{A:'你一整个学期都没摘下耳机。不是说物理上的——是心理上的。你把自己隔绝在了一个人的世界里。下学期，试着听一听外面的声音。',
+      B:'你在407住了一个学期，但407不认识你。不是他们的错——是你把自己藏得太好了。存在的第一步不是被看到，而是让自己可见。',
+      C:'你几乎不在。寝室对你来说只是一个放东西的地方。但对其他人来说，你的缺席是一种无声的离开。如果你不打算在这里，至少让他们知道。',
+      D:'你忍了一个学期，然后爆炸了。或者更糟——你忍了一个学期，然后沉默地离开了。下次，在第一天就说出来。不需要等到第一百天。'}[p];
+  }
+  return {ending,style,tip};
+}
+
+// --- UI HELPERS ---
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));const el=document.getElementById(id);if(el){el.classList.add('active');try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}}}
+function appendHTML(html,pos,animate){const d=document.createElement('div');d.innerHTML=html;if(animate==='rewind')d.style.animation='rewind 0.7s ease forwards';storyEl.appendChild(d);if(pos!=='no-scroll'){setTimeout(()=>{try{const rect=d.getBoundingClientRect();const vh=window.innerHeight||document.documentElement.clientHeight;if(rect.top>vh*0.6){window.scrollBy({top:rect.top-vh*0.25,behavior:'smooth'})}else if(rect.top>vh){d.scrollIntoView({behavior:'smooth',block:'center'})}}catch(e){window.scrollBy(0,200)}},150)}}
+function disableChoices(){document.querySelectorAll('.choice-btn:not(.disabled)').forEach(b=>b.classList.add('disabled'))}
+function fixPerspective(text){
+  // When the player IS a character, replace third-person references to that character with first-person
+  const myName=CHARS[gender][playerChar].name;
+  const isFemale=gender==='F';
+  // Replace "小X说" → "我说", "小X的" → "我的", "小X没有" → "我没有", etc.
+  // Also handle pronouns "她/他" that follow the character name in the same sentence
+  let t=text;
+  // Direct name replacements (most common patterns)
+  t=t.replace(new RegExp(myName+'说','g'),'我说');
+  t=t.replace(new RegExp(myName+'没有','g'),'我没有');
+  t=t.replace(new RegExp(myName+'过了','g'),'我过了');
+  t=t.replace(new RegExp(myName+'听完','g'),'我听完');
+  t=t.replace(new RegExp(myName+'站起来','g'),'我站起来');
+  t=t.replace(new RegExp(myName+'看到','g'),'我看到');
+  t=t.replace(new RegExp(myName+'愣了','g'),'我愣了');
+  t=t.replace(new RegExp(myName+'已经','g'),'我已经');
+  t=t.replace(new RegExp(myName+'那天','g'),'我那天');
+  t=t.replace(new RegExp(myName+'的闹钟','g'),'我的闹钟');
+  t=t.replace(new RegExp(myName+'的眼睛','g'),'我的眼睛');
+  t=t.replace(new RegExp(myName+'的字','g'),'我的字');
+  t=t.replace(new RegExp(myName+'的头像','g'),'我的头像');
+  t=t.replace(new RegExp(myName+'回了','g'),'我回了');
+  t=t.replace(new RegExp(myName+'回你','g'),'我回你');
+  t=t.replace(new RegExp(myName+'发了','g'),'我发了');
+  t=t.replace(new RegExp(myName+'在群','g'),'我在群');
+  t=t.replace(new RegExp(myName+'在上铺','g'),'我在上铺');
+  t=t.replace(new RegExp(myName+'翻了','g'),'我翻了');
+  t=t.replace(new RegExp(myName+'瘦了','g'),'我瘦了');
+  t=t.replace(new RegExp(myName+'坐在','g'),'我坐在');
+  // Catch-all: remaining "小X" + verb/particle patterns
+  t=t.replace(new RegExp(myName+'(的|也|又|还|就|才|先|再|都|不|很|更|最|从|在|是|把|被|跟|给|让|对|向|到)','g'),'我$1');
+  // Handle "小X，" or "小X。" at sentence boundaries
+  t=t.replace(new RegExp(myName+'([，。？！：；、])','g'),'我$1');
+  // Handle "私聊小X" → "私聊我" (when others message the player)
+  t=t.replace(new RegExp('私聊'+myName,'g'),'私聊我');
+  // Handle "跟小X" → "跟我"
+  t=t.replace(new RegExp('跟'+myName,'g'),'跟我');
+  // Handle "你看小X是不是" → should not appear when D is player (choice text issue)
+  t=t.replace(new RegExp('你看'+myName,'g'),'你看自己');
+  // Additional verb patterns
+  t=t.replace(new RegExp(myName+'(?=走到|坐下|拿起|放下|打开|关上|站起来|转过身|犹豫|叹气|笑|哭|看|听|说|问|想|觉得|知道|记得|明白|开始|决定|选择|需要|希望|发现|意识到|注意到|感觉|以为|认为|觉得|同意|拒绝|接受|承认|否认|回答|回复|解释|道歉|感谢|抱怨|批评|指责|原谅|理解|支持|鼓励|安慰|陪|帮|找|约|带|送|接|请|叫|催|劝|拦|拉|推|抱)','g'),'我');
+  // Handle "小X" before punctuation (broader catch)
+  t=t.replace(new RegExp(myName+'(?=[，。？！：；、""])','g'),'我');
+  return t;
+}
+
+function renderTimeline(activeIdx){
+  // activeIdx: -1=opening, 0=mem[0](三月), 1=mem[1](四月), 2=mem[2](五月), 3=mem[3](六月), 4=reveal
+  const nodes=[{l:'九月',i:-1},{l:'三月',i:0},{l:'四月',i:1},{l:'五月',i:2},{l:'六月',i:3}];
+  let h='<div class="timeline-bar">';
+  nodes.forEach((n,ni)=>{
+    const act=n.i===activeIdx;const vis=n.i<activeIdx;
+    h+='<div class="timeline-node"><div class="timeline-dot'+(act?' active':vis?' visited':'')+'"></div><div class="timeline-txt'+(act?' active':vis?' visited':'')+'">'+n.l+'</div></div>';
+    if(ni<nodes.length-1) h+='<div class="timeline-line'+(vis||act?' visited':'')+'"></div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function renderThermoBar(timelineIdx){
+  let html='';
+  if(timelineIdx!==undefined) html+=renderTimeline(timelineIdx);
+  document.getElementById('timeline-container').innerHTML=html;
+}
+function updateMeters(deltas){
+  ['A','B','C','D'].forEach(k=>{
+    if(deltas[k]){
+      meters[k]=Math.max(0,Math.min(100,meters[k]+deltas[k]));
+      const fill=document.getElementById('tf-'+k);
+      const val=document.getElementById('tv-'+k);
+      if(fill)fill.style.width=meters[k]+'%';
+      if(val){val.textContent=meters[k];val.classList.add(deltas[k]>0?'flash-up':'flash-down');setTimeout(()=>val.classList.remove('flash-up','flash-down'),1200)}
+    }
+  });
+}
+
+// --- GAME FLOW ---
+function startGame(){show('gender-screen')}
+function selectGender(g){
+  gender=g;
+  const ch=CHARS[g];
+  let html='';
+  ['A','B','C','D'].forEach(k=>{
+    const c=ch[k];
+    html+='<div class="char-card" onclick="selectChar(\''+k+'\')"><div class="char-ava" style="background:'+c.color+'">'+c.name[1]+'</div><div class="char-body"><div class="char-name">'+c.name+'</div><div class="char-trait">'+c.trait+'</div><div class="char-desc">'+c.desc+'</div></div></div>';
+  });
+  document.getElementById('char-grid').innerHTML=html;
+  show('char-screen');
+}
+function selectChar(c){
+  playerChar=c;
+  meters={A:50,B:50,C:50,D:50};
+  choices=[];currentAct=0;storyEl.innerHTML='';
+  renderThermoBar(-1);
+  show('game-screen');
+  showOpening();
+}
+
+function showOpening(){
+  try{
+  const scenes=getScenes();
+  const lines=scenes.opening.split('\n\n');
+  let html='<div class="diary-date">九月一日 · 返校日</div>';
+  lines.forEach(l=>{if(l.trim())html+='<div class="diary-entry">'+l+'</div>'});
+  html+='<div class="rewind-intro">是怎么走到这一步的？要是能回到过去，我还能改变这一切吗？<br>让我们回到三月——回到一切开始的地方。</div>';
+  html+='<div class="rewind-label">—— 回 溯 记 忆 ——</div>';
+  html+='<button class="btn-continue" onclick="showMemory(0)" style="margin-top:12px">回 到 三 月</button>';
+  appendHTML(html,'no-scroll');
+  }catch(e){console.error('showOpening error:',e);document.getElementById('story-container').innerHTML='<div style="padding:20px;color:red">加载出错，请刷新页面重试</div>'}
+}
+
+function showMemory(idx){
+  try{
+  renderThermoBar(idx);
+  const scenes=getScenes();
+  const mem=scenes.memories[idx];
+  if(!mem){console.error('No memory at index',idx);return}
+  currentAct=idx;
+  const lines=mem.narr.split('\n\n');
+  let html='<div class="scene-label">'+mem.label+'</div><div class="diary-date">'+mem.date+'</div>';
+  lines.forEach(l=>{if(l.trim())html+='<div class="diary-entry">'+l+'</div>'});
+  html+='<div class="choices"><div class="choice-prompt">—— 你 的 选 择 ——</div>';
+  mem.choices.forEach((c,i)=>{
+    html+='<button class="choice-btn" onclick="memoryChoose('+idx+','+i+')">'+fixPerspective(c.text)+'</button>';
+  });
+  html+='</div>';
+  appendHTML(html,undefined,'rewind');
+  }catch(e){console.error('showMemory error:',e);document.getElementById('story-container').innerHTML+='<div style="padding:20px;color:red">加载出错，请刷新页面重试</div>'}
+}
+
+function memoryChoose(memIdx,choiceIdx){
+  disableChoices();
+  choices.push(choiceIdx);
+  const scenes=getScenes();
+  const mem=scenes.memories[memIdx];
+  const ch=mem.choices[choiceIdx];
+  const fb=mem.feedback[choiceIdx];
+  updateMeters(ch.deltas);
+
+  let chipHtml='<div class="thermo-change">';
+  ['A','B','C','D'].forEach(k=>{
+    if(ch.deltas[k]){
+      const cls=ch.deltas[k]>0?'up':'down';
+      const sign=ch.deltas[k]>0?'+':'';
+      chipHtml+='<span class="thermo-chip '+cls+'">'+CHARS[gender][k].name+' '+sign+ch.deltas[k]+'</span>';
+    }
+  });
+  chipHtml+='</div>';
+
+  let html='<div class="feedback-box">'+chipHtml+'<div class="feedback-result">'+fixPerspective(fb.result)+'</div><div class="analysis-box"><div class="analysis-label">心 理 解 析</div><div class="analysis-text">'+fixPerspective(fb.analysis)+'</div></div>';
+  const transHints=['裂痕出现了。接下来的那个月，又发生了什么？','事情在发酵。矛盾越来越深——','离那最后一晚，只剩一个月了——'];
+  if(memIdx<3){
+    const btnTexts=['下 个 月','继 续','最 后 一 晚'];
+    html+='<div class="transition-hint">'+transHints[memIdx]+'</div>';
+    html+='<div class="rewind-label">—— 时 间 推 进 ——</div><button class="btn-continue" onclick="showMemory('+(memIdx+1)+')">'+btnTexts[memIdx]+'</button>';
+  } else {
+    html+='<div class="transition-hint">从三月到六月，所有的选择层层叠加。现在——让我们回到九月一日，看看结果。</div>';
+    html+='<div class="rewind-label">—— 回 到 现 在 ——</div><button class="btn-continue" onclick="showFinalReveal()">揭 晓 结 局</button>';
+  }
+  html+='</div>';
+  appendHTML(html);
+}
+
+function showFinalReveal(){
+  renderThermoBar(4);
+  const {ending,style,tip}=getEnding();
+  endingStyle=style;
+  lastEnding=ending;
+  const ch=CHARS[gender][playerChar];
+
+  let html='<div class="scene-label">九月一日 · 真实的此刻</div>';
+  html+='<div class="ending-icon">'+ending.icon+'</div>';
+  html+='<div class="ending-title">'+ending.title+'</div>';
+  ending.text.split('\n\n').forEach(l=>{if(l.trim())html+='<div class="ending-text">'+l+'</div>'});
+  html+='<div class="ending-comment"><div class="ending-comment-label">结 局 评 语</div><div class="ending-comment-text">'+ending.comment+'</div></div>';
+  html+='<div class="summary-card"><div class="summary-item"><div class="summary-label">扮演角色</div><div class="summary-value">'+ch.name+' · '+ch.trait+'</div></div>';
+  html+='<div class="summary-meters" style="grid-template-columns:1fr">';
+  html+='<div class="summary-meter" style="text-align:center;padding:12px 16px"><div class="summary-meter-name">'+ch.name+' · '+ch.meterName+'</div><div class="summary-meter-val" style="font-size:1.3rem">'+meters[playerChar]+' / 100</div></div>';
+  html+='</div><div class="summary-item"><div class="summary-label">你的关系风格</div><div class="summary-value">'+style+'</div></div>';
+  html+='<div class="summary-tip">'+tip+'</div>';
+  html+='<div class="reflect-box"><div class="reflect-label">课 后 反 思</div>';
+  html+='<div class="reflect-q">回想你的真实宿舍生活——当室友之间出现矛盾时，你通常扮演的是调解者、旁观者，还是当事人？这个角色是你主动选择的，还是被推到那个位置的？</div>';
+  html+='<div class="reflect-q">游戏中你做的选择，和你在现实中的习惯一致吗？如果不一致，是什么让你在游戏里做出了不同的选择？</div>';
+  html+='<div class="reflect-q">如果时间回到矛盾刚出现的那一刻，你觉得有没有一种方式，可以让所有人都不那么受伤？还是说，"有人受伤"本身就是群体生活的一部分？</div>';
+  html+='<div class="reflect-hint">这些问题没有标准答案。可以写在纸上，也可以带到课堂讨论中。</div></div>';
+  html+='<div class="archive-area" id="archive-area"><button class="btn-archive" onclick="generateArchiveCode()">生 成 存 档 码</button></div>';
+  html+='<button class="btn-restart" onclick="restartGame()">重 新 开 始</button><br><a href="index.html" class="btn-back">返回事件选择</a></div>';
+  appendHTML(html,undefined,'rewind');
+  document.getElementById('timeline-container').style.display='none';
+}
+
+function generateArchiveCode(){
+  const patKeys={harmony:'HRM',broken:'BRK',bias:'BIA',complex:'CMP'};
+  const eCode=patKeys[endingPattern]||'UNK';
+  const code=`E1-${gender}${playerChar}-${choices.join('')}-${eCode}`;
+  if(lastEnding)saveGameRecord('E1',code,lastEnding.title,lastEnding.icon,eCode);
+  const area=document.getElementById('archive-area');
+  if(!area)return;
+  area.innerHTML='<div class="archive-code-box"><div><div class="archive-code">'+code+'</div><div class="archive-label">'+CHARS[gender][playerChar].name+' · '+endingStyle+' · 选择路径 '+choices.join('')+'</div></div><button class="btn-copy" onclick="copyCode(this,\''+code+'\')">复制</button></div>';
+}
+function copyCode(btn,code){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(()=>{btn.textContent='已复制';btn.classList.add('copied')}).catch(()=>{btn.textContent='请手动复制';btn.classList.add('copied')})}else{btn.textContent='请手动复制';btn.classList.add('copied')}
+}
+
+function restartGame(){
+  meters={A:50,B:50,C:50,D:50};choices=[];currentAct=0;endingStyle='';storyEl.innerHTML='';
+  document.getElementById('timeline-container').style.display='';
+  show('title-screen');
+}
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电话那头的期待 · 大学心理事件簿</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5efe6;--bg2:#ede5d8;
+  --card:rgba(255,250,242,0.75);--card-hover:rgba(255,250,242,0.95);
+  --warm:#8a6e4e;--warm-light:#b08a60;--warm-dim:rgba(138,110,78,0.1);
+  --teal:#5a8a7a;--teal-light:#7aaa9a;--teal-dim:rgba(90,138,122,0.1);
+  --rose:#b07070;--rose-dim:rgba(176,112,112,0.1);
+  --ink:#3a3228;--ink2:#6b5e50;--ink3:#9a8a78;--ink4:#c4b8a4;
+  --green:#6a9a70;--red:#b05050;
+  --self-color:#5a8a7a;--parent-color:#b08a60;
+  --font-body:Georgia,'Songti SC','SimSun','Noto Serif CJK SC',serif;
+  --font-ui:system-ui,'PingFang SC',sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 500px 400px at 25% 25%,rgba(90,138,122,0.08),transparent 70%),
+    radial-gradient(ellipse 500px 400px at 75% 65%,rgba(176,138,96,0.08),transparent 70%),
+    radial-gradient(ellipse 300px 300px at 50% 50%,rgba(176,112,112,0.05),transparent 70%)}
+#app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh;padding:0 20px}
+.screen{display:none;opacity:0}.screen.active{display:block;animation:fadeUp 0.8s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== TITLE SCREEN ===== */
+#title-screen{text-align:center}
+#title-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:fadeUp 1s ease forwards}
+.title-icon{width:80px;height:80px;margin-bottom:28px;border-radius:50%;border:2px solid var(--warm-light);display:flex;align-items:center;justify-content:center;font-size:1.6rem;animation:iconPulse 3s ease-in-out infinite}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 20px rgba(138,110,78,0.1)}50%{box-shadow:0 0 40px rgba(138,110,78,0.2)}}
+.title-main{font-size:1.8rem;font-weight:700;letter-spacing:0.1em;color:var(--ink);margin-bottom:6px}
+.title-sub{font-size:0.82rem;color:var(--ink3);letter-spacing:0.25em;margin-bottom:40px}
+.btn-start{background:transparent;border:1px solid var(--warm-light);color:var(--warm);padding:14px 44px;font-size:0.9rem;letter-spacing:0.2em;cursor:pointer;border-radius:1px;transition:all 0.3s;font-family:var(--font-body)}
+.btn-start:hover{background:var(--warm-dim);box-shadow:0 0 30px rgba(138,110,78,0.1)}
+
+/* ===== GENDER SCREEN ===== */
+#gender-screen{display:none;opacity:0;min-height:100vh;text-align:center}
+#gender-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:fadeUp 0.6s ease forwards}
+.sel-heading{font-size:1.05rem;color:var(--ink);margin-bottom:6px}
+.sel-sub{font-size:0.78rem;color:var(--ink3);margin-bottom:28px;letter-spacing:0.1em}
+.gender-grid{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.gender-card{width:140px;background:var(--card);border:1px solid rgba(0,0,0,0.06);border-radius:8px;padding:22px 16px;cursor:pointer;transition:all 0.3s;text-align:center}
+.gender-card:hover{background:var(--card-hover);border-color:var(--warm-light);transform:translateY(-3px);box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+.gender-icon{font-size:2rem;margin-bottom:8px}
+.gender-label{font-size:0.9rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.gender-desc{font-size:0.72rem;color:var(--ink2);line-height:1.5}
+
+/* ===== VALUE BAR ===== */
+.value-bar{position:sticky;top:0;z-index:100;padding:12px 0 10px;background:linear-gradient(to bottom,var(--bg) 70%,transparent)}
+.value-bar-inner{border:1px solid rgba(0,0,0,0.06);border-radius:8px;padding:10px 12px;background:rgba(255,250,242,0.88);backdrop-filter:blur(8px)}
+.time-tag{text-align:center;font-size:0.68rem;letter-spacing:0.15em;margin-bottom:8px;padding:3px 0;border-radius:3px;font-weight:600;color:var(--warm);background:rgba(138,110,78,0.08)}
+.value-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+.value-group{display:flex;flex-direction:column;gap:4px}
+.value-group-label{font-size:0.6rem;font-weight:600;letter-spacing:0.1em;margin-bottom:2px}
+.value-group-label.self{color:var(--self-color)}
+.value-group-label.parent{color:var(--parent-color)}
+.value-item{display:flex;align-items:center;gap:6px}
+.value-name{font-size:0.6rem;color:var(--ink3);width:42px;flex-shrink:0}
+.value-track{flex:1;height:4px;border-radius:2px;background:rgba(0,0,0,0.06);overflow:hidden}
+.value-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1)}
+.value-fill.self{background:var(--self-color)}
+.value-fill.parent{background:var(--parent-color)}
+.value-num{font-size:0.56rem;color:var(--ink3);width:20px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ===== NARRATIVE ===== */
+.act-label{display:inline-block;font-size:0.68rem;letter-spacing:0.2em;padding:4px 14px;border-radius:3px;margin:28px 0 10px;background:var(--warm-dim);border:1px solid rgba(138,110,78,0.2);color:var(--warm)}
+.scene-narr{font-size:0.85rem;line-height:1.9;color:var(--ink2);margin:14px 0;padding-left:14px;border-left:2px solid rgba(138,110,78,0.2)}
+.inner-mono{font-size:0.82rem;line-height:1.8;color:var(--ink3);font-style:italic;margin:10px 0;padding:10px 14px;background:rgba(0,0,0,0.02);border-radius:6px}
+.inner-mono span{display:block;margin:4px 0;opacity:0;animation:monoIn 0.5s ease forwards}
+.inner-mono span:nth-child(2){animation-delay:0.6s}
+.inner-mono span:nth-child(3){animation-delay:1.2s}
+@keyframes monoIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== PHONE / WECHAT BUBBLES ===== */
+.phone-area{margin:14px 0;padding:12px;background:rgba(0,0,0,0.02);border-radius:10px}
+.phone-label{font-size:0.62rem;color:var(--ink4);text-align:center;margin-bottom:8px;letter-spacing:0.1em}
+.phone-msg{margin:8px 0;display:flex;flex-direction:column}
+.phone-msg.me{align-items:flex-end}
+.phone-msg.them{align-items:flex-start}
+.phone-bubble{max-width:75%;padding:10px 14px;border-radius:12px;font-size:0.84rem;line-height:1.6;animation:bubbleIn 0.3s ease}
+@keyframes bubbleIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.phone-msg.me .phone-bubble{background:var(--teal);color:#fff;border-bottom-right-radius:4px}
+.phone-msg.them .phone-bubble{background:rgba(255,255,255,0.85);color:var(--ink);border:1px solid rgba(0,0,0,0.06);border-bottom-left-radius:4px}
+.phone-msg-name{font-size:0.6rem;color:var(--ink4);margin-bottom:2px;padding:0 4px}
+.phone-voice{text-align:center;font-size:0.72rem;color:var(--ink3);margin:8px 0;font-style:italic;padding:8px;background:rgba(138,110,78,0.05);border-radius:6px}
+
+/* ===== CHOICES ===== */
+.choices{margin:18px 0}
+.choice-prompt{font-size:0.72rem;letter-spacing:0.2em;margin-bottom:10px;color:var(--warm)}
+.choice-btn{display:block;width:100%;background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:8px;padding:14px 16px;margin-bottom:8px;text-align:left;color:var(--ink);font-size:0.84rem;line-height:1.7;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);position:relative}
+.choice-btn:hover{background:var(--card-hover);border-color:var(--warm-light);transform:translateX(4px);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.choice-btn.disabled{opacity:0.2;pointer-events:none}
+
+/* ===== FEEDBACK ===== */
+.feedback-box{margin:14px 0;animation:feedIn 0.4s ease}
+@keyframes feedIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.feedback-result{background:var(--card);border-radius:8px;padding:12px 14px;font-size:0.84rem;line-height:1.8;color:var(--ink);margin-bottom:8px;border-left:3px solid var(--warm-light)}
+.value-change{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.value-chip{font-size:0.7rem;padding:3px 8px;border-radius:3px;font-weight:600}
+.value-chip.up{background:rgba(106,154,112,0.1);color:var(--green)}
+.value-chip.down{background:rgba(176,80,80,0.1);color:var(--red)}
+.analysis-box{background:linear-gradient(135deg,rgba(90,138,122,0.05),rgba(176,138,96,0.04));border:1px solid rgba(138,110,78,0.1);border-radius:8px;padding:12px 14px;margin:8px 0 16px}
+.analysis-label{font-size:0.62rem;letter-spacing:0.2em;color:var(--warm);margin-bottom:5px}
+.analysis-text{font-size:0.78rem;line-height:1.8;color:var(--ink2)}
+.btn-continue{display:block;margin:18px auto;background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--ink3);padding:10px 30px;font-size:0.8rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-continue:hover{border-color:var(--warm);color:var(--warm)}
+
+/* ===== UNSAID WORDS (collapsible) ===== */
+.unsaid-wrap{margin:12px 0 6px;border:1px dashed rgba(176,138,96,0.35);border-radius:8px;overflow:hidden;background:rgba(176,138,96,0.03)}
+.unsaid-toggle{display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:transparent;border:none;cursor:pointer;font-family:var(--font-body);font-size:0.78rem;color:var(--warm);letter-spacing:0.12em;transition:background 0.2s}
+.unsaid-toggle:hover{background:rgba(176,138,96,0.06)}
+.unsaid-arrow{display:inline-block;font-size:0.6rem;transition:transform 0.3s}
+.unsaid-wrap.open .unsaid-arrow{transform:rotate(90deg)}
+.unsaid-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease;padding:0 14px}
+.unsaid-wrap.open .unsaid-body{max-height:600px;padding:0 14px 14px}
+.unsaid-line{font-size:0.8rem;line-height:1.85;color:var(--ink2);margin:6px 0}
+.unsaid-line .speaker{font-weight:600;color:var(--warm);font-size:0.72rem;margin-right:4px}
+.unsaid-line em{font-style:italic;color:var(--ink3);font-size:0.76rem}
+
+/* ===== SPLIT VIEW ===== */
+.split-view{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.split-col{padding:14px;border-radius:8px;font-size:0.82rem;line-height:1.8;color:var(--ink2)}
+.split-col.self{background:rgba(90,138,122,0.06);border:1px solid rgba(90,138,122,0.12)}
+.split-col.parent{background:rgba(176,138,96,0.06);border:1px solid rgba(176,138,96,0.12)}
+.split-col-label{font-size:0.65rem;font-weight:600;letter-spacing:0.1em;margin-bottom:6px}
+.split-col.self .split-col-label{color:var(--self-color)}
+.split-col.parent .split-col-label{color:var(--parent-color)}
+
+/* ===== FUTURE MIRROR ===== */
+.future-section{margin:20px 0}
+.future-year{margin:16px 0;padding:14px;border-radius:8px;background:var(--card);border:1px solid rgba(0,0,0,0.05)}
+.future-year-label{font-size:0.68rem;font-weight:600;color:var(--warm);letter-spacing:0.15em;margin-bottom:8px}
+.future-year-text{font-size:0.82rem;line-height:1.85;color:var(--ink2)}
+
+/* ===== ENDINGS ===== */
+.ending-icon{font-size:2.8rem;text-align:center;margin:32px 0 12px}
+.ending-title{font-size:1.3rem;text-align:center;color:var(--ink);margin-bottom:6px;font-weight:700}
+.ending-sub{font-size:0.82rem;text-align:center;color:var(--ink3);margin-bottom:18px;font-style:italic}
+.ending-text{font-size:0.86rem;line-height:2;color:var(--ink2);margin:16px 0}
+.ending-comment{background:linear-gradient(135deg,rgba(90,138,122,0.06),rgba(176,138,96,0.04));border:1px solid rgba(138,110,78,0.12);border-radius:8px;padding:16px;margin:18px 0}
+.ending-comment-label{font-size:0.62rem;color:var(--warm);letter-spacing:0.2em;margin-bottom:6px}
+.ending-comment-text{font-size:0.8rem;line-height:1.85;color:var(--ink2)}
+.summary-card{background:var(--card);border:1px solid rgba(0,0,0,0.05);border-radius:10px;padding:20px;margin:20px 0;text-align:center}
+.summary-item{margin:12px 0}
+.summary-label{font-size:0.68rem;color:var(--ink3);letter-spacing:0.12em;margin-bottom:3px}
+.summary-value{font-size:0.95rem;color:var(--ink);font-weight:600}
+.summary-values{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
+.summary-val-item{background:rgba(0,0,0,0.02);padding:8px 10px;border-radius:4px;text-align:left}
+.summary-val-name{font-size:0.68rem;color:var(--ink3)}
+.summary-val-num{font-size:0.9rem;font-weight:600;color:var(--ink)}
+.summary-tip{font-size:0.78rem;color:var(--ink2);line-height:1.8;text-align:left;margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.05)}
+.reflect-box{margin:20px 0;padding:18px;border-radius:8px;background:linear-gradient(135deg,rgba(90,138,122,0.04),rgba(176,138,96,0.03));border:1px solid rgba(138,110,78,0.18)}
+.reflect-label{font-size:0.65rem;letter-spacing:0.25em;color:var(--warm);margin-bottom:10px;font-weight:600}
+.reflect-q{font-size:0.78rem;line-height:1.85;color:var(--ink2);margin:10px 0;padding-left:14px;border-left:2px solid rgba(138,110,78,0.3)}
+.reflect-hint{font-size:0.68rem;color:var(--ink3);margin-top:12px;font-style:italic}
+.btn-restart{display:inline-block;margin-top:18px;background:var(--warm-dim);border:1px solid rgba(138,110,78,0.3);color:var(--warm);padding:10px 34px;font-size:0.85rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-restart:hover{background:rgba(138,110,78,0.15)}
+.btn-back{display:inline-block;margin-top:10px;background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--ink4);padding:9px 28px;font-size:0.78rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);text-decoration:none}
+.btn-back:hover{border-color:var(--warm);color:var(--warm)}
+.archive-section{margin:18px 0;padding:16px;background:linear-gradient(135deg,rgba(90,138,122,0.06),rgba(176,138,96,0.04));border:1px dashed rgba(138,110,78,0.3);border-radius:8px;text-align:center}
+.archive-label{font-size:0.62rem;color:var(--warm);letter-spacing:0.25em;margin-bottom:8px}
+.archive-code{font-family:var(--font-ui);font-size:0.82rem;color:var(--ink);background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.08);border-radius:4px;padding:10px 14px;margin:6px 0 10px;letter-spacing:0.08em;word-break:break-all;user-select:all}
+.btn-copy{background:var(--warm-dim);border:1px solid rgba(138,110,78,0.3);color:var(--warm);padding:7px 20px;font-size:0.75rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.1em}
+.btn-copy:hover{background:rgba(138,110,78,0.15)}
+.archive-hint{font-size:0.62rem;color:var(--ink4);margin-top:8px}
+.scroll-anchor{height:1px}
+/* === MY RECORDS === */
+.my-records-block{width:100%;max-width:380px;margin:0 auto 20px}
+.my-records-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;cursor:pointer;background:rgba(90,138,122,0.06);border:1px solid rgba(90,138,122,0.12);border-radius:8px;transition:all 0.3s;user-select:none}
+.my-records-toggle:hover{background:rgba(90,138,122,0.1)}
+.my-records-label{font-size:0.75rem;letter-spacing:0.1em;color:inherit;opacity:0.6}
+.my-records-arrow{font-size:0.7rem;opacity:0.4;transition:transform 0.3s}
+.my-records-block.expanded .my-records-arrow{transform:rotate(180deg)}
+.my-records-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease;opacity:0}
+.my-records-block.expanded .my-records-list{max-height:600px;opacity:1;margin-top:8px}
+.my-record-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;background:rgba(90,138,122,0.04);border:1px solid rgba(90,138,122,0.06);border-radius:6px;transition:background 0.2s}
+.my-record-item:hover{background:rgba(90,138,122,0.08)}
+.my-record-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.my-record-info{flex:1;min-width:0}
+.my-record-title{font-size:0.78rem;font-weight:600;line-height:1.4;color:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.my-record-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.my-record-code{font-family:'Courier New',monospace;font-size:0.65rem;opacity:0.5;letter-spacing:0.03em}
+.my-record-date{font-size:0.62rem;opacity:0.4}
+@media(max-width:540px){
+  #app{padding:0 16px}
+  .title-main{font-size:1.5rem}
+  .split-view{grid-template-columns:1fr;gap:8px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title-screen" class="screen active">
+    <div class="title-icon">📞</div>
+    <div class="title-main">电话那头的期待</div>
+    <div class="title-sub">大学 · 心理事件簿</div>
+    <button class="btn-start" onclick="startGame()">开 始 故 事</button>
+  </div>
+  <div id="gender-screen" class="screen">
+    <div class="sel-heading">选择你的角色</div>
+    <div class="sel-sub">不同的身份，相似的期待</div>
+    <div class="gender-grid">
+      <div class="gender-card" onclick="selectGender('M')"><div class="gender-icon">👦</div><div class="gender-label">男生</div><div class="gender-desc">儿子的视角<br>父母的期望</div></div>
+      <div class="gender-card" onclick="selectGender('F')"><div class="gender-icon">👧</div><div class="gender-label">女生</div><div class="gender-desc">女儿的视角<br>家人的牵挂</div></div>
+    </div>
+  </div>
+  <div id="game-screen" class="screen">
+    <div class="value-bar" id="value-bar"></div>
+    <div id="story"></div>
+  </div>
+</div>
+
+<script>
+/* === RECORD STORAGE === */
+function saveGameRecord(eid,code,title,icon,ec){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');if(!a[eid])a[eid]=[];a[eid].unshift({code:code,title:title,icon:icon,endingCode:ec,ts:Date.now()});if(a[eid].length>20)a[eid]=a[eid].slice(0,20);localStorage.setItem('psych_game_records',JSON.stringify(a));}catch(e){}}
+function getGameRecords(eid){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');return a[eid]||[];}catch(e){return[];}}
+function renderRecordsBlock(eid){var recs=getGameRecords(eid);if(!recs.length)return;var ts=document.getElementById('title-screen');if(!ts)return;var btn=ts.querySelector('.btn-start');if(!btn)return;var b=document.createElement('div');b.className='my-records-block';b.innerHTML='<div class="my-records-toggle" onclick="this.parentElement.classList.toggle(\'expanded\')"><span class="my-records-label">\uD83D\uDCCB 我的记录 ('+recs.length+')</span><span class="my-records-arrow">\u25BE</span></div><div class="my-records-list">'+recs.map(function(r){var d=new Date(r.ts);var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return '<div class="my-record-item"><span class="my-record-icon">'+r.icon+'</span><div class="my-record-info"><div class="my-record-title">'+r.title+'</div><div class="my-record-meta"><span class="my-record-code">'+r.code+'</span><span class="my-record-date">'+ds+'</span></div></div></div>';}).join('')+'</div>';ts.insertBefore(b,btn);}
+renderRecordsBlock('E6');
+// ============================================================
+//  EVENT 6: 电话那头的期待 — PARENT-CHILD EXPECTATION TRACKS
+// ============================================================
+
+/* ---- STATE ---- */
+let gender='M';
+let choices=[];
+let selfDir=50;    // 自我方向：你对自己人生的坚定程度 (0=完全顺从, 100=完全坚持)
+let parentExp=50;  // 父母期待：父母对你的认可/理解程度 (0=完全冲突, 100=完全理解)
+let understand=50; // 理解度：你与父母之间的相互理解 (0=隔阂, 100=理解)
+let consistency=50;// 自我一致性：你的行为与内心是否一致 (0=割裂, 100=一致)
+let act=0;
+
+const storyEl=document.getElementById('story');
+
+/* ---- HELPERS ---- */
+function clamp(v){return Math.max(0,Math.min(100,Math.round(v)))}
+function applyDeltas(d){
+  if(d.self) selfDir+=d.self;
+  if(d.parent) parentExp+=d.parent;
+  if(d.und) understand+=d.und;
+  if(d.con) consistency+=d.con;
+  selfDir=clamp(selfDir);parentExp=clamp(parentExp);
+  understand=clamp(understand);consistency=clamp(consistency);
+  renderValueBar();
+}
+
+/* ---- SCREEN MANAGEMENT ---- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none'});
+  const el=document.getElementById(id);
+  el.style.display='';
+  void el.offsetWidth;
+  el.classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function startGame(){showScreen('gender-screen')}
+function selectGender(g){
+  gender=g;
+  selfDir=50;parentExp=50;understand=50;consistency=50;
+  choices=[];act=0;
+  storyEl.innerHTML='';
+  showScreen('game-screen');
+  renderValueBar();
+  showPrologue();
+}
+
+/* ---- TIME LABELS ---- */
+const TIME_LABELS=['高考暑假','大一下·长假','大二上·电话','大二寒假·春节','大二暑假·深夜','大三上·电话','大三下·实习','大四上·抉择'];
+
+/* ---- VALUE BAR ---- */
+function renderValueBar(){
+  const vb=document.getElementById('value-bar');
+  const timeText=TIME_LABELS[act]||'';
+  vb.innerHTML=`<div class="value-bar-inner">
+    <div class="time-tag">${timeText}</div>
+    <div class="value-grid">
+      <div class="value-group">
+        <div class="value-group-label self">你的轨迹</div>
+        <div class="value-item"><span class="value-name">自我方向</span><div class="value-track"><div class="value-fill self" style="width:${clamp(selfDir)}%"></div></div><span class="value-num">${clamp(selfDir)}</span></div>
+        <div class="value-item"><span class="value-name">自我一致</span><div class="value-track"><div class="value-fill self" style="width:${clamp(consistency)}%"></div></div><span class="value-num">${clamp(consistency)}</span></div>
+      </div>
+      <div class="value-group">
+        <div class="value-group-label parent">父母轨迹</div>
+        <div class="value-item"><span class="value-name">父母认可</span><div class="value-track"><div class="value-fill parent" style="width:${clamp(parentExp)}%"></div></div><span class="value-num">${clamp(parentExp)}</span></div>
+        <div class="value-item"><span class="value-name">相互理解</span><div class="value-track"><div class="value-fill parent" style="width:${clamp(understand)}%"></div></div><span class="value-num">${clamp(understand)}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---- COMMON HELPERS ---- */
+function appendHTML(html){
+  const div=document.createElement('div');
+  div.innerHTML=html;
+  storyEl.appendChild(div);
+  requestAnimationFrame(()=>{
+    const bar=document.getElementById('value-bar');
+    const offset=bar&&bar.offsetHeight?bar.offsetHeight+8:0;
+    const top=div.getBoundingClientRect().top+window.pageYOffset-offset;
+    window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+  });
+}
+function disableChoices(){
+  document.querySelectorAll('.choice-btn:not(.disabled)').forEach(b=>b.classList.add('disabled'));
+}
+function renderValueChips(d){
+  const labels={self:'自我方向',parent:'父母认可',und:'相互理解',con:'自我一致'};
+  let html='<div class="value-change">';
+  for(const k of ['self','parent','und','con']){
+    if(d[k]&&d[k]!==0){
+      const cls=d[k]>0?'up':'down';
+      const sign=d[k]>0?'+':'';
+      html+=`<span class="value-chip ${cls}">${labels[k]} ${sign}${d[k]}</span>`;
+    }
+  }
+  return html+'</div>';
+}
+
+let unsaidCounter=0;
+function toggleUnsaid(id){
+  document.getElementById(id).classList.toggle('open');
+}
+function renderUnsaid(lines){
+  const id='unsaid-'+(unsaidCounter++);
+  let html=`<div class="unsaid-wrap" id="${id}">`;
+  html+=`<button class="unsaid-toggle" onclick="toggleUnsaid('${id}')"><span class="unsaid-arrow">▶</span>他们没说出口的话</button>`;
+  html+=`<div class="unsaid-body">`;
+  for(const l of lines){
+    html+=`<div class="unsaid-line">${l}</div>`;
+  }
+  html+=`</div></div>`;
+  return html;
+}
+
+/* ---- PROLOGUE: 高考暑假·录取通知书 ---- */
+function showPrologue(){
+  act=0;renderValueBar();
+  const child=gender==='F'?'女儿':'儿子';
+  const pron=gender==='F'?'她':'他';
+  let html='<div class="act-label">序章 · 录取通知书</div>';
+  html+=`<div class="scene-narr">七月的傍晚，你从信封里抽出那张红色的录取通知书。专业栏上写着你填的第一志愿——${gender==='F'?'中文系':'历史系'}。你喜欢的方向。</div>`;
+  html+=`<div class="scene-narr">但饭桌上的气氛并不轻松。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">饭桌上</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">这个专业……以后能找到什么工作啊？</div></div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">爸爸</div><div class="phone-bubble">你看隔壁家的孩子，学计算机，还没毕业就拿到了offer。</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="inner-mono"><span>"又来了。"</span><span>"他们永远不会理解我为什么喜欢这个。"</span><span>"可是……这是我想走的路。"</span></div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你会怎么说？</div>`;
+  html+=`<button class="choice-btn" onclick="prologueChoose(0)">坚持："爸妈，这个专业是我自己选的。我真的很喜欢，我想试试。"</button>`;
+  html+=`<button class="choice-btn" onclick="prologueChoose(1)">沉默不语，低头扒饭。</button>`;
+  html+=`<button class="choice-btn" onclick="prologueChoose(2)">敷衍："我再想想吧……先去报到看看。"</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function prologueChoose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:8,parent:-5,und:3,con:8},
+    {self:-3,parent:3,und:-5,con:-5},
+    {self:-2,parent:5,und:0,con:-8}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'你第一次在饭桌上正面表达了自己的想法。爸妈沉默了一会儿，妈妈叹了口气说："你自己想好了就行。"语气里有妥协，也有担忧。',
+     analysis:'「分离-个体化」理论认为，大学阶段是建立独立自我的关键期。在父母面前表达真实的选择，是这个过程的起点——虽然让双方都不太舒服，但这种"不舒服"是成长必经的摩擦。'},
+    {narr:'你低着头吃饭，一句话也没说。妈妈看了你一眼，没有继续追问。爸爸又说了几句，你只是点头。饭桌上的沉默比争吵更让人窒息。',
+     analysis:'沉默是最常见的家庭沟通模式之一。它避免了冲突，但也切断了理解的可能性——当你选择不说，父母只能继续用他们的想象填补空白。心理学称之为"情感回避"。'},
+    {narr:'"我再想想"——这句话你说得很熟练了。妈妈点点头，似乎松了口气。但你知道，你根本没打算改主意。只是这样说，大家都更轻松一些。',
+     analysis:'「报喜不报忧」式的敷衍，本质是一种"印象管理"——让父母看到他们想看的样子，同时保护自己不被质疑。短期有效，但长期会造成"真实自我"与"展示自我"的割裂。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaidP=[
+    [`<span class="speaker">妈妈</span>（收拾碗筷时，小声跟爸爸说）："这孩子怎么这么倔。${gender==='F'?'一个女孩子':'一个男孩子'}，学什么${gender==='F'?'中文系':'历史系'}……"`,
+     `<span class="speaker">爸爸</span>（沉默了一会儿）："算了，先让${gender==='F'?'她':'他'}去吧。年轻人……有自己的想法也不全是坏事。"`,
+     `<em>妈妈没有接话。她把碗摞起来的时候，手顿了一下。她在想：我是不是管太多了？但又想到——如果我不管，以后吃亏了怎么办？</em>`],
+    [`<span class="speaker">妈妈</span>（看着你离开饭桌的背影）："这孩子，一句话都不说。"`,
+     `<span class="speaker">爸爸</span>："别追了。${gender==='F'?'她':'他'}大概心里有想法，不想跟我们说。"`,
+     `<em>妈妈坐在饭桌前很久，把你碗里剩的菜倒进了自己碗里。她不知道你在想什么——这让她比你的沉默更难受。</em>`],
+    [`<span class="speaker">妈妈</span>（松了口气似的）："还好还好，说'再想想'，说明没有完全定下来。"`,
+     `<span class="speaker">爸爸</span>："你别太高兴了。'再想想'就是'我不改'的意思，你听不出来？"`,
+     `<em>妈妈愣了一下，然后笑着摇头："不会吧……"但她心里其实隐隐觉得爸爸说得对。她只是不想承认。</em>`]
+  ];
+  html+=renderUnsaid(unsaidP[idx]);
+  html+=`<button class="btn-continue" onclick="showAct1()">大一下 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 1: 大一下·第一次长假回家 ---- */
+function showAct1(){
+  act=1;renderValueBar();
+  const detail=gender==='F'?'剪了短发，穿了一件很有设计感的中性风外套':'染了一撮浅色的头发，耳朵上多了一个小耳钉';
+  let html='<div class="act-label">第一幕 · 回家</div>';
+  html+=`<div class="scene-narr">大一下学期的第一个长假，你拖着行李箱回到了家。半年不见，你变了不少——${detail}。</div>`;
+  html+=`<div class="scene-narr">妈妈开门看到你的那一瞬间，笑容僵了一下。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">玄关</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">你这是……弄了什么？${gender==='F'?'好好的长发怎么剪了！':'像什么样子！'}</div></div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">爸爸</div><div class="phone-bubble">${gender==='F'?'女孩子家……唉。':'（叹了口气，摇了摇头）'}</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你怎么回应？</div>`;
+  html+=`<button class="choice-btn" onclick="act1Choose(0)">解释："这是我的表达方式。我又没做什么不好的事。"</button>`;
+  html+=`<button class="choice-btn" onclick="act1Choose(1)">赌气："你们根本不懂我。"转身进了房间。</button>`;
+  html+=`<button class="choice-btn" onclick="act1Choose(2)">沉默，不接话，换了鞋就回自己房间。</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act1Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:5,parent:-3,und:5,con:5},
+    {self:8,parent:-8,und:-8,con:3},
+    {self:0,parent:-2,und:-5,con:-3}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'你平静地解释了一句。妈妈嘴上还在念叨，但也没有再追着说。爸爸看了你一眼，说了句"回来就好"。气氛没那么僵了。',
+     analysis:'用"我信息"（I-statement）代替对抗——"这是我的表达方式"比"你管得太多"更容易被接受。它在表达自我的同时，没有攻击对方的权威感。这种沟通方式兼顾了自我坚定和关系维护。'},
+    {narr:'"你们根本不懂我"——这句话像一堵墙。妈妈站在玄关愣了很久，爸爸的脸色沉了下来。你关上门，心里既委屈又有点后悔。',
+     analysis:'「情绪化反抗」是青年期常见的表达方式——它传递了"我需要被尊重"的信号，但方式本身却破坏了被理解的可能。愤怒往往是更深层情感（委屈、被忽视）的表层包装。'},
+    {narr:'你什么都没说，换了鞋就进了房间。妈妈在客厅小声跟爸爸说了几句，你听不太清。手机亮了——妈妈在家庭群发了一条"回来了就好，想吃什么？"',
+     analysis:'沉默是一种保护——保护自己不被更多质疑伤害，也保护关系不至于当场破裂。但沉默也是一种信号缺失：你的感受没有被传递出去，父母只能靠猜测来理解你。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid1=[
+    [`<span class="speaker">妈妈</span>（在厨房跟爸爸说）："你看${gender==='F'?'她':'他'}说的那个'表达方式'……现在的孩子怎么都这样。"`,
+     `<span class="speaker">爸爸</span>："${gender==='F'?'她':'他'}说的也不是没道理。年轻嘛……我们那个年代不也折腾过。"`,
+     `<em>妈妈没想到爸爸会这么说。她站在水龙头前面，水流了很久也没关。她想起自己年轻的时候，也曾经想烫一个跟别人不一样的发型——但最后还是没敢。</em>`],
+    [`<span class="speaker">妈妈</span>（站在你房间门口，犹豫了很久）："……算了，别敲了。"`,
+     `<span class="speaker">爸爸</span>（在客厅叹气）："这孩子。说两句就'不懂我'。我们怎么就不懂了？"`,
+     `<em>爸爸看着新闻，但眼睛没有聚焦。他在想：是我说话太重了吗？可我只是想说，别搞得太奇怪……他不知道"奇怪"这个词，就是问题所在。</em>`],
+    [`<span class="speaker">妈妈</span>（在家庭群打字，打了删，删了又打）："回来了就好，想吃什么？"`,
+     `<span class="speaker">爸爸</span>（瞥了一眼妈妈的手机）："你别问了，${gender==='F'?'她':'他'}不想说就别逼。"`,
+     `<em>妈妈发完消息之后，盯着屏幕等了十几分钟。你回了一个"随便"。她看了看这个字，轻轻放下手机。"随便"——这个字她翻译过来就是"别再问了"。</em>`]
+  ];
+  html+=renderUnsaid(unsaid1[idx]);
+  html+=`<button class="btn-continue" onclick="showAct2()">大二上 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 2: 大二上·一次电话 ---- */
+function showAct2(){
+  act=2;renderValueBar();
+  let html='<div class="act-label">第二幕 · 电话</div>';
+  html+=`<div class="scene-narr">大二上学期的某个周三晚上，你正在图书馆赶一篇论文。手机响了——妈妈的来电。</div>`;
+  html+=`<div class="scene-narr">你犹豫了一下，接了。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">电话中</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">最近学习怎么样啊？有没有好好吃饭？</div></div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">${gender==='F'?'有没有交男朋友呀？':'有没有交女朋友呀？'}</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="scene-narr">你最近忙得焦头烂额——社团、兼职、论文同时压过来，睡眠严重不足。但你不想让她担心。</div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你会怎么说？</div>`;
+  html+=`<button class="choice-btn" onclick="act2Choose(0)">如实说："最近有点累。论文、兼职同时赶，有点吃不消。"</button>`;
+  html+=`<button class="choice-btn" onclick="act2Choose(1)">报喜不报忧："一切都好的，别担心。学习挺顺利的。"</button>`;
+  html+=`<button class="choice-btn" onclick="act2Choose(2)">敷衍："嗯，挺好的。嗯嗯。哦，先挂了，还有事。"</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act2Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:3,parent:3,und:8,con:8},
+    {self:0,parent:5,und:-3,con:-8},
+    {self:0,parent:-5,und:-8,con:-5}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'妈妈听了之后沉默了一会儿，然后说："那要不要给你寄点东西？别太累了，身体重要。"电话那头传来爸爸的声音："让孩子别硬撑。"——你鼻子一酸。',
+     analysis:'「自我暴露」（self-disclosure）是建立亲密关系的核心机制。当你愿意展示脆弱的一面，实际上是在说"我信任你"。父母的回应证明了这种信任是被接住的——这一来一回，就是"理解"生长的土壤。'},
+    {narr:'"一切都好"——你说这句话的时候，声音平稳，语气轻快。妈妈信了，开心地聊了些家长里短。挂了电话，你看着图书馆的天花板，突然觉得很孤独。',
+     analysis:'「报喜不报忧」是中国家庭中极其普遍的沟通模式。它源于对家人的体贴，但也在无形中建造一堵墙——你在保护他们的同时，也切断了被支持的可能。长此以往，你会习惯独自承受，而他们会以为你一直很好。'},
+    {narr:'电话很快就挂了。妈妈可能还想说什么，但你的语气已经在暗示"别再问了"。你把手机扣在桌上，继续写论文。但注意力怎么也集中不了。',
+     analysis:'敷衍是一种"最小化接触"策略——它把沟通压缩到最低限度，避免了所有可能的摩擦。但对方能感受到这种敷衍——妈妈可能在挂了电话之后，对爸爸说："孩子好像不太高兴。"你以为自己在保护关系，但他们感到的是被推远。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid2=[
+    [`<span class="speaker">妈妈</span>（挂了电话之后，跟爸爸说）："孩子说最近有点累。"`,
+     `<span class="speaker">爸爸</span>："那你问${gender==='F'?'她':'他'}要不要钱？"`,
+     `<span class="speaker">妈妈</span>："我说了让${gender==='F'?'她':'他'}别太累。……${gender==='F'?'她':'他'}肯跟我说实话，我就放心了。"`,
+     `<em>妈妈坐在沙发上看电视，但不知道在演什么。她在想：是不是钱不够花了？要不要偷偷往卡里打一笔？但又怕被嫌"管太多"。</em>`],
+    [`<span class="speaker">妈妈</span>（挂了电话，高兴地跟爸爸说）："孩子说一切都挺好的。"`,
+     `<span class="speaker">爸爸</span>："真的？我怎么觉得${gender==='F'?'她':'他'}说话有气无力的。"`,
+     `<em>妈妈愣了一下："有吗？"她回想了一下刚才的通话，又觉得好像确实有哪里不对。但${gender==='F'?'她':'他'}说了"一切都好"啊……那应该没事吧？她选择相信。</em>`],
+    [`<span class="speaker">妈妈</span>（看着手机上的通话记录：3分12秒）："才三分钟就挂了……"`,
+     `<span class="speaker">爸爸</span>："年轻人忙。别老打电话烦${gender==='F'?'她':'他'}。"`,
+     `<em>妈妈把手机放在餐桌上，去厨房热了一杯牛奶。她想起你小时候，每天放学回来都会叽叽喳喳说半天学校的事。什么时候开始，你们的对话变成了"嗯""好""先挂了"？</em>`]
+  ];
+  html+=renderUnsaid(unsaid2[idx]);
+  html+=`<button class="btn-continue" onclick="showAct3()">大二寒假 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 3: 大二寒假·春节 ---- */
+function showAct3(){
+  act=3;renderValueBar();
+  let html='<div class="act-label">第三幕 · 春节</div>';
+  html+=`<div class="scene-narr">大二寒假，春节。亲戚们围坐在一起吃年夜饭。你坐在爸妈旁边，本来挺放松的。</div>`;
+  html+=`<div class="scene-narr">直到二姨开口了。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">年夜饭</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">二姨</div><div class="phone-bubble">你们家孩子成绩好吧？以后准备考研还是考公啊？</div></div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">成绩还可以，我们想着以后考个公务员挺好的，稳定。</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="scene-narr">你听着妈妈替你规划未来，心里五味杂陈——这不是你想要的人生。</div>`;
+  html+=`<div class="inner-mono"><span>"又开始了。"</span><span>"在他们眼里，稳定=好工作=好人生。"</span><span>"可我想的，跟他们完全不一样。"</span></div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你怎么做？</div>`;
+  html+=`<button class="choice-btn" onclick="act3Choose(0)">当场小声反驳："妈，我还没想好呢，别帮我说。"</button>`;
+  html+=`<button class="choice-btn" onclick="act3Choose(1)">保持微笑，事后找个机会跟爸妈说："我不一定考公。"</button>`;
+  html+=`<button class="choice-btn" onclick="act3Choose(2)">无所谓，随他们说。反正亲戚的话听听就算了。</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act3Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:5,parent:-8,und:-3,con:5},
+    {self:5,parent:-2,und:5,con:5},
+    {self:-5,parent:5,und:-3,con:-8}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'你的声音虽然轻，但全桌人都听到了。妈妈脸上的笑容僵了一秒，迅速圆场："孩子还小，慢慢想。"饭后，妈妈在厨房洗碗的时候，背对着你说了一句："你让我在你二姨面前很没面子。"',
+     analysis:'「面子文化」在中国家庭中根深蒂固——父母在亲戚面前的"说法"，某种程度上是他们的社会身份。当你在公开场合反驳，伤害的不只是他们的观点，更是他们的"家长形象"。理解这一点，不意味着你要顺从，而是可以选择更合适的时机和场合来表达。'},
+    {narr:'你在亲戚面前保持了得体的微笑。当晚，趁妈妈在收拾碗筷的间隙，你走过去帮忙，然后轻声说："妈，考公的事……我还在想。我可能有自己的打算。"妈妈看了你一眼，说了句"你自己有想法也行，但要想清楚"。',
+     analysis:'选择在私密场合沟通，是一种成熟的策略——它同时照顾了父母的面子和自己的表达需求。心理学中称之为"情境适配性沟通"：同样的内容，在不同场合表达，效果天差地别。'},
+    {narr:'你笑着点头，帮二姨夹了一块菜。亲戚们继续聊别人家的孩子，你放空了。回到房间之后，你发了一条朋友圈："新年快乐"——没有配图，没有多余的字。只有你自己知道那三个字背后是什么。',
+     analysis:'「假性顺从」——表面上的配合掩盖了内心的不认同。它避免了冲突，但代价是自我的压缩。长此以往，你可能会忘记自己真正想要什么——因为"想要什么"这个问题，已经被"他们要我做什么"替代了。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid3=[
+    [`<span class="speaker">妈妈</span>（在厨房洗碗，背对着门）："你让我在你二姨面前很没面子。"`,
+     `<em>——这句话她说了。但她没说出口的是后半句。</em>`,
+     `<em>她没说出口的是："你说的对，你确实还没想好。但我不能让亲戚觉得我连自己孩子的事都不清楚。"她维护的不是自己的面子——是作为一个母亲的"称职感"。</em>`,
+     `<span class="speaker">爸爸</span>（在客厅小声跟你说）："你妈就是面子上过不去，你别放心上。"`,
+     `<em>爸爸拍了拍沙发，示意你坐下。他没有再提考公的事。你第一次觉得，爸爸好像站在你这边。</em>`],
+    [`<span class="speaker">妈妈</span>（收拾碗筷时，语气温和了一些）："你说'不一定考公'……那你想干什么？"`,
+     `<span class="speaker">爸爸</span>（从客厅走过来）："孩子愿意跟你说就不错了。你别追着问。"`,
+     `<em>妈妈看了爸爸一眼，没有反驳。她其实很想知道你到底有什么"自己的打算"，但她也知道——如果追问太紧，你可能下次连这句话都不会说了。</em>`],
+    [`<span class="speaker">妈妈</span>（收拾完碗筷，跟爸爸说）："我看孩子今天挺配合的，全程都在笑。"`,
+     `<span class="speaker">爸爸</span>："嗯。"`,
+     `<em>他们真的以为你在配合。他们不知道你发了那条没有配图的朋友圈。也不知道你关上门之后，在黑暗里坐了很久。他们只看到了你的笑——以为那就是你。</em>`]
+  ];
+  html+=renderUnsaid(unsaid3[idx]);
+  html+=`<button class="btn-continue" onclick="showAct4()">大二暑假 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 4: 大二暑假·深夜聊天 ---- */
+function showAct4(){
+  act=4;renderValueBar();
+  let html='<div class="act-label">第四幕 · 深夜</div>';
+  html+=`<div class="scene-narr">大二暑假，你在家。深夜十一点，你和爸爸坐在客厅看电视。妈妈已经睡了。</div>`;
+  html+=`<div class="scene-narr">电视里播着一条广告——"学IT，高薪就业"。爸爸突然开口了。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">客厅</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">爸爸</div><div class="phone-bubble">你看这个，${gender==='F'?'现在女孩子学技术的也多了':'以后学点技术'}，好找工作。要不你也考虑考虑？</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="scene-narr">你沉默了一会儿。电视里的广告结束了，球赛继续。爸爸没有催你回答，只是等着。</div>`;
+  html+=`<div class="inner-mono"><span>"他不是在逼我。"</span><span>"他只是……担心我。"</span><span>"但我不想走那条路。"</span></div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你怎么回应？</div>`;
+  html+=`<button class="choice-btn" onclick="act4Choose(0)">说："爸，我有自己的想法。我知道你担心，但我想试试自己的方向。"</button>`;
+  html+=`<button class="choice-btn" onclick="act4Choose(1)">说："嗯，我会考虑的。"——你知道自己不会真的考虑。</button>`;
+  html+=`<button class="choice-btn" onclick="act4Choose(2)">沉默，假装专心看球赛。</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act4Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:8,parent:-3,und:8,con:8},
+    {self:-3,parent:5,und:-3,con:-8},
+    {self:-2,parent:-2,und:-5,con:-3}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'爸爸没有马上说话。过了好一会儿，他拿起遥控器换了个台，然后说了一句："你自己想好了就行。别后悔。"语气不算认可，但也没有反对。在这个家里，这已经是最大限度的尊重了。',
+     analysis:'「非暴力沟通」的核心是"表达需求而不否定对方"。当你说"我知道你担心"时，你在做一件重要的事——承认他的关心是真实的。这比单纯的"你别管我"有效得多。因为后者否定了他的角色，而前者回应了他的情感。'},
+    {narr:'"我会考虑"——你说得很自然，爸爸也没有追问。但回到房间之后，你心里有一种说不清的不舒服。你明明不打算考虑，却说了"会"。你在想：这算撒谎吗？',
+     analysis:'「认知失调」发生在行为与信念不一致的时候——你不想学IT，但你说了"会考虑"。这个小小的失调，日积月累，会让你越来越难分清"我真正想要的"和"我以为自己想要的"。自我一致性的下降不是一瞬间的事，而是一次一次的微小妥协。'},
+    {narr:'你没有接话。爸爸等了一会儿，大概也觉得这个话题到此为止了。球赛结束的时候，他站起来说了句"早点睡"。你"嗯"了一声。客厅只剩你一个人的时候，你把电视关了，盯着黑屏看了很久。',
+     analysis:'沉默在亲子关系中是最容易被"正常化"的回避方式——"我不说你也不问，大家都过得去。"但每一次沉默都在拉大理解的距离。爸爸可能以为你在认真想，而你其实在努力不去想。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid4=[
+    [`<span class="speaker">爸爸</span>（等你回房间后，关掉电视，坐了很久）`,
+     `<em>他没有跟妈妈转述你说的话。他在想：这孩子什么时候变得这么有主见了？小时候连点菜都要问我"爸爸我吃什么"。</em>`,
+     `<em>他翻了翻手机，搜了搜你的专业——搜出来的结果他看不太懂。但他没有关掉页面，而是存进了收藏夹。</em>`,
+     `<span class="speaker">爸爸</span>（第二天早上，假装随口说）："你那个专业，毕业之后大概做什么工作？"`,
+     `<em>——这是他在用自己的方式，试着理解你。</em>`],
+    [`<span class="speaker">爸爸</span>（等你回了房间，自言自语）："说'会考虑'……${gender==='F'?'她':'他'}每次都这么说。"`,
+     `<em>他知道你不会真的考虑。但他选择不拆穿。因为他也不知道，如果拆穿了——接下来该说什么。</em>`,
+     `<em>他关掉电视，路过你的房间，灯还亮着。他想敲门，手抬到一半又放下了。他在想：我是不是给的压力太大了？但我只是想让${gender==='F'?'她':'他'}以后别那么辛苦啊。</em>`],
+    [`<span class="speaker">爸爸</span>（在你关电视之前，其实一直在等你说话）`,
+     `<em>球赛最后五分钟，他其实没在看比分。他在等你开口——等一个回应、一个反驳、或者哪怕只是一个"我不想"。但你什么都没说。</em>`,
+     `<em>他站起来说了句"早点睡"。这三个字翻译过来是："我不知道怎么跟你聊了，但我还是想让你知道我在这里。"</em>`]
+  ];
+  html+=renderUnsaid(unsaid4[idx]);
+  html+=`<button class="btn-continue" onclick="showAct5()">大三上 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 5: 大三上·妈妈提恋爱/相亲 ---- */
+function showAct5(){
+  act=5;renderValueBar();
+  let html='<div class="act-label">第五幕 · 电话</div>';
+  html+=`<div class="scene-narr">大三上学期的某个晚上，妈妈的电话又来了。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">电话中</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">${gender==='F'?'你看隔壁阿姨家的闺女都订婚了，你也该考虑考虑了。':'你看你表哥都要结婚了，你也该找个女朋友了吧。'}</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="scene-narr">你最近状态不太好。${gender==='F'?'上一段感情刚结束，你还没完全走出来。':'上学期喜欢的那个人，最后不了了之了。'}你不想聊这个。</div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你怎么回？</div>`;
+  html+=`<button class="choice-btn" onclick="act5Choose(0)">坦诚："妈，我最近状态不太好。恋爱的事先不想了。"</button>`;
+  html+=`<button class="choice-btn" onclick="act5Choose(1)">不耐烦："别管我了行不行。"</button>`;
+  html+=`<button class="choice-btn" onclick="act5Choose(2)">随便应付："知道了知道了。"</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act5Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:3,parent:3,und:8,con:8},
+    {self:5,parent:-10,und:-10,con:3},
+    {self:-3,parent:3,und:-5,con:-8}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'妈妈沉默了一会儿。然后她说："那就不急。妈妈不是催你，就是……有时候担心你一个人在外面。"你说："我知道。"这两个字比任何解释都管用。',
+     analysis:'当你在情感脆弱的时候选择坦诚，你实际上做了一件很勇敢的事——你允许父母看到你"不好"的一面。这打破了"报喜不报忧"的模式，也给了父母一个机会去真正关心你，而不是关心他们想象中的那个你。'},
+    {narr:'"别管我了"——这句话刚出口你就后悔了。电话那头沉默了几秒，然后妈妈说了句"好吧"就挂了。你坐在床边，心里又气又心疼。气的是她总在不该问的时候问，心疼的是——她也只是想关心你。',
+     analysis:'「情绪外溢」——当一个人内心积压了太多未处理的情绪（疲惫、失恋、压力），任何一个小刺激都可能成为爆发的导火索。妈妈不是你情绪的源头，但她成了出口。理解这一点，不是为了自责，而是为了下次能在爆发之前，先照顾好自己。'},
+    {narr:'"知道了知道了"——你说的速度很快，语气很平。妈妈大概也听出来了，但她选择不追问。你挂了电话，看着通话记录——3分12秒。三分钟的对话里，你们都在说对方不想听的话。',
+     analysis:'「平行独白」——两个人在说话，但没有人在听。妈妈说的是她的担心，你回的是你的应付。对话在形式上发生了，但在实质上没有。这种"名义上的沟通"是很多亲子关系的常态——大家都觉得"我们有在聊天"，但没人觉得"被真正听到了"。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid5=[
+    [`<span class="speaker">妈妈</span>（挂了电话后，跟爸爸说）："孩子说最近状态不太好……${gender==='F'?'她':'他'}是不是恋爱出了什么事？"`,
+     `<span class="speaker">爸爸</span>："${gender==='F'?'她':'他'}自己说了不想聊，你就别追了。"`,
+     `<em>妈妈点了点头，但心里放不下。她翻了翻你的朋友圈——上一条是两个星期前发的，一张图书馆的照片，配文是"又是这样的一天"。她看不懂这句话的意思，但她隐约感觉到，你不开心。</em>`,
+     `<em>她打了一行字："妈妈等你想说的时候再说。"——看了三遍，还是发了出去。</em>`],
+    [`<span class="speaker">妈妈</span>（挂了电话后，眼眶红了）："${gender==='F'?'她':'他'}叫我别管了……"`,
+     `<span class="speaker">爸爸</span>（放下手里的报纸）："你又催了？"`,
+     `<span class="speaker">妈妈</span>："我就是问了一句嘛……"`,
+     `<em>爸爸叹了口气。他想说"你别老问那些"，但看到妈妈的表情，话到嘴边变成了："下次别提了，孩子大了有自己的想法。"妈妈没有说话。她去厨房洗杯子，水开得很大——她不想让爸爸听到她在掉眼泪。</em>`],
+    [`<span class="speaker">妈妈</span>（挂了电话，对着手机屏幕发呆）："每次跟${gender==='F'?'她':'他'}打电话都像在做任务一样……"`,
+     `<span class="speaker">爸爸</span>："那就少打。过几天再说。"`,
+     `<em>妈妈没有回应。她把手机放在沙发上，去阳台收衣服。风有点凉了。她想起你小时候，每次她接你放学，你都会拉着她的手说今天学了什么。现在连电话都聊不到三分钟。</em>`,
+     `<em>她把你的一件旧毛衣叠好，放在衣柜最上面那一层。你不知道——每次你说"知道了"的时候，她听到的是"别再说了"。</em>`]
+  ];
+  html+=renderUnsaid(unsaid5[idx]);
+  html+=`<button class="btn-continue" onclick="showAct6()">大三下 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 6: 大三下·实习选择 ---- */
+function showAct6(){
+  act=6;renderValueBar();
+  let html='<div class="act-label">第六幕 · 实习</div>';
+  html+=`<div class="scene-narr">大三下学期，你拿到了一个心仪的实习offer——在${gender==='F'?'上海':'北京'}，${gender==='F'?'一家文学杂志的编辑部':'一家博物馆的策展部门'}。你很兴奋。</div>`;
+  html+=`<div class="scene-narr">但打电话告诉爸妈的时候，那头沉默了。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">电话中</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">爸爸</div><div class="phone-bubble">那么远……本地没有合适的吗？</div></div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">一个人在外面不安全。要不在家这边找找？</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="scene-narr">你能感觉到，这不只是关于实习——这是关于你以后要去哪里生活、要离他们多远。</div>`;
+  html+=`<div class="choices"><div class="choice-prompt">你会怎么做？</div>`;
+  html+=`<button class="choice-btn" onclick="act6Choose(0)">坚持去外地，详细说明理由："这个机会对我很重要。我会照顾好自己的。"</button>`;
+  html+=`<button class="choice-btn" onclick="act6Choose(1)">妥协，留在本地："算了，我再看看本地的机会吧。"</button>`;
+  html+=`<button class="choice-btn" onclick="act6Choose(2)">暂时不做决定："我再想想，还有时间。"</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act6Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:10,parent:-8,und:3,con:8},
+    {self:-10,parent:8,und:3,con:-10},
+    {self:-3,parent:3,und:-3,con:-5}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'你花了半个小时在电话里解释——公司的方向、行业的前景、你的规划。妈妈一直没说话，最后爸爸开口了："去吧。但每个星期打个电话回来。"你说好。挂了电话，你发现手心全是汗。',
+     analysis:'这是整个故事中最大的一次"轨迹分离"。你选择了自己的方向，同时也主动承担了维系关系的责任（"每周打电话"）。心理学家Bowen提出的"自我分化"理论指出：真正的独立不是切断联系，而是在保持自我的同时，依然维系与原生家庭的情感纽带。'},
+    {narr:'你挂了电话，坐在宿舍里发了很久的呆。然后你打开招聘网站，搜了搜本地的公司。屏幕上的选项都不差——但你知道，它们不是你最想要的。只是……这样做，大家都更安心一些。',
+     analysis:'妥协不一定是错的——有时候留在父母身边，本身也是一种人生选择。关键在于：你是"选择了靠近"还是"放弃了远方"？如果是前者，这是一种有力量的决定；如果是后者，自我一致性会在沉默中慢慢被消磨。'},
+    {narr:'"我再想想"——你把决定推到了明天。但你知道，offer的回复截止日一天天逼近。你在等一个信号——来自父母的许可、来自自己的确信——但哪一个都没有到来。',
+     analysis:'「决策回避」在面临重大人生选择时极为常见。你不是不知道自己想去哪里——你只是不确定自己是否有"资格"违背父母的期待去那里。犹豫的本质，往往不是"不知道想要什么"，而是"不敢要"。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid6=[
+    [`<span class="speaker">爸爸</span>（挂了电话后，跟妈妈说）："让${gender==='F'?'她':'他'}去吧。"`,
+     `<span class="speaker">妈妈</span>："那么远……你就不担心？"`,
+     `<span class="speaker">爸爸</span>："担心有什么用。${gender==='F'?'她':'他'}自己有计划就行。"`,
+     `<em>爸爸说得很淡定。但那天晚上，他失眠了。他打开手机地图，搜了搜${gender==='F'?'上海':'北京'}——看了看你可能会住的那个区域离火车站有多远，飞机要飞多久。他在计算一种新的距离——不是公里，是以后见面的频率。</em>`,
+     `<em>妈妈在旁边翻了个身："你怎么还不睡？"他锁了屏幕："没事，看个新闻。"</em>`],
+    [`<span class="speaker">妈妈</span>（如释重负）："还好还好，留在本地。这样周末还能回来吃饭。"`,
+     `<span class="speaker">爸爸</span>："嗯。"`,
+     `<em>爸爸"嗯"了一声，没有多说。但他心里其实有一丝说不清的感觉——不是高兴，更像是……不确定。他看过你发的那个offer截图，知道那个外地的公司更好。他在想：${gender==='F'?'她':'他'}是真的想留在本地，还是因为我们？</em>`,
+     `<em>这个念头一闪而过，他没有追问。有些真相，父母也不敢知道。</em>`],
+    [`<span class="speaker">妈妈</span>（跟爸爸说）："孩子说还要再想想。"`,
+     `<span class="speaker">爸爸</span>："那个offer什么时候截止？别拖太久了。"`,
+     `<em>妈妈没说话。她其实希望你留在本地——但她也看得出你想去。她只是不知道该怎么说："去吧，我们支持你。"这句话在她嘴边转了好几圈，最后变成了"一个人在外面不安全"。</em>`,
+     `<em>有时候父母说的"不安全"，翻译过来就是"我舍不得"。</em>`]
+  ];
+  html+=renderUnsaid(unsaid6[idx]);
+  html+=`<button class="btn-continue" onclick="showAct7()">大四上 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ACT 7: 大四上·考研/工作/出国的抉择 ---- */
+function showAct7(){
+  act=7;renderValueBar();
+  let html='<div class="act-label">第七幕 · 抉择</div>';
+  html+=`<div class="scene-narr">大四上学期。秋招、考研、考公——每个人都在做选择。你也必须做出你的。</div>`;
+  html+=`<div class="scene-narr">国庆假期回家，饭桌上，气氛比以往更凝重了。</div>`;
+  html+=`<div class="phone-area"><div class="phone-label">饭桌上</div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">妈妈</div><div class="phone-bubble">${understand>=55?'你自己想好了没有？我们听你的，但你得有个计划。':'你到底准备怎么办？考研？考公？总得有个方向吧。'}</div></div>`;
+  html+=`<div class="phone-msg them"><div class="phone-msg-name">爸爸</div><div class="phone-bubble">${parentExp>=55?'你自己有想法就行，别稀里糊涂的就好。':'你看看你那些同学，人家都有着落了。你呢？'}</div></div>`;
+  html+=`</div>`;
+
+  // Dynamic inner monologue based on previous choices
+  if(selfDir>=60){
+    html+=`<div class="inner-mono"><span>"我知道自己想走什么路。"</span><span>"只是不确定他们能不能接受。"</span><span>"但这是我的人生。"</span></div>`;
+  }else if(consistency<=35){
+    html+=`<div class="inner-mono"><span>"他们想让我做什么来着？"</span><span>"我自己又想做什么？"</span><span>"……我不知道了。"</span></div>`;
+  }else{
+    html+=`<div class="inner-mono"><span>"又到了这个时刻。"</span><span>"我该怎么说？"</span><span>"也许……可以找到一个中间的路。"</span></div>`;
+  }
+
+  html+=`<div class="choices"><div class="choice-prompt">你会怎么做？</div>`;
+  html+=`<button class="choice-btn" onclick="act7Choose(0)">坚持自己的方向："我想去${gender==='F'?'上海做出版和写作':'北京做文化策展'}。我有我的规划，请你们相信我。"</button>`;
+  html+=`<button class="choice-btn" onclick="act7Choose(1)">部分妥协："我可以考本校研究生，既满足你们'读研'的期待，又能继续我感兴趣的方向。"</button>`;
+  html+=`<button class="choice-btn" onclick="act7Choose(2)">完全妥协："好吧，那就考公吧。你们觉得好的，应该不会错。"</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function act7Choose(idx){
+  disableChoices();choices.push(idx);
+  const deltas=[
+    {self:10,parent:-5,und:5,con:10},
+    {self:3,parent:5,und:5,con:3},
+    {self:-10,parent:10,und:-3,con:-10}
+  ];
+  applyDeltas(deltas[idx]);
+  const feedbacks=[
+    {narr:'饭桌上安静了好久。妈妈放下筷子看着爸爸，爸爸看着你。然后他说了一句让你意外的话——"行。但你得自己负责。"妈妈的眼眶有点红了，你假装没看到。',
+     analysis:'「自我分化」的最终考验：你坚持了自己的选择，同时也接受了随之而来的责任。"自己负责"这四个字，既是父亲的放手，也是他的不放心——但他选择了尊重你的决定。这是亲子关系中一个重要的转折点：当父母开始用"信任"替代"控制"的时候，关系就进入了新的阶段。'},
+    {narr:'这是一个巧妙的平衡方案。爸妈听了之后，互相看了一眼，妈妈点了点头："那也行。反正还在读书。"你松了一口气——虽然不是你最想要的路，但至少，是你可以接受的。',
+     analysis:'「折中策略」有时候被误解为"没有主见"，但实际上，它需要的认知复杂度一点不低——你需要同时理解自己的需求和父母的需求，然后找到一个双方都能接受的交集。这种能力在心理学中叫"双焦点意识"（dual focus awareness），是成熟的标志之一。'},
+    {narr:'"考公吧"——你说出这三个字的时候，妈妈笑了，爸爸也松了口气。他们开始兴致勃勃地讨论哪个岗位好、什么时候报名。你看着他们难得一致的笑脸，心里说不上是什么感觉——也许是宽慰，也许是空洞。',
+     analysis:'完全妥协在短期内带来的"和平"是真实的——父母满意了，冲突消失了。但长期来看，如果这个选择不是你真心想要的，那么每一天走在这条路上，你都在偿还一笔"自我压缩"的债。心理学家Winnicott提出的"真我"与"假我"理论认为：长期活在"假我"中的人，最终会感到一种深层的空虚。'}
+  ];
+  const fb=feedbacks[idx];
+  let html='<div class="feedback-box">';
+  html+=`<div class="feedback-result">${fb.narr}</div>`;
+  html+=renderValueChips(deltas[idx]);
+  html+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  const unsaid7=[
+    [`<span class="speaker">妈妈</span>（收碗的时候，背对着你，轻声说）："你爸说让你自己负责……他其实想说的是'我相信你'。他就是嘴硬。"`,
+     `<span class="speaker">爸爸</span>（在阳台抽烟，看着城市的夜景）`,
+     `<em>他没有跟任何人说——但你离开饭桌之后，他在阳台站了很久。他在想，自己二十几岁的时候，有没有过这样的时刻——想走一条不一样的路，但被"稳定"两个字拦住了。</em>`,
+     `<em>他吐出一口烟，心想：算了，别拦了。拦不住的。也不该拦。</em>`],
+    [`<span class="speaker">妈妈</span>（悄悄跟爸爸说）："孩子说考本校研，你看多好。"`,
+     `<span class="speaker">爸爸</span>："嗯，至少还在读书。"`,
+     `<em>他们都松了一口气。但爸爸心里有一个没说出口的想法：${gender==='F'?'她':'他'}是真的想读研，还是在跟我们做交易？他没有问——因为他也做过同样的交易。年轻时他想去南方闯一闯，最后留在了老家的体制内。他不知道那是不是正确的选择，所以他也不敢说你的选择是对还是错。</em>`],
+    [`<span class="speaker">妈妈</span>（笑着跟爸爸讨论报考的事）："你看这个岗位，竞争不大……"`,
+     `<span class="speaker">爸爸</span>（翻着手机查信息，认真得像在做一个项目）`,
+     `<em>他们很久没有这么一致地开心过了。妈妈拿出了一个笔记本，上面记满了各种岗位信息——她提前准备了很久，只等你点头。</em>`,
+     `<em>他们不知道你说"好吧"的时候，心里在想什么。他们只听到了"好"——那个他们等了四年的字。</em>`,
+     `<em>如果他们知道你心里的那个"好"后面还跟着一个"吧"，他们还会这么高兴吗？也许会，也许不会。但此刻，他们选择只听到"好"。</em>`]
+  ];
+  html+=renderUnsaid(unsaid7[idx]);
+  html+=`<button class="btn-continue" onclick="showEnding()">毕业之后 ——</button>`;
+  html+=`</div><div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+/* ---- ENDING SYSTEM ---- */
+function getEnding(){
+  const s=selfDir,p=parentExp,u=understand,c=consistency;
+  // 和解: 理解度高 + 自我一致性高 + 自我方向较高
+  if(u>=60&&c>=60&&s>=55) return{code:'REC',icon:'🌿',title:'和解',sub:'不一样的路，也能走到一起'};
+  // 爆发: 自我方向高 + 理解度低 + 父母认可低
+  if(s>=65&&u<=40&&p<=40) return{code:'EXP',icon:'🔥',title:'爆发',sub:'有些话憋太久，就成了火'};
+  // 独立: 自我方向高 + 理解度较高 + 自我一致性高
+  if(s>=60&&u>=50&&c>=55) return{code:'IND',icon:'🦅',title:'独立',sub:'我走了很远的路，但没有走丢'};
+  // 沉默的隔阂: 理解度低 + 父母认可低
+  if(u<=40&&p<=45) return{code:'SIL',icon:'📱',title:'沉默的隔阂',sub:'最熟悉的陌生人'};
+  // 表面的和平: 父母认可高 + 自我一致性低
+  if(p>=55&&c<=40) return{code:'PCE',icon:'🎭',title:'表面的和平',sub:'一切都好——真的吗？'};
+  // fallback based on balance
+  if(u>=50&&c>=45) return{code:'IND',icon:'🦅',title:'独立',sub:'我走了很远的路，但没有走丢'};
+  if(p>=50&&c<=45) return{code:'PCE',icon:'🎭',title:'表面的和平',sub:'一切都好——真的吗？'};
+  return{code:'SIL',icon:'📱',title:'沉默的隔阂',sub:'最熟悉的陌生人'};
+}
+
+function getFutureMirror(code){
+  const g=gender;
+  // Determine if player chose to leave or stay based on Act 6 (choices[6]) and Act 7 (choices[7])
+  // choices[6]: 0=insist leave, 1=stay local, 2=delay
+  // choices[7]: 0=insist leave, 1=local master's, 2=考公(complete surrender)
+  const act7=choices[7]!==undefined?choices[7]:0;
+  const act6=choices[6]!==undefined?choices[6]:0;
+  const wentAway=(act7===0)||(act6===0&&act7!==1&&act7!==2);
+  const stayedLocal=(act7===1||act7===2)||(act6===1&&act7!==0);
+  const cityName=g==='F'?'上海':'北京';
+  const careerAway=g==='F'?'一家文学杂志的编辑部':'一家博物馆的策展部门';
+  const careerLocal=g==='F'?'一家本地出版社':'一家本地文化机构';
+  const projectAway=g==='F'?'专栏':'展览';
+  const projectLocal=g==='F'?'读书会':'文化活动';
+  const act7path=act7===1?'考上了本校研究生':act7===2?'考上了公务员':'';
+  const mirrors={
+    REC:{
+      y1:`工作后的第一个春节，你回了家。进门的时候，一桌子菜已经摆好了——你爱吃的糖醋排骨在最中间的位置。妈妈围着围裙从厨房探出头："回来了？快洗手。"这一幕和以前没有什么不同。但吃饭的时候，你主动聊起了自己的工作——不再只说"挺好的"。爸爸听了一会儿，突然说："你那个行业，具体是干什么的？给我讲讲。"你愣了一下。这是他第一次主动问。`,
+      y3: stayedLocal
+        ?`第三年，你在本地${act7===1?'读完了研，找到了一份和自己方向相关的工作':'的工作渐渐稳定了下来'}。周末偶尔回家吃饭，妈妈不再唠叨"什么时候考公"了——而是问你"最近忙不忙""有没有好好吃饭"。有一次她说："你做的那个${projectLocal}，我跟你二姨说了，她说听起来挺有意思的。"你笑了。原来被理解，有时候不需要对方完全懂，只需要她愿意去说。`
+        :`第三年，你在${cityName}站稳了脚跟。妈妈学会了用视频通话，每周固定时间和你聊天。她不再问"什么时候考公"了——而是问你"最近忙不忙""有没有好好吃饭"。有一次她说："你做的那个${projectAway}，我跟你二姨说了，她说听起来挺厉害的。"你笑了。原来被理解，有时候不需要对方完全懂，只需要她愿意去说。`,
+      y5:`第五年，你回家过年的时候，带了一个人回来。爸爸看着你们，什么都没说，只是多炒了两个菜。饭后，他把你叫到阳台上，递了一根烟${g==='F'?'——虽然你不抽，但他的意思你懂':''}。他说了一句你这辈子都会记住的话——"你自己喜欢就好。"\n\n那一刻你知道，你们之间的两条线，终于在某个地方交汇了。不是因为谁妥协了，而是因为时间、距离和一次又一次的真诚对话，让两颗心慢慢学会了彼此尊重。`
+    },
+    PCE:{
+      y1:`工作后的第一个春节，你在老家。一切看起来都很正常——你穿着得体的衣服，妈妈给亲戚们介绍你的工作，你微笑着配合。回到房间关上门的时候，你才把笑容放下来。你很累。不是身体累，是那种……表演了一整天的累。`,
+      y3: stayedLocal
+        ?`第三年，你${act7===1?'研究生毕业了，找了一份本地的工作':'在本地工作，离家不远'}。每周打电话，每次都是那几句——"一切都好""最近不忙""嗯嗯好的"。妈妈在电话里说起谁家的孩子升了职，你笑着附和。挂了电话你才发现，你已经很久没有跟他们说过一句真心话了。不是不想说，是不知道该怎么开口。`
+        :`第三年，你在${cityName}有了一份还算稳定的工作。每周打电话，每次都是那几句——"一切都好""最近不忙""嗯嗯好的"。妈妈在电话里说起谁家的孩子升了职，你笑着附和。挂了电话你才发现，你已经很久没有跟他们说过一句真心话了。不是不想说，是不知道该怎么开口。`,
+      y5:`第五年，一个普通的周末。你在出租屋里看一部讲亲子关系的电影，突然眼泪就下来了。你也说不清为什么。你拿起手机，翻到妈妈的对话框，打了一行字：\n\n"妈，我有些话想跟你说。"\n\n打完之后看了很久，最后还是删掉了。然后你发了一条："今天天气不错，你和爸出去走走吧。"\n\n她秒回了一个太阳的表情。你盯着那个表情看了很久。`
+    },
+    SIL:{
+      y1: stayedLocal
+        ?`毕业后你${act7===1?'读了研':'留在了本地'}。和家的距离不远，但心理的距离越来越大。第一年春节，你在家待了三天就走了——你说工作忙。其实不全是。你只是不知道坐在那张饭桌旁该聊什么。妈妈在你走的时候说"那注意身体"，然后两个人沉默了几秒。"好，先这样吧。"你说。"嗯。"她说。`
+        :`毕业后你去了外地。第一年春节没有回家——你说加班走不开。其实不全是。你只是不知道回去之后该聊什么。妈妈在电话里说"那注意身体"，然后两个人沉默了几秒。"好，先这样吧。"你说。"嗯。"她说。然后挂了。`,
+      y3:`第三年，你换了手机号，忘了告诉他们。妈妈打旧号码打不通，急了，到处问你的同学。最后你收到一条微信消息："是不是换号了？新号码发给妈。"你发了号码过去，她回了一个"好的"。就这样。没有责怪，也没有追问——但你知道，在那个打不通电话的下午，她一定急坏了。你有点想说"对不起"，但手指在屏幕上停了很久，最终只发了一个"嗯"。`,
+      y5:`第五年，爸爸生病住院。你连夜赶回去，在医院走廊里看到妈妈——比你记忆中老了很多。她看到你，先是愣了一下，然后说了句"你怎么才来"。你张了张嘴，想说什么，但一句话都说不出来。\n\n病房里，爸爸躺在床上，看到你来了，说了一句"工作忙吧"。你说"还好"。就这样——你们之间最常用的两个字。\n\n你坐在走廊的塑料椅子上，盯着手机屏幕上和他们的聊天记录：全是"好的""嗯""注意身体"。你突然意识到，你们什么时候开始的呢——变成了最熟悉的陌生人。`
+    },
+    EXP:{
+      y1:`毕业那个夏天，你在电话里和他们吵了一架。你说出了所有压抑的话——"你们从来没问过我想要什么""你们只关心我的成绩和工作""你们爱的不是我，是你们期待中的那个我"。电话那头先是震惊，然后是愤怒，最后是漫长的沉默。你挂了电话，独自坐在出租屋的地板上，浑身发抖。`,
+      y3: stayedLocal
+        ?`第三年，你${act7===1?'读完了研':'在本地工作'}。住的地方离家不远，但你很少回去。每次过年回家，气氛都像冰窖——大家客客气气的，但谁都知道那些话还横在中间。妈妈试过几次找你聊，你都岔开了话题。不是不想和解，只是不知道该从哪句话开始。`
+        :`第三年，你在${cityName}有了自己的小天地。每次过年回家，气氛都像冰窖——大家客客气气的，但谁都知道那些话还横在中间。妈妈试过几次找你聊，你都岔开了话题。不是不想和解，只是不知道该从哪句话开始。`,
+      y5:`第五年的某个晚上，妈妈突然发来一条很长的微信。你打开一看——她说："那年你说的那些话，妈妈想了很久。有些话你说得对，爸妈以前确实没有好好听你说过。"\n\n你看了三遍。然后眼泪就掉下来了。\n\n你打了一个电话过去。响了两声就接了——她一直在等。你说了一句从来没说过的话："妈，对不起。我说得太重了。但是那些话——我是认真的。"\n\n她沉默了一会儿，说："妈知道。"\n\n那个电话打了两个小时。是你们之间，最长也最真的一次对话。`
+    },
+    IND:{
+      y1: stayedLocal
+        ?`毕业后你${act7===1?'读了本校的研究生':'留在了本地工作'}。不是你最初想走的那条路，但你决定认真地走。第一年有些迷茫——你偶尔会想"如果当初去了${cityName}会怎样"，但每次想起自己做这个选择时的考量，你就能平静下来。你每周给妈妈打一个电话，跟她聊聊生活日常——不再"报喜不报忧"了，而是真实地分享。`
+        :`毕业后你去了自己想去的城市，做了自己想做的事。第一年很辛苦——租的房子很小，工资刚够花，有好几次差点打退堂鼓。但每次想起自己为什么选这条路，你就能撑过去。你每周给妈妈打一个电话，跟她聊聊生活日常——不再"报喜不报忧"了，而是真实地分享。`,
+      y3: stayedLocal
+        ?`第三年，你${act7===1?'研究生快毕业了，找到了一份和自己方向相关的工作':'升了职，工作渐渐有了起色'}。爸妈来你住的地方看了看，妈妈说"收拾得还行"，爸爸说"比我想象的好"。走的时候，妈妈在门口抱了你一下——很用力的那种。她说了一句"你长大了"。`
+        :`第三年，你升了职，搬到了稍大一点的房子。爸妈来看你，在你的城市待了一个星期。他们逛了你公司附近的超市，妈妈说"东西真贵啊"，爸爸说"房子是小了点"。但走的那天，妈妈在门口抱了你一下——很用力的那种。她说了一句"你长大了"。`,
+      y5:`第五年，你在${stayedLocal?(g==='F'?'一个本地的文学活动上做了一次分享':'一个本地的文化论坛上做了一次策展演讲'):(g==='F'?'一个文学活动上做了一次分享':'一个文化论坛上做了一次策展演讲')}。你把链接发到了家庭群里。爸爸回了一个"👍"——这是他这辈子发过的第一个表情包。妈妈转发到了她的朋友圈，配文是"我家孩子"。\n\n你看着那三个字，笑着笑着就哭了。\n\n不是因为委屈。而是因为你知道，这一路走来的所有坚持、所有争吵、所有沉默和误解——最终都变成了这四个字：\n\n"我家孩子。"`
+    }
+  };
+  return mirrors[code]||mirrors.SIL;
+}
+
+function getEndingNarrative(code){
+  const narratives={
+    REC:{
+      text: (function(){
+        const act7=choices[7]!==undefined?choices[7]:0;
+        const act6=choices[6]!==undefined?choices[6]:0;
+        const stayedLocal=(act7===1||act7===2)||(act6===1&&act7!==0);
+        if(stayedLocal){
+          return '四年的拉扯，终于在这一刻有了一个温柔的着陆。你们各自退了一步，也各自往前走了一步。不是完全按照你最初的计划——但也不是完全按照他们的期待。\n\n在这个过程中，你们学会了一件最难的事：真正地听对方说话。他们开始理解你的热爱不是"不务正业"，你也终于看见了他们那些笨拙的担心背后，藏的是一份不知道怎么表达的爱。';
+        }
+        return '四年的拉扯，终于在这一刻有了一个温柔的着陆。你走了自己选的路，他们学会了用新的方式去爱你。不是完全理解——也许他们永远无法完全理解你为什么选了那条路。但他们选择了信任。\n\n而你也终于明白，他们那些看似"控制"的话语背后，藏的是一份笨拙的、不知道怎么表达的爱。';
+      })(),
+      comment:'「和解」不是某一方放弃了自己的立场，而是双方都学会了在"不完全理解"的前提下尊重彼此。心理学家Murray Bowen提出：成熟的家庭关系不是"没有差异"，而是"能够在差异中共存"。\n\n你做到了两件最难的事：坚持自己的方向，同时没有关上沟通的门。这种能力，叫做"有边界的爱"。'
+    },
+    PCE:{
+      text:'从外面看，你和家人的关系很好——逢年过节回家，电话周周不断，朋友圈互相点赞。但只有你自己知道，那些"一切都好"背后，藏了多少没说出口的真话。\n\n你学会了用他们能接受的方式说话。不提那些他们不理解的事，多聊他们关心的日常。这不是虚伪——这是你在漫长的岁月中摸索出的"最省力的相处方式"。\n\n但有时候你会想：如果有一天，你可以完全不用演，他们还会爱你吗？',
+      comment:'「表面的和平」的代价是自我压缩。你在关系中放弃了"被完全看见"的权利，换来了冲突的消失。这种模式在心理学中叫"过度适应"——你太擅长察觉别人的需求，以至于忘了自己的。\n\n这不是终局。也许某一天，当你足够强大、足够安全的时候，你会选择打开那扇一直紧闭的门。一句真话，就够了。'
+    },
+    SIL:{
+      text:'你们不是不爱对方——只是不知道怎么说了。电话越来越短，话题越来越少，每次通话都是那几句"吃饭了吗""注意身体""嗯，知道了"。\n\n你不知道该怎么开口说自己的真实生活——你换了三份工作、分了两次手、有过一段很消沉的日子。这些事你一件都没跟他们说。不是不想说，是害怕说了之后他们会担心、会责怪、会说"当初就叫你听我们的"。\n\n于是沉默成了你们之间最默契的语言。',
+      comment:'「沉默的隔阂」往往不是来自某一次大的冲突，而是无数次微小的"算了吧"——算了别说了、算了他们不会懂、算了解释也没用。每一次"算了"都在拉开一点距离，直到有一天回头看，才发现已经走了那么远。\n\n心理学家John Bowlby说：依恋的断裂不是来自距离本身，而是来自"不再尝试靠近"。重建连接的第一步，不是一次完美的对话——而是一个不完美的开口。'
+    },
+    EXP:{
+      text:'那场争吵像是一颗炸弹。你说出了所有压在心里的话——真话，但也是狠话。有些是你早该说的，有些是你在愤怒中说过了头的。\n\n爸妈被你的话伤到了。你也被自己的话伤到了。但至少——一切都不再是假的了。你们之间的空气，第一次如此清澈，虽然清澈得让人刺痛。\n\n爆发不是终点。它是冰封了太久的关系，终于开裂的声音。',
+      comment:'「爆发」在心理学中被称为"情感决堤"——当长期积压的未表达情绪超过了承受阈值，就会以激烈的方式喷涌而出。它破坏了旧有的平衡，但也为重建提供了可能。\n\n研究表明，经历过激烈冲突但最终得到修复的关系，往往比从未冲突过的关系更加坚韧。关键在于：爆发之后，是否愿意坐下来，重新听对方说话。'
+    },
+    IND:{
+      text: (function(){
+        const act7=choices[7]!==undefined?choices[7]:0;
+        const act6=choices[6]!==undefined?choices[6]:0;
+        const stayedLocal=(act7===1||act7===2)||(act6===1&&act7!==0);
+        if(stayedLocal){
+          return '你没有走最远的那条路——但你走了一条自己能站稳的路。这不是妥协，因为你从来没有放弃思考"我到底想要什么"。\n\n你学会了在现有的框架里找到自己的空间，也学会了和父母保持真实的对话。不是每一次都顺利——有些时候你说得太直，有些时候他们听不进去。但你们一直在说。\n\n不是完美的平衡——世界上没有完美的平衡——但是一个你可以站得住的地方。';
+        }
+        return '你选择了自己的路，也选择了不关上那扇门。这两件事同时做到，比你想象中更难——因为每一次坚持自己的时候，你都要面对父母失望的眼神；每一次主动联系的时候，你都要做好"又被催"的心理准备。\n\n但你做到了。你学会了在"做自己"和"爱他们"之间找到一个不那么痛的位置。不是完美的平衡——世界上没有完美的平衡——但是一个你可以站得住的地方。';
+      })(),
+      comment:'「独立」在心理学中不是指"不再需要家人"，而是指"在保持自我完整性的前提下，依然能够建立有深度的情感连接"。这种能力被称为"自我分化"（differentiation of self），是心理成熟的核心标志。\n\n你做到了最难的事：你既没有为了自由而切断关系，也没有为了关系而放弃自由。这条路上没有现成的地图——但你走出来了自己的。'
+    }
+  };
+  return narratives[code]||narratives.SIL;
+}
+
+function showEnding(){
+  storyEl.innerHTML='';
+  document.getElementById('value-bar').style.display='none';
+  window.scrollTo({top:0,behavior:'instant'});
+
+  const ending=getEnding();
+  const narrative=getEndingNarrative(ending.code);
+  const mirror=getFutureMirror(ending.code);
+  const s=clamp(selfDir),p=clamp(parentExp),u=clamp(understand),c=clamp(consistency);
+
+  // Determine style — per-act semantic classification
+  // [assert, compromise, avoid] mapping per act
+  let style='',tip='';
+  const choiceType=[
+    ['assert','avoid','avoid'],       // Prologue: insist / silent / deflect
+    ['assert','assert','avoid'],       // Act1: explain / angry outburst / silent
+    ['assert','avoid','avoid'],        // Act2: honest / hide bad news / brush off
+    ['assert','compromise','avoid'],   // Act3: rebut / smile+talk later / don't care
+    ['assert','avoid','avoid'],        // Act4: speak up / fake agree / silent
+    ['assert','assert','avoid'],       // Act5: frank / explosive / brush off
+    ['assert','compromise','avoid'],   // Act6: insist leave / stay local / delay
+    ['assert','compromise','compromise'] // Act7: insist / partial compromise / full surrender
+  ];
+  let assertCount=0,avoidCount=0,compromiseCount=0;
+  choices.forEach((c,i)=>{if(i<choiceType.length){const t=choiceType[i][c]||'avoid';if(t==='assert')assertCount++;else if(t==='compromise')compromiseCount++;else avoidCount++;}});
+  if(assertCount>=5){
+    style='坚定型沟通者';
+    tip='你在大多数时刻选择了直接表达自己的想法和感受。这种勇气在亲子关系中非常珍贵——但也要记得，"我说了"不等于"他们听到了"。真正有效的沟通，不只是把话说出来，还要确认对方接住了。';
+  }else if(avoidCount>=5){
+    style='回避型沟通者';
+    tip='你倾向于在冲突面前保持沉默或敷衍回应。这种策略保护了你免受即时的冲突伤害，但也让父母失去了理解你的机会。每一次"算了"都在拉远你们的距离——试着在安全的时刻，说一句真话。';
+  }else if(compromiseCount>=5){
+    style='妥协型沟通者';
+    tip='你善于在自我需求和家庭期待之间寻找中间地带。这种灵活性是人际关系中的重要能力。但也要觉察：你是真的在"平衡"，还是在"压缩自己"？妥协如果总是单方面的，那就不是妥协，而是顺从。';
+  }else if(assertCount>=3&&compromiseCount>=3){
+    style='弹性沟通者';
+    tip='你的沟通风格在坚持和妥协之间灵活切换——在关键时刻坚持自己，在非核心议题上灵活让步。这种"弹性"是亲子关系中最可持续的模式。继续保持这种既有主见又有温度的节奏。';
+  }else{
+    style='探索型沟通者';
+    tip='你的选择没有明显的固定模式——有时候坚持，有时候退让，有时候沉默。这说明你还在探索与父母的相处之道。探索不是坏事——它意味着你在寻找一种属于自己的方式。只要你愿意继续尝试，方式总会找到的。';
+  }
+
+  // Archive code
+  const cSeq=choices.map(c=>c).join('');
+  const archiveCode=`E6-${gender}-${cSeq}-${ending.code}`;
+  saveGameRecord('E6',archiveCode,ending.title,ending.icon,ending.code);
+
+  let html=`<div class="ending-icon">${ending.icon}</div>`;
+  html+=`<div class="ending-title">${ending.title}</div>`;
+  html+=`<div class="ending-sub">${ending.sub}</div>`;
+  html+=`<div class="ending-text">${narrative.text.replace(/\n/g,'<br>')}</div>`;
+
+  // Future mirror
+  html+=`<div class="future-section">`;
+  html+=`<div class="future-year"><div class="future-year-label">毕业后第 1 年</div><div class="future-year-text">${mirror.y1.replace(/\n/g,'<br>')}</div></div>`;
+  html+=`<div class="future-year"><div class="future-year-label">毕业后第 3 年</div><div class="future-year-text">${mirror.y3.replace(/\n/g,'<br>')}</div></div>`;
+  html+=`<div class="future-year"><div class="future-year-label">毕业后第 5 年</div><div class="future-year-text">${mirror.y5.replace(/\n/g,'<br>')}</div></div>`;
+  html+=`</div>`;
+
+  // Psychology comment
+  html+=`<div class="ending-comment"><div class="ending-comment-label">心理学视角</div><div class="ending-comment-text">${narrative.comment.replace(/\n/g,'<br>')}</div></div>`;
+
+  // Summary card
+  html+=`<div class="summary-card">`;
+  html+=`<div class="summary-item"><div class="summary-label">结局</div><div class="summary-value">${ending.title}</div></div>`;
+  html+=`<div class="summary-values">`;
+  html+=`<div class="summary-val-item"><div class="summary-val-name" style="color:var(--self-color)">自我方向</div><div class="summary-val-num">${s}</div></div>`;
+  html+=`<div class="summary-val-item"><div class="summary-val-name" style="color:var(--self-color)">自我一致</div><div class="summary-val-num">${c}</div></div>`;
+  html+=`<div class="summary-val-item"><div class="summary-val-name" style="color:var(--parent-color)">父母认可</div><div class="summary-val-num">${p}</div></div>`;
+  html+=`<div class="summary-val-item"><div class="summary-val-name" style="color:var(--parent-color)">相互理解</div><div class="summary-val-num">${u}</div></div>`;
+  html+=`</div>`;
+  html+=`<div class="summary-item"><div class="summary-label">沟通风格</div><div class="summary-value">${style}</div></div>`;
+  html+=`<div class="summary-tip">${tip}</div>`;
+  html+=`</div>`;
+
+  // Reflection
+  html+=`<div class="reflect-box"><div class="reflect-label">课 后 反 思</div>`;
+  html+=`<div class="reflect-q">你上一次跟父母打电话是什么时候？那次通话中，你有没有说过"一切都好"但其实并不好？是什么让你选择了隐瞒？</div>`;
+  html+=`<div class="reflect-q">游戏里展示了"他们没说出口的话"——你有没有想过，在你们的真实对话中，父母可能也有很多没说出来的担心和妥协？如果你是他们，你会怎么开口？</div>`;
+  html+=`<div class="reflect-q">"理解"不等于"同意"。你觉得有没有可能在不同意父母的前提下，依然让他们觉得被尊重？如果可以，你会怎么做？</div>`;
+  html+=`<div class="reflect-hint">这些问题没有标准答案。可以写在纸上，也可以带到课堂讨论中。</div></div>`;
+
+  // Archive
+  html+=`<div class="archive-section"><div class="archive-label">存 档 编 号</div><div class="archive-code" id="archive-code">${archiveCode}</div><button class="btn-copy" onclick="copyArchive()">复制编号</button><div class="archive-hint">保存此编号，可与朋友分享你的故事走向</div></div>`;
+  html+=`<div style="text-align:center"><button class="btn-restart" onclick="location.reload()">重新开始</button><br><a class="btn-back" href="index.html">返回事件簿</a></div>`;
+  html+=`<div class="scroll-anchor"></div>`;
+  appendHTML(html);
+}
+
+function copyArchive(){
+  const code=document.getElementById('archive-code').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(code).then(()=>{
+      const btn=document.querySelector('.btn-copy');
+      btn.textContent='已复制';setTimeout(()=>btn.textContent='复制编号',1500);
+    });
+  }else{
+    const r=document.createRange();
+    r.selectNode(document.getElementById('archive-code'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(r);
+    document.execCommand('copy');
+    const btn=document.querySelector('.btn-copy');
+    btn.textContent='已复制';setTimeout(()=>btn.textContent='复制编号',1500);
+  }
+}
+
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

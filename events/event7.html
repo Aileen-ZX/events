@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>为什么而活 · 大学心理事件簿</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1c1a2e;--bg2:#252340;
+  --card:rgba(30,28,50,0.85);--card-hover:rgba(42,38,70,0.95);
+  --gold:#d4a856;--gold-light:#e8c878;--gold-dim:rgba(212,168,86,0.12);
+  --purple:#8a7ab5;--purple-light:#a898d0;--purple-dim:rgba(138,122,181,0.12);
+  --red:#b07070;--green:#7ab58a;
+  --ink:#d8dae8;--ink2:#a0a4c0;--ink3:#7a7ea0;--ink4:#505470;
+  --font-body:Georgia,'Songti SC','SimSun',serif;
+  --font-ui:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 500px 400px at 30% 25%,rgba(138,122,181,0.1),transparent 70%),
+    radial-gradient(ellipse 400px 400px at 70% 65%,rgba(212,168,86,0.07),transparent 70%)}
+#app{position:relative;z-index:1;max-width:540px;margin:0 auto;min-height:100vh;padding:0 20px}
+.screen{display:none;opacity:0}.screen.active{display:block;animation:fadeUp 0.8s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== TITLE SCREEN ===== */
+#title-screen{text-align:center}
+#title-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:fadeUp 1s ease forwards}
+.title-icon{width:80px;height:80px;margin-bottom:28px;border-radius:50%;border:2px solid var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:1.6rem;animation:iconPulse 3s ease-in-out infinite}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 20px rgba(212,168,86,0.15)}50%{box-shadow:0 0 40px rgba(212,168,86,0.3)}}
+.title-main{font-size:1.8rem;font-weight:700;letter-spacing:0.1em;color:var(--ink);margin-bottom:6px}
+.title-sub{font-size:0.82rem;color:var(--ink3);letter-spacing:0.25em;margin-bottom:40px}
+.btn-start{background:transparent;border:1px solid var(--gold-light);color:var(--gold-light);padding:14px 44px;font-size:0.9rem;letter-spacing:0.2em;cursor:pointer;border-radius:1px;transition:all 0.3s;font-family:var(--font-body)}
+.btn-start:hover{background:var(--gold-dim);box-shadow:0 0 30px rgba(212,168,86,0.15)}
+
+/* ===== ANCHOR BAR ===== */
+.anchor-bar{position:sticky;top:0;z-index:100;padding:12px 0 10px;background:linear-gradient(to bottom,var(--bg) 70%,transparent)}
+.anchor-bar-inner{border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 14px;background:rgba(25,23,45,0.9);backdrop-filter:blur(8px)}
+.anchor-title{text-align:center;font-size:0.68rem;letter-spacing:0.15em;color:var(--ink3);margin-bottom:8px;font-family:var(--font-ui)}
+.anchor-grid{display:flex;justify-content:center;gap:12px}
+.anchor-item{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.06);transition:all 0.5s}
+.anchor-item.lit{border-color:var(--gold);background:var(--gold-dim)}
+.anchor-icon{font-size:0.75rem}
+.anchor-name{font-size:0.65rem;color:var(--ink3);letter-spacing:0.08em;transition:color 0.5s}
+.anchor-item.lit .anchor-name{color:var(--gold-light)}
+.anchor-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.5s}
+.anchor-item.lit .anchor-dot{background:var(--gold);box-shadow:0 0 8px rgba(212,168,86,0.5)}
+.progress-hint{text-align:center;font-size:0.6rem;color:var(--ink4);margin-top:6px;font-family:var(--font-ui)}
+
+/* ===== FRAGMENT GRID ===== */
+.frag-intro{font-size:0.84rem;line-height:1.8;color:var(--ink2);margin:20px 0 16px;padding-left:14px;border-left:2px solid rgba(138,122,181,0.25)}
+.frag-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 20px}
+.frag-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:18px 14px;cursor:pointer;transition:all 0.3s;text-align:center;position:relative}
+.frag-card:hover{background:var(--card-hover);border-color:var(--purple-light);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.frag-card.done{opacity:0.45;pointer-events:none;border-color:rgba(212,168,86,0.2)}
+.frag-card.done::after{content:'\2713';position:absolute;top:8px;right:10px;font-size:0.7rem;color:var(--gold)}
+.frag-card.reading{border-color:var(--gold);box-shadow:0 0 20px rgba(212,168,86,0.1)}
+.frag-card-icon{font-size:1.6rem;margin-bottom:8px}
+.frag-card-title{font-size:0.82rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.frag-card-hint{font-size:0.62rem;color:var(--ink3);line-height:1.5}
+
+/* ===== EXPANDED FRAGMENT ===== */
+.frag-expanded{margin:16px 0;animation:feedIn 0.4s ease}
+@keyframes feedIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.frag-exp-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.frag-exp-icon{font-size:1.4rem}
+.frag-exp-title{font-size:1rem;font-weight:700;color:var(--ink)}
+.scene-narr{font-size:0.85rem;line-height:1.9;color:var(--ink2);margin:14px 0;padding-left:14px;border-left:2px solid rgba(138,122,181,0.2)}
+.inner-mono{font-size:0.82rem;line-height:1.8;color:var(--ink3);font-style:italic;margin:10px 0;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:6px}
+.inner-mono span{display:block;margin:4px 0;opacity:0;animation:monoIn 0.5s ease forwards}
+.inner-mono span:nth-child(2){animation-delay:0.6s}
+.inner-mono span:nth-child(3){animation-delay:1.2s}
+@keyframes monoIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== CHOICES ===== */
+.choices{margin:18px 0}
+.choice-prompt{font-size:0.72rem;letter-spacing:0.2em;margin-bottom:10px;color:var(--gold)}
+.choice-btn{display:block;width:100%;background:var(--card);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:14px 16px;margin-bottom:8px;text-align:left;color:var(--ink);font-size:0.84rem;line-height:1.7;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);position:relative}
+.choice-btn:hover{background:var(--card-hover);border-color:var(--gold-light);transform:translateX(4px);box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+.choice-btn.disabled{opacity:0.2;pointer-events:none}
+
+/* ===== FEEDBACK ===== */
+.feedback-box{margin:14px 0;animation:feedIn 0.4s ease}
+.feedback-result{background:var(--card);border-radius:8px;padding:12px 14px;font-size:0.84rem;line-height:1.8;color:var(--ink);margin-bottom:8px;border-left:3px solid var(--gold)}
+.anchor-lit-tag{display:inline-flex;align-items:center;gap:4px;font-size:0.7rem;padding:4px 10px;border-radius:12px;background:var(--gold-dim);border:1px solid rgba(212,168,86,0.25);color:var(--gold-light);margin:8px 0}
+.anchor-lit-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(212,168,86,0.5)}
+.analysis-box{background:linear-gradient(135deg,rgba(138,122,181,0.08),rgba(212,168,86,0.05));border:1px solid rgba(138,122,181,0.12);border-radius:8px;padding:12px 14px;margin:8px 0 16px}
+.analysis-label{font-size:0.62rem;letter-spacing:0.2em;color:var(--purple-light);margin-bottom:5px}
+.analysis-text{font-size:0.78rem;line-height:1.8;color:var(--ink2)}
+.btn-continue{display:block;margin:18px auto;background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--ink3);padding:10px 30px;font-size:0.8rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-continue:hover{border-color:var(--gold-light);color:var(--gold-light)}
+.btn-ending{display:block;margin:24px auto;background:var(--gold-dim);border:1px solid rgba(212,168,86,0.3);color:var(--gold-light);padding:12px 36px;font-size:0.88rem;cursor:pointer;border-radius:4px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.2em;animation:fadeUp 0.6s ease}
+.btn-ending:hover{background:rgba(212,168,86,0.2);box-shadow:0 0 20px rgba(212,168,86,0.15)}
+
+/* ===== ENDINGS ===== */
+.ending-card{border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px 18px 20px;margin:24px 0 0;text-align:center;background:linear-gradient(180deg,rgba(30,28,50,0.9),rgba(30,28,50,0.6))}
+.ending-icon{font-size:2.8rem;text-align:center;margin:0 0 12px}
+.ending-title{font-size:1.3rem;text-align:center;color:var(--ink);margin-bottom:6px;font-weight:700}
+.ending-sub{font-size:0.82rem;color:var(--ink3);text-align:center;line-height:1.6}
+.ending-quote{margin:20px 0;padding:16px 18px;text-align:center;font-size:0.88rem;line-height:1.8;color:var(--gold-light);background:rgba(212,168,86,0.06);border:1px solid rgba(212,168,86,0.12);border-radius:8px;font-style:italic}
+.ending-quote-author{font-size:0.68rem;color:var(--ink3);margin-top:6px;font-style:normal}
+.summary-card{background:var(--card);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:20px;margin:20px 0;text-align:center}
+.summary-title{font-size:0.72rem;color:var(--purple-light);letter-spacing:0.25em;margin-bottom:14px}
+.summary-anchors{display:flex;justify-content:center;gap:16px;margin:14px 0}
+.summary-anchor{text-align:center}
+.summary-anchor-icon{font-size:1.4rem;margin-bottom:4px}
+.summary-anchor-name{font-size:0.68rem;color:var(--ink3);margin-bottom:4px}
+.summary-anchor-state{font-size:0.72rem;font-weight:600}
+.summary-anchor-state.lit{color:var(--gold)}
+.summary-anchor-state.dark{color:var(--ink4)}
+.reflect-box{margin:20px 0;padding:18px;border-radius:8px;background:linear-gradient(135deg,rgba(138,122,181,0.04),rgba(212,168,86,0.03));border:1px solid rgba(138,122,181,0.18)}
+.reflect-label{font-size:0.65rem;letter-spacing:0.25em;color:var(--purple-light);margin-bottom:10px;font-weight:600}
+.reflect-q{font-size:0.78rem;line-height:1.85;color:var(--ink2);margin:10px 0;padding-left:14px;border-left:2px solid rgba(138,122,181,0.3)}
+.reflect-hint{font-size:0.68rem;color:var(--ink3);margin-top:12px;font-style:italic}
+.archive-section{margin:18px 0;padding:16px;background:linear-gradient(135deg,rgba(138,122,181,0.06),rgba(212,168,86,0.04));border:1px dashed rgba(138,122,181,0.3);border-radius:8px;text-align:center}
+.archive-label{font-size:0.62rem;color:var(--purple-light);letter-spacing:0.25em;margin-bottom:8px}
+.archive-code{font-family:var(--font-ui);font-size:0.82rem;color:var(--ink);background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:10px 14px;margin:6px 0 10px;letter-spacing:0.08em;word-break:break-all;user-select:all}
+.btn-copy{background:var(--purple-dim);border:1px solid rgba(138,122,181,0.3);color:var(--purple-light);padding:7px 20px;font-size:0.75rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.1em}
+.btn-copy:hover{background:rgba(138,122,181,0.2)}
+.btn-restart{display:inline-block;margin-top:18px;background:var(--gold-dim);border:1px solid rgba(212,168,86,0.3);color:var(--gold-light);padding:10px 34px;font-size:0.85rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-restart:hover{background:rgba(212,168,86,0.2)}
+.btn-back{display:inline-block;margin-top:10px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--ink4);padding:9px 28px;font-size:0.78rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);text-decoration:none}
+.btn-back:hover{border-color:var(--gold-light);color:var(--gold-light)}
+.scroll-anchor{height:1px}
+/* === MY RECORDS === */
+.my-records-block{width:100%;max-width:380px;margin:0 auto 20px}
+.my-records-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;cursor:pointer;background:rgba(138,122,181,0.06);border:1px solid rgba(138,122,181,0.12);border-radius:8px;transition:all 0.3s;user-select:none}
+.my-records-toggle:hover{background:rgba(138,122,181,0.1)}
+.my-records-label{font-size:0.75rem;letter-spacing:0.1em;color:inherit;opacity:0.6}
+.my-records-arrow{font-size:0.7rem;opacity:0.4;transition:transform 0.3s}
+.my-records-block.expanded .my-records-arrow{transform:rotate(180deg)}
+.my-records-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease;opacity:0}
+.my-records-block.expanded .my-records-list{max-height:600px;opacity:1;margin-top:8px}
+.my-record-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;background:rgba(138,122,181,0.04);border:1px solid rgba(138,122,181,0.06);border-radius:6px;transition:background 0.2s}
+.my-record-item:hover{background:rgba(138,122,181,0.08)}
+.my-record-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.my-record-info{flex:1;min-width:0}
+.my-record-title{font-size:0.78rem;font-weight:600;line-height:1.4;color:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.my-record-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.my-record-code{font-family:'Courier New',monospace;font-size:0.65rem;opacity:0.5;letter-spacing:0.03em}
+.my-record-date{font-size:0.62rem;opacity:0.4}
+@media(max-width:540px){
+  #app{padding:0 16px}
+  .title-main{font-size:1.5rem}
+  .frag-grid{grid-template-columns:1fr 1fr;gap:8px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title-screen" class="screen active">
+    <div class="title-icon">&#x1F56F;&#xFE0F;</div>
+    <div class="title-main">为什么而活</div>
+    <div class="title-sub">大学 · 心理事件簿</div>
+    <button class="btn-start" onclick="startGame()">开 始 探 索</button>
+  </div>
+  <div id="game-screen" class="screen">
+    <div class="anchor-bar" id="anchor-bar"></div>
+    <div id="story"></div>
+  </div>
+</div>
+
+<script>
+/* === RECORD STORAGE === */
+function saveGameRecord(eid,code,title,icon,ec){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');if(!a[eid])a[eid]=[];a[eid].unshift({code:code,title:title,icon:icon,endingCode:ec,ts:Date.now()});if(a[eid].length>20)a[eid]=a[eid].slice(0,20);localStorage.setItem('psych_game_records',JSON.stringify(a));}catch(e){}}
+function getGameRecords(eid){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');return a[eid]||[];}catch(e){return[];}}
+function renderRecordsBlock(eid){var recs=getGameRecords(eid);if(!recs.length)return;var ts=document.getElementById('title-screen');if(!ts)return;var btn=ts.querySelector('.btn-start');if(!btn)return;var b=document.createElement('div');b.className='my-records-block';b.innerHTML='<div class="my-records-toggle" onclick="this.parentElement.classList.toggle(\'expanded\')"><span class="my-records-label">\uD83D\uDCCB 我的记录 ('+recs.length+')</span><span class="my-records-arrow">\u25BE</span></div><div class="my-records-list">'+recs.map(function(r){var d=new Date(r.ts);var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return '<div class="my-record-item"><span class="my-record-icon">'+r.icon+'</span><div class="my-record-info"><div class="my-record-title">'+r.title+'</div><div class="my-record-meta"><span class="my-record-code">'+r.code+'</span><span class="my-record-date">'+ds+'</span></div></div></div>';}).join('')+'</div>';ts.insertBefore(b,btn);}
+renderRecordsBlock('E7');
+/* ===== STATE ===== */
+let anchors={relation:false,create:false,experience:false};
+let fragDone=[false,false,false,false,false,false];
+let fragChoices=[-1,-1,-1,-1,-1,-1];
+let fragCount=0;
+let currentFrag=-1;
+const storyEl=document.getElementById('story');
+
+/* ===== HELPERS ===== */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none'});
+  const el=document.getElementById(id);
+  el.style.display='';void el.offsetWidth;el.classList.add('active');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function startGame(){
+  showScreen('game-screen');
+  renderAnchorBar();
+  showFragGrid();
+}
+
+function renderAnchorBar(){
+  const bar=document.getElementById('anchor-bar');
+  const items=[
+    {key:'relation',icon:'&#x1F91D;',name:'关系锚点'},
+    {key:'create',icon:'&#x1F3A8;',name:'创造锚点'},
+    {key:'experience',icon:'&#x2728;',name:'体验锚点'}
+  ];
+  let h='<div class="anchor-bar-inner"><div class="anchor-title">意义锚点</div><div class="anchor-grid">';
+  for(const it of items){
+    const lit=anchors[it.key]?'lit':'';
+    h+=`<div class="anchor-item ${lit}"><span class="anchor-icon">${it.icon}</span><span class="anchor-name">${it.name}</span><span class="anchor-dot"></span></div>`;
+  }
+  h+='</div><div class="progress-hint">'+fragCount+' / 6 碎片已阅读</div></div>';
+  bar.innerHTML=h;
+}
+
+function lightAnchor(key){
+  if(!anchors[key]){anchors[key]=true;renderAnchorBar();}
+}
+
+function disableChoices(){
+  document.querySelectorAll('.choice-btn:not(.disabled)').forEach(b=>b.classList.add('disabled'));
+}
+
+function appendToStory(html){
+  const div=document.createElement('div');
+  div.innerHTML=html;
+  storyEl.appendChild(div);
+  requestAnimationFrame(()=>{
+    const bar=document.getElementById('anchor-bar');
+    const offset=bar&&bar.offsetHeight?bar.offsetHeight+8:0;
+    const top=div.getBoundingClientRect().top+window.pageYOffset-offset;
+    window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+  });
+}
+
+/* ===== FRAGMENT DATA ===== */
+const FRAGMENTS=[
+{
+  title:'童年的追问',icon:'\uD83C\uDF31',hint:'五岁那年的一个问题',
+  scene:`<div class="scene-narr">五岁那年的某个傍晚。你蹲在院子里看蚂蚁搬家，太阳把影子拉得很长。奶奶坐在旁边择菜，收音机里放着听不懂的戏。你看着蚂蚁排成长队，突然抬起头问了一句——</div><div class="inner-mono"><span>"奶奶，人为什么会死？"</span><span>奶奶的手停了一下，然后继续择菜。</span><span>"因为人活够了，就要走了。"</span><span>"那怎么才算活够了？"</span></div><div class="scene-narr">奶奶没有回答。很多年以后你才明白，不是她不想答——是这个问题，没有人能答。你现在坐在图书馆里，那个五岁的问题又回来了。只是这一次，你不再期待有人能给你答案。你开始想：也许答案不在别人嘴里，而在你怎么过每一天里。</div>`,
+  prompt:'如果"活够了"有一个标准，你觉得它更接近——',
+  choices:[
+    {text:'"身边的人都好好的，我就够了。"',anchor:'relation',
+     narr:'你发现，在你的想象里，"活够了"的画面不是功成名就，不是环游世界——而是一张饭桌，桌上坐着你在乎的人。菜可以很简单，但笑声要是真的。',
+     analysis:'关系心理学认为，人类最深层的需求之一是"归属感"——知道自己被需要、被牵挂。选择"身边的人都好好的"意味着你把意义感锚定在人际联结上。研究表明，高质量的亲密关系是预测幸福感的最强变量，甚至超过收入和社会地位。'},
+    {text:'"要真真切切地感受过——快乐、疼痛、心跳加速，都算。"',anchor:'experience',
+     narr:'你闭上眼，想到的不是什么宏大的场景——而是一些碎片：暴雨天跑回宿舍浑身湿透的畅快，第一口冰可乐下喉的那声叹气，凌晨三点和朋友坐在天台上什么都不说。这些都不"重要"。但它们都是真的。',
+     analysis:'这是存在主义心理学中"体验价值"的体现。弗兰克尔认为，意义的三大来源之一是"体验价值"——通过感受世界的美、爱与真实来获得意义。你不需要"做"什么伟大的事，有时候，"被生活本身打动"就是最深的意义。'},
+    {text:'"说不清。但我隐约觉得，这个问题本身就是答案。"',anchor:null,
+     narr:'你没有选出一个答案。不是因为想不到——而是你意识到，"活够了"也许不是一个终点，而是一种持续的追问。只要你还在问"为什么"，你就还在活。',
+     analysis:'哲学家加缪说："真正严肃的哲学问题只有一个，那就是自杀。"这不是在鼓励绝望——而是在说：选择继续活下去，本身就是一个积极的决定。你对这个问题保持开放，拒绝简单的答案，这恰恰是存在主义所推崇的"真诚"态度。'}
+  ]
+},
+{
+  title:'刷到的新闻',icon:'\uD83D\uDCF1',hint:'深夜的一条推送',
+  scene:`<div class="scene-narr">凌晨一点，你躺在床上刷手机。一条新闻推送弹出来——某地地震，伤亡数字还在上升。你看了几秒，划走了。下一条：AI可能取代80%的工作。再下一条：气候变化的临界点可能在十年内到来。</div><div class="scene-narr">你把手机放下，盯着天花板。黑暗里，一种奇怪的感觉涌上来——不是恐惧，更像是一种空茫。世界这么大，灾难这么多，你这么小。你每天做的那些事——上课、写作业、吃饭、睡觉——在这些巨大的事情面前，像是一粒尘埃在认真地旋转。</div><div class="inner-mono"><span>"这一切有什么用呢？"</span><span>"我做的事情，能改变什么吗？"</span><span>"还是说——不需要改变什么，活着本身就可以是目的？"</span></div>`,
+  prompt:'面对这种"渺小感"，你内心的声音是——',
+  choices:[
+    {text:'"也许我改变不了世界，但我可以做点什么——哪怕很小。"',anchor:'create',
+     narr:'你想起上学期参加的那次校园植树活动。一棵小树苗，可能要二十年才能长成大树。但二十年后，会有人在它的树荫下乘凉——那个人不会知道你的名字，但树在那里。这个念头让你觉得好了一点。',
+     analysis:'阿德勒心理学强调"社会兴趣"——个体对人类共同体的贡献感。即使是微小的创造，也能对抗虚无感。关键不是影响力的大小，而是"我参与了"这个事实本身。一棵树、一篇文章、一次帮助——这些都是你存在过的证据。'},
+    {text:'"我管不了那么远的事。但我身边的人，我想好好对待。"',anchor:'relation',
+     narr:'你翻了个身，看了看旁边室友的床——窗帘缝里透进来的路灯光，照着一个起伏的被子轮廓。明天早上，你决定叫上室友去食堂吃早饭。不为什么——就是想跟一个活生生的人说说话。',
+     analysis:'面对宏大叙事的无力感时，"回到附近"是一种有效的心理调节策略。社会心理学家发现，日常的微联结（micro-connections）——一次眼神接触、一句问候、一起吃饭——对幸福感的贡献远超人们的预期。你不需要拯救世界，照顾好你的"三米之内"就很了不起了。'},
+    {text:'"不想了。打开音乐，感受这一刻就好。"',anchor:'experience',
+     narr:'你戴上耳机，随机播放。一首旧歌响起来——旋律很简单，但此刻在黑暗里听，每一个音符都放大了十倍。你闭上眼，感觉音乐像水一样从耳朵流进身体。什么世界末日、什么AI取代、什么意义不意义的——此刻，你在这里。这首歌在响。这就够了。',
+     analysis:'正念心理学的核心主张：你不需要解决所有问题才能感到平静。"活在当下"不是逃避，而是一种有意识的选择——选择从焦虑的未来和遗憾的过去中回到此刻。研究表明，正念练习能显著降低反刍思维，提高主观幸福感。'}
+  ]
+},
+{
+  title:'高考之后',icon:'\uD83C\uDF93',hint:'达成目标后的空洞',
+  scene:`<div class="scene-narr">高考结束那天下午，你从考场出来，阳光刺得你睁不开眼。周围的人在欢呼、拥抱、哭泣。你站在人群中间，书包带子勒着肩膀，心里却什么感觉都没有。</div><div class="scene-narr">接下来的整个暑假，你以为自己会疯玩、会狂欢、会做所有高中三年想做没做的事。但实际上，你大部分时间都躺在床上，盯着天花板。那种空洞感不是懒——是一种深层的茫然：<b>目标消失了。</b></div><div class="inner-mono"><span>高中的每一天都有方向：考大学。</span><span>现在你考上了。</span><span>然后呢？</span><span>下一个"然后呢"是什么？</span></div><div class="scene-narr">你第一次意识到：也许"实现目标"本身不会带来意义。因为目标一旦实现，你就需要一个新的目标。一个又一个，永远不够。那意义到底在哪里？在目标里，还是在别的什么地方？</div>`,
+  prompt:'对你来说，"高考之后的空洞"最像——',
+  choices:[
+    {text:'"游戏通关后不想玩了的感觉。也许重点不是终点，是路上的风景。"',anchor:'experience',
+     narr:'你想起高三那年冬天，晚自习回宿舍的路上，路灯把雪照得发亮。你和同桌一边走一边背单词，背到funny的时候两个人同时笑了出来。那一刻比任何分数都真实。也许你一直在赶路，却忘了路本身就是目的。',
+     analysis:'这是积极心理学中"过程导向"vs"结果导向"的经典议题。Csikszentmihalyi的"心流理论"指出：人在全身心投入过程中体验到的意义感，远比达成结果后的满足感更持久。目标的价值不在于被实现，而在于它让你在追求的过程中，变成了更完整的自己。'},
+    {text:'\u201c这说明我需要一个更大的目标\u2014\u2014一个不会\u2018用完\u2019的那种。\u201d',anchor:'create',
+     narr:'你打开手机备忘录，在空白页面上打了一行字："我想创造一些在我离开之后还能留下来的东西。"你不确定那是什么——一本书？一个产品？一种影响？但这个方向感本身，让空洞感退了一点。',
+     analysis:'马斯洛需求层次理论的最高层——"自我实现"——不是一个终点，而是一个持续的方向。心理学家Deci和Ryan的自我决定理论进一步指出：内在动机（做某件事是因为它本身有意义）比外在动机（做某件事是为了奖励）更能带来持久的满足感和心理健康。'},
+    {text:'\u201c也许不需要目标。允许自己\u2018没有方向\u2019也是一种方向。\u201d',anchor:null,
+     narr:'你什么都没想出来。但奇怪的是，允许自己"想不出来"之后，那种空洞感反而没那么可怕了。它不是一个需要填补的洞——也许它只是一片空地，等着你慢慢在上面种点什么。',
+     analysis:'心理治疗中有一个重要概念叫"负性能力"（negative capability）——能够忍受不确定性和未知，而不急于用答案填满它。这种能力在我们这个强调"效率""目标""规划"的时代尤为珍贵。有时候，最有勇气的事不是找到答案，而是允许自己暂时没有答案。'}
+  ]
+},
+{
+  title:'朋友做公益',icon:'\uD83E\uDD1D',hint:'一次意外的邀请',
+  scene:`<div class="scene-narr">周末下午，室友阿楠突然在群里发了一张照片——一群小学生围着一张长桌画画，阳光从窗户照进来，桌上颜料盘五颜六色。照片配文："支教的第三天，有个小朋友画了一只猫送我。"</div><div class="scene-narr">你看了一会儿那张照片。小朋友的画很稚拙，猫的身体是圆的，尾巴比身体还长。但画纸右下角歪歪扭扭写了一行字："送给阿楠哥哥，谢谢你教我画画。"</div><div class="scene-narr">阿楠在群里@了你："下周还有一次，要不要一起来？"你盯着这条消息，手指悬在键盘上方。你从来没做过公益——不是不想，是总觉得自己"还没准备好"，又或者"去了也帮不上什么忙"。</div><div class="inner-mono"><span>但那张猫的画一直在你脑子里。</span><span>不是因为它画得好。</span><span>而是因为——有人因为阿楠的存在，拿起了画笔。</span></div>`,
+  prompt:'你回复阿楠——',
+  choices:[
+    {text:'"我去。不知道能帮什么，但我想去看看。"',anchor:'relation',
+     narr:'下个周末，你和阿楠坐了两个小时的大巴到了那所小学。你被分到三年级，教他们折纸。一个扎马尾的小女孩怎么都折不好纸飞机，急得眼圈红了。你蹲下来，手把手教她。飞机飞出去的瞬间，她笑了——那种笑，让你觉得自己存在了一下。',
+     analysis:'利他行为是意义感的重要来源之一。弗兰克尔将其归入"态度价值"——在无法改变处境时，你仍然可以选择以怎样的态度面对。而现代积极心理学的研究也证实：帮助他人时释放的催产素和内啡肽，会产生被称为"助人者愉悦"（helper\u2019s high）的正向情绪体验。'},
+    {text:'"我不去。但我可以帮你做别的——比如帮你整理活动方案。"',anchor:'create',
+     narr:'你花了一个下午帮阿楠做了一份活动教案——把美术课拆成了五个步骤，每个步骤配了简笔画示例。阿楠说这是他见过的"最靠谱的方案"。你没去现场，但当他发来小朋友们按你设计的步骤画出的作品时，你觉得——你的东西，到达了某个你不认识的人手里。',
+     analysis:'创造价值不一定要亲身"在场"。设计一个方案、写一段文字、搭一个框架——这些间接的贡献同样具有意义。心理学家Howard Gardner提出的"间接影响力"概念表明：你不需要直接面对受益者，只要你的创造物能够触及他人，意义就已经产生了。'},
+    {text:'"你发的那个画，小朋友画得真好。我存下来了。"',anchor:'experience',
+     narr:'你没说去不去，只是把那张猫的照片保存了。晚上躺在床上翻到它，放大看了很久——蜡笔的笔触一道一道，颜色涂出了线外，猫的眼睛画成了两个大大的圆。你发现自己在笑。不是因为什么——就是被这张画打动了。被一个你不认识的小朋友的认真打动了。',
+     analysis:'审美体验是意义感的隐秘入口。心理学家Haidt提出的"道德提升"（moral elevation）概念指出：当我们目睹他人的善行或纯真时，会产生一种胸口温暖的生理感受，这种感受能激发利他意愿，也能增强对生活意义的感知。被打动，本身就是一种参与世界的方式。'}
+  ]
+},
+{
+  title:'想象八十岁',icon:'\uD83E\uDE9E',hint:'一封来自未来的信',
+  scene:`<div class="scene-narr">心理课上，老师布置了一个练习：<b>"给八十岁的自己写一封信。"</b></div><div class="scene-narr">你拿着笔坐了五分钟，一个字都没写出来。不是不知道写什么——是你突然发现，你根本无法想象八十岁的自己。</div><div class="scene-narr">你闭上眼，试着想。画面很模糊——一个头发花白的人，坐在某个地方……坐在哪里？在做什么？身边有谁？你发现，你对未来的"想象力"远没有自己以为的那么丰富。你能想象明天的自己，下周的自己，甚至五年后的自己——但八十岁，太远了。</div><div class="inner-mono"><span>八十岁的你，会后悔什么？</span><span>会庆幸什么？</span><span>会对现在的你说什么？</span></div>`,
+  prompt:'你闭上眼，隐约看见八十岁的自己——',
+  choices:[
+    {text:'坐在一张大饭桌旁边，周围都是人。有老朋友，有晚辈。很吵，很暖。',anchor:'relation',
+     narr:'你写下了第一句话："亲爱的八十岁的我，我希望你身边还有人愿意陪你吃饭。"写完之后你停了一下——这句话太朴素了，但它是你心里最真实的画面。不是豪宅，不是奖杯，是一顿有人陪的晚饭。',
+     analysis:'心理学家Robert Waldinger主持的哈佛成人发展研究（Harvard Study of Adult Development）追踪了724个人超过80年，得出的核心结论只有一句话：<b>"良好的关系让我们更健康、更快乐。"</b>不是财富，不是名声，不是成就——是关系。你的八十岁画面，不自觉地呼应了这个长达近一个世纪的研究发现。'},
+    {text:'坐在一个书房里，书架上有几本自己写的书。封面有点旧了，但你知道有人读过。',anchor:'create',
+     narr:'你写下了："亲爱的八十岁的我，我希望你留下了一些东西。不需要很多人知道——但至少有几个人曾经因为你做的事情，觉得世界好了一点点。"你不确定你会写书、还是做别的什么。但"留下点什么"这个念头，像一颗种子落在了心里。',
+     analysis:'Erikson的人生发展八阶段理论中，中年期的核心冲突是"生产力vs停滞"（generativity vs. stagnation）——但这种对"留下什么"的渴望，往往在年轻时就已经萌芽。"创造性遗产"不一定是伟大的作品，它可以是一段教导、一个影响、一种被传递下去的态度。'},
+    {text:'坐在一个阳台上，面前是一大片天空。什么都不想，只是看着太阳下山。',anchor:'experience',
+     narr:'你写下了："亲爱的八十岁的我，我希望你还能感受到风。"这句话让你自己也愣了一下——但你知道，这是最真的。你怕的不是死亡本身，而是在死亡之前，已经丧失了感受的能力。',
+     analysis:'存在主义哲学家海德格尔提出"向死而生"——正是因为知道生命有限，每一刻的体验才变得珍贵。你对"感受力"的珍视，反映了一种深层的存在觉知：意义不在远方，它就在你能看见夕阳、能感受风、能为一个瞬间心动的能力里。'}
+  ]
+},
+{
+  title:'世界末日',icon:'\uD83C\uDF0D',hint:'最后的24小时',
+  scene:`<div class="scene-narr">这是一个思想实验。假设——纯粹假设——你收到了一条权威通知：<b>地球还有24小时。</b>不是玩笑，不是演习。明天这个时候，一切结束。</div><div class="scene-narr">你站在宿舍窗前，看着外面的世界。校园里的人还在走来走去，有人在打篮球，有人在树下看书。他们可能还不知道。但你知道了。时钟开始倒计时。</div><div class="inner-mono"><span>24小时。</span><span>你不需要写论文了。不需要考试了。不需要担心绩点、实习、毕业、房贷。</span><span>所有那些"以后"的东西都消失了。</span><span>只剩下"现在"。</span><span>你想做什么？</span></div>`,
+  prompt:'最后的24小时，你会——',
+  choices:[
+    {text:'给所有重要的人打电话。不说别的，就说："我很高兴认识你。"',anchor:'relation',
+     narr:'你拿起手机。第一个电话打给了妈妈。电话接通的那一刻，你张了张嘴，什么都说不出来。眼泪先掉了下来。妈妈在那头急了："怎么了？"你吸了吸鼻子："没事。就是想跟你说，我很爱你。"说完这句话，你发现——那个一直压在心底的重量，轻了一些。',
+     analysis:'末日思想实验剥离了所有社会角色和功能性目标，暴露出人最底层的需求。选择"打电话"意味着你内心深处最不可替代的东西是人与人之间的联结。恐惧管理理论（Terror Management Theory）发现：当人们意识到死亡的必然性时，对亲密关系的渴望会显著增强——因为关系是唯一能在有限生命中创造"永恒感"的东西。'},
+    {text:'找一个安静的地方，写下我这辈子最想说的话。哪怕没人看到。',anchor:'create',
+     narr:'你找了一个空教室，坐在窗边，打开笔记本。第一行写了删，删了写。最后你放弃了"写出完美的遗言"的想法，开始随便写——写你记得的画面、你喜欢过的人、你做过的梦、你害怕的东西。写了两个小时，写了十几页。合上笔记本的时候，你觉得：即使明天这些纸会和一切一起消失——但此刻，你把自己交付给了文字。这就够了。',
+     analysis:'面对终极虚无时选择创造，是人类精神中最不可思议的能力。弗兰克尔在纳粹集中营里仍然在脑中构思他的心理学理论——不是因为他相信自己能活下来，而是因为创造本身就是对虚无的最高反抗。你在末日写下的那些文字，可能没有读者——但写作的行为本身，就是意义的证据。'},
+    {text:'什么都不做。就走到外面，感受最后一个太阳。',anchor:'experience',
+     narr:'你走出宿舍楼，穿过操场，走到学校后面那座小山坡上。太阳正在下山，天空被染成了橘红色和紫色的交界。风吹过来，带着草的味道。你坐在草地上，把鞋脱了，感觉到脚下的土是温的。你什么都没想。你就这样坐着，看着太阳一点一点地沉下去。这可能是你看过的最美的日落——不是因为它特别，而是因为你知道它是最后一个。',
+     analysis:'当一切意义系统——社会的、文化的、个人的——都被末日瓦解时，你选择了最原始的行为：感受。这与存在主义哲学家梅洛-庞蒂的"身体现象学"不谋而合：我们最终极的存在方式，是通过身体与世界接触。土的温度、风的方向、光的颜色——在一切消失之前，这些感受就是你存在的证据。'}
+  ]
+}
+];
+
+/* ===== FRAGMENT GRID ===== */
+function showFragGrid(){
+  storyEl.innerHTML='';
+  let h='<div class="frag-intro">你坐在大学图书馆的角落里，面前摊着一本没翻几页的书。窗外的天空是灰蓝色的，有人从走廊经过，脚步声渐远。你不知道从什么时候开始，脑子里有了一个问题——它不急迫，不致命，但一直在那里，像一颗小石子卡在鞋底。<br><br><b>"我为什么要在这里？"</b><br><br>不是"我为什么在图书馆"——是更大的那个问题。关于活着，关于意义，关于你还要这样走多久。<br><br>你闭上眼睛，六段记忆像碎片一样浮了上来。它们来自不同的时间，不同的场景。每一段里，都藏着一个你曾经接近过的答案。</div>';
+  h+='<div class="frag-grid" id="fragGrid">';
+  for(let i=0;i<6;i++){
+    const f=FRAGMENTS[i];
+    const done=fragDone[i]?'done':'';
+    h+=`<div class="frag-card ${done}" id="frag-card-${i}" onclick="openFragment(${i})"><div class="frag-card-icon">${f.icon}</div><div class="frag-card-title">${f.title}</div><div class="frag-card-hint">${f.hint}</div></div>`;
+  }
+  h+='</div>';
+  if(fragCount>=6){
+    h+='<button class="btn-ending" onclick="showEnding()">六段碎片已读完 —— 看看你的答案</button>';
+  }
+  h+='<div class="scroll-anchor"></div>';
+  storyEl.innerHTML=h;
+}
+
+function openFragment(idx){
+  if(fragDone[idx]) return;
+  currentFrag=idx;
+  const f=FRAGMENTS[idx];
+  document.getElementById('frag-card-'+idx).classList.add('reading');
+  storyEl.innerHTML='';
+  let h=`<div class="frag-expanded"><div class="frag-exp-head"><span class="frag-exp-icon">${f.icon}</span><div class="frag-exp-title">${f.title}</div></div>`;
+  h+=f.scene;
+  h+=`<div class="choices"><div class="choice-prompt">${f.prompt}</div>`;
+  for(let c=0;c<f.choices.length;c++){
+    h+=`<button class="choice-btn" onclick="fragChoose(${idx},${c})">${f.choices[c].text}</button>`;
+  }
+  h+='</div></div><div class="scroll-anchor"></div>';
+  storyEl.innerHTML=h;
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function fragChoose(fragIdx,choiceIdx){
+  disableChoices();
+  const f=FRAGMENTS[fragIdx];
+  const ch=f.choices[choiceIdx];
+  fragChoices[fragIdx]=choiceIdx;
+  fragDone[fragIdx]=true;
+  fragCount++;
+  if(ch.anchor) lightAnchor(ch.anchor);
+  renderAnchorBar();
+
+  let h='<div class="feedback-box">';
+  h+=`<div class="feedback-result">${ch.narr}</div>`;
+  if(ch.anchor){
+    const names={relation:'关系锚点',create:'创造锚点',experience:'体验锚点'};
+    h+=`<div class="anchor-lit-tag"><span class="dot"></span> ${names[ch.anchor]}被点亮</div>`;
+  }
+  h+=`<div class="analysis-box"><div class="analysis-label">心理透镜</div><div class="analysis-text">${ch.analysis}</div></div>`;
+  h+='</div>';
+  h+='<button class="btn-continue" onclick="showFragGrid()">返回碎片地图 ——</button>';
+  h+='<div class="scroll-anchor"></div>';
+  appendToStory(h);
+}
+
+/* ===== ENDING SYSTEM ===== */
+function getEnding(){
+  const r=anchors.relation,c=anchors.create,e=anchors.experience;
+  const count=(r?1:0)+(c?1:0)+(e?1:0);
+  if(count===3) return{title:'完整的困惑',sub:'你拥有了所有的碎片，却发现拼不出一个完整的答案——也许这就是答案本身',icon:'\uD83C\uDF08',color:'#d4a856',code:'ALL'};
+  if(r&&c) return{title:'在爱和创造之间',sub:'你的意义，在你爱的人和你创造的东西之间流动',icon:'\uD83C\uDF3F',color:'#7ab58a',code:'LVC'};
+  if(r&&e) return{title:'在人间烟火里',sub:'你的意义，藏在每一个温暖的瞬间和每一个在乎的人里',icon:'\uD83D\uDD25',color:'#d4785a',code:'HMN'};
+  if(c&&e) return{title:'在星辰与泥土之间',sub:'你的意义，在脚下的真实和头顶的理想之间生长',icon:'\u2B50',color:'#8a7ab5',code:'STR'};
+  if(count===1) return{title:'微光',sub:'只有一盏灯被点亮——但一盏灯就够照亮一段路',icon:'\uD83D\uDD6F\uFE0F',color:'#a0a4c0',code:'DIM'};
+  return{title:'还在路上',sub:'没有锚点被点亮——但你走在路上，这本身就是方向',icon:'\uD83D\uDEB6',color:'#7a7ea0',code:'WAY'};
+}
+
+function showEnding(){
+  storyEl.innerHTML='';
+  window.scrollTo({top:0,behavior:'instant'});
+  const ending=getEnding();
+  const r=anchors.relation,c=anchors.create,e=anchors.experience;
+
+  let narr='';
+  if(ending.code==='ALL'){
+    narr+=`<div class="scene-narr">六段碎片读完了。你睁开眼睛，发现图书馆的灯不知道什么时候亮了。窗外的天空已经从灰蓝色变成了深蓝色——时间过去了多久？</div>`;
+    narr+=`<div class="scene-narr">你回顾刚才的六段记忆，发现自己在每一段里都找到了某种共鸣。关系、创造、体验——它们都是真实的，都对你有引力。但它们指向不同的方向，像三条岔路，你站在交叉口，不知道该往哪走。</div>`;
+    narr+=`<div class="scene-narr">然后你意识到一件事：<b>也许意义不是一条路，而是一张网。</b>它不需要你选择一个方向并且一直走下去——它允许你在不同的季节走不同的路，在不同的时刻被不同的东西打动。你的困惑不是因为你什么都不在乎——恰恰相反，你在乎太多了。这是一种珍贵的困惑。</div>`;
+    narr+=`<div class="ending-quote">"我什么都想要——不是贪心，而是我对生活的每一面都还有好奇。"<div class="ending-quote-author">—— 你自己</div></div>`;
+  }else if(ending.code==='LVC'){
+    narr+=`<div class="scene-narr">你的六段记忆里，有两种东西反复出现：<b>人</b>和<b>作品</b>。你想要身边有人，也想要留下点什么。</div>`;
+    narr+=`<div class="scene-narr">这不矛盾。事实上，这可能是人类历史上最常见的意义组合——几乎所有伟大的创造，都根植于对某个人的爱。一封信是写给某个人的，一首歌是唱给某个人的，一栋房子是为某个人盖的。你想留下的东西，和你想留住的人，也许本就是同一件事。</div>`;
+    narr+=`<div class="scene-narr">你在笔记本上画了一个很小的图：一棵树，树下有两个人。树是你创造的，人是你在乎的。根扎在土里，枝伸向天空。</div>`;
+    narr+=`<div class="ending-quote">"创造一个东西最好的理由是：有人会因此微笑。"<div class="ending-quote-author">—— 某位不知名的手工匠人</div></div>`;
+  }else if(ending.code==='HMN'){
+    narr+=`<div class="scene-narr">你的六段记忆里，最真实的东西都和两个字有关：<b>温度</b>。人的温度，和世界的温度。</div>`;
+    narr+=`<div class="scene-narr">你不是那种会给自己定宏大目标的人。你不需要"改变世界"或者"留下遗产"来证明自己活过。你要的更朴素，也更难——你要的是每一天都能感受到一点什么：一顿好吃的饭，一个走在路上突然看到的好看的云，一个朋友发来的"你在吗？"。</div>`;
+    narr+=`<div class="scene-narr">你的意义感不在远方，它就在你的生活里。在你和妈妈通电话时的沉默里，在深夜和室友分享零食的塑料袋声里，在清晨食堂打饭阿姨多给你舀的那一勺里。你不是在"寻找意义"——你在<b>过</b>意义。</div>`;
+    narr+=`<div class="ending-quote">"人间烟火气，最抚凡人心。"<div class="ending-quote-author">—— 民间谚语</div></div>`;
+  }else if(ending.code==='STR'){
+    narr+=`<div class="scene-narr">你的六段记忆里，有两种力量在拉扯你：一种把你拉向天上，一种把你按在地上。你想创造一些超越日常的东西——同时你又无法抗拒日常本身的质感。</div>`;
+    narr+=`<div class="scene-narr">你是那种会在写论文的间隙跑到阳台上看十分钟云的人。你是那种会在做完一个项目之后，独自走很远的路回宿舍的人。你需要做事的满足感，也需要什么都不做的放空。</div>`;
+    narr+=`<div class="scene-narr">你的意义在两极之间震荡——这不是摇摆不定，这是一种特殊的平衡。就像钟摆，正因为两端都有引力，它才能持续运动。你的星辰是创造，你的泥土是体验。你在它们之间走来走去，每一步都是你自己的。</div>`;
+    narr+=`<div class="ending-quote">"一个人应当既能仰望星空，也能俯身闻花。"<div class="ending-quote-author">—— 改编自康德</div></div>`;
+  }else if(ending.code==='DIM'){
+    narr+=`<div class="scene-narr">六段记忆读完了，但只有一盏灯被点亮。</div>`;
+    narr+=`<div class="scene-narr">这不是因为你冷漠或者迷茫——也许恰恰相反。你知道自己想要什么。你的指南针只指向一个方向，这种清晰是很多人羡慕的。`;
+    if(r) narr+=`你在乎的是人。不是抽象的"人类"，是具体的、有名字的人。你的意义感来自于被需要、被记住、被某个人在深夜的消息里提到。`;
+    else if(c) narr+=`你在乎的是创造。不是为了名声，而是为了"它在那里"这个事实本身。你的意义感来自于——你做了一件事，这件事独立于你存在了。`;
+    else narr+=`你在乎的是感受。不是别人告诉你应该感受什么，而是你自己真真切切地感受到了。你的意义感来自于每一个让你心动的瞬间。`;
+    narr+=`</div>`;
+    narr+=`<div class="scene-narr">一盏灯足够了。在黑暗中，一盏灯能照亮比你想象的更远的地方。</div>`;
+    narr+=`<div class="ending-quote">"一盏灯照不亮整个房间——但它能照亮你下一步要踩的那块地。"<div class="ending-quote-author">—— 改编自安妮·拉莫特</div></div>`;
+  }else{
+    narr+=`<div class="scene-narr">六段记忆读完了。没有灯被点亮。</div>`;
+    narr+=`<div class="scene-narr">你靠在椅背上，发现自己并不慌张。你读完了六个关于意义的故事，认真地想了每一个问题——但最终没有被任何一个答案说服。不是因为你不在乎，而是因为你对自己足够诚实：你不想为了"有一个答案"而随便选一个。</div>`;
+    narr+=`<div class="scene-narr">这很好。这意味着你还在路上。你还没有到达——但你已经出发了。"为什么而活"这个问题，也许永远不会有一个最终答案。但只要你还在问，你就没有停下。<br><br>有些人一辈子都在寻找意义。他们中最智慧的那些人会告诉你：<b>寻找本身，就是意义。</b></div>`;
+    narr+=`<div class="ending-quote">"不是所有流浪的人都迷了路。"<div class="ending-quote-author">—— J.R.R. 托尔金</div></div>`;
+  }
+
+  let html=narr;
+  html+=`<div class="ending-card" style="border-color:${ending.color}40">`;
+  html+=`<div class="ending-icon">${ending.icon}</div>`;
+  html+=`<div class="ending-title" style="color:${ending.color}">结局 \u00B7 ${ending.title}</div>`;
+  html+=`<div class="ending-sub">${ending.sub}</div>`;
+  html+=`</div>`;
+
+  /* summary */
+  html+=`<div class="summary-card"><div class="summary-title">你的意义锚点</div><div class="summary-anchors">`;
+  html+=`<div class="summary-anchor"><div class="summary-anchor-icon">\uD83E\uDD1D</div><div class="summary-anchor-name">关系</div><div class="summary-anchor-state ${r?'lit':'dark'}">${r?'已点亮':'未点亮'}</div></div>`;
+  html+=`<div class="summary-anchor"><div class="summary-anchor-icon">\uD83C\uDFA8</div><div class="summary-anchor-name">创造</div><div class="summary-anchor-state ${c?'lit':'dark'}">${c?'已点亮':'未点亮'}</div></div>`;
+  html+=`<div class="summary-anchor"><div class="summary-anchor-icon">\u2728</div><div class="summary-anchor-name">体验</div><div class="summary-anchor-state ${e?'lit':'dark'}">${e?'已点亮':'未点亮'}</div></div>`;
+  html+=`</div></div>`;
+
+  /* psychology analysis */
+  let analysis='';
+  if(ending.code==='ALL') analysis='你的意义感是多元的、流动的——这正是积极心理学家Martin Seligman提出的PERMA模型所描述的状态。PERMA包含五个维度：积极情绪（Positive Emotion）、投入（Engagement）、关系（Relationships）、意义（Meaning）、成就（Achievement）。你的三个锚点——关系、创造、体验——几乎覆盖了所有维度。这意味着你有丰富的意义来源，也意味着你需要学会在不同维度之间切换和平衡。困惑不是你的弱点，它是你的复杂性。';
+  else if(ending.code==='LVC') analysis='爱与创造的交汇，是弗兰克尔意义疗法（Logotherapy）中两大核心价值的结合：创造价值（通过做事获得意义）和体验价值中的爱（通过关系获得意义）。你的意义感有一种特殊的"指向性"——它不是抽象的，而是始终指向某个人或某群人。这种意义感的特点是：它同时需要独处（创造时）和相处（联结时），这两者的节奏感是你一生要学习的课题。';
+  else if(ending.code==='HMN') analysis='你的意义感根植于"日常性"——这在现代社会是一种被低估的品质。我们的文化总在强调"做大事""留遗产""改变世界"，但心理学研究反复证明：日常的微幸福（micro-happiness）对长期幸福感的贡献远大于偶尔的巅峰体验。你重视的关系和体验，恰恰是最经得起时间检验的意义来源。它们不耀眼，但它们持久。';
+  else if(ending.code==='STR') analysis='创造与体验的张力，在哲学传统中对应着"阿波罗精神"（秩序、形式、创造）和"狄俄尼索斯精神"（感官、直觉、体验）。尼采认为，最伟大的艺术诞生于这两种力量的平衡。你身上存在着同样的张力——你既想建造（创造锚点），又想感受（体验锚点）。这种张力不是需要被消除的矛盾，而是驱动你前进的双引擎。';
+  else if(ending.code==='DIM') analysis='只有一个锚点被点亮——这意味着你的意义感是高度聚焦的。心理学中有一个概念叫"核心价值"（core value），它是一个人做所有决定的底层依据。有些人有多个核心价值在相互竞争，而你的核心价值可能非常清晰。这种清晰可以是巨大的力量来源——它让你在面对选择时更果断，在面对困难时更坚定。但也要注意：过度依赖单一意义来源，在该来源受到威胁时可能导致严重的意义危机。';
+  else analysis='没有锚点被点亮——但你完成了所有六个碎片的阅读和思考。这本身就说明你并非不在乎意义，而是对"意义"这个概念保持着一种谨慎的开放。存在主义心理治疗师Irvin Yalom指出：意义不是被"发现"的，而是被"创造"的。它不在你的过去里等着你找到，它在你接下来的每一个选择中被一点一点地建造。你现在的状态，像是一块刚翻好的土地——什么都没种，但一切都有可能。';
+
+  html+=`<div class="analysis-box"><div class="analysis-label">心理学视角</div><div class="analysis-text">${analysis}</div></div>`;
+
+  /* reflection */
+  html+=`<div class="reflect-box"><div class="reflect-label">课 后 反 思</div>`;
+  html+=`<div class="reflect-q">在六个碎片中，哪一个场景让你停顿最久？那个停顿里，你在想什么？</div>`;
+  html+=`<div class="reflect-q">你的"意义锚点"结果和你预期的一样吗？如果不一样，哪个部分让你意外？这个意外本身说明了什么？</div>`;
+  html+=`<div class="reflect-q">弗兰克尔说："意义不是被发现的，而是被创造的。"你同意吗？在你目前的生活中，你正在"创造"什么意义？</div>`;
+  html+=`<div class="reflect-hint">这些问题没有标准答案。可以写在纸上，也可以带到课堂讨论中。</div></div>`;
+
+  /* archive */
+  const cSeq=fragChoices.join('');
+  const archiveCode='E7-'+cSeq+'-'+ending.code;
+  saveGameRecord('E7',archiveCode,ending.title,ending.icon,ending.code);
+  html+=`<div class="archive-section">`;
+  html+=`<div class="archive-label">存档代码</div>`;
+  html+=`<div class="archive-code" id="archiveCode">${archiveCode}</div>`;
+  html+=`<button class="btn-copy" onclick="copyArchive()">复制存档代码</button>`;
+  html+=`</div>`;
+
+  html+=`<div class="scene-narr" style="text-align:center;margin-top:20px;font-size:0.8rem;color:var(--ink4)">感谢你体验「为什么而活」<br>愿你找到属于自己的答案——或者，愿你享受寻找的过程。</div>`;
+  html+=`<div style="text-align:center;margin:24px 0 8px"><button class="btn-restart" onclick="location.reload()">重新开始</button></div>`;
+  html+=`<div style="text-align:center;margin-bottom:24px"><a class="btn-back" href="index.html">返回事件选择</a></div>`;
+  html+=`<div class="scroll-anchor"></div>`;
+  const div=document.createElement('div');
+  div.innerHTML=html;
+  storyEl.appendChild(div);
+  requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'instant'}));
+}
+
+/* ===== COPY ===== */
+function copyArchive(){
+  const code=document.getElementById('archiveCode').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>{
+      const btn=document.querySelector('.btn-copy');
+      btn.textContent='已复制 \u2713';setTimeout(()=>btn.textContent='复制存档代码',1500);
+    }).catch(()=>fallbackCopy(code));
+  }else{fallbackCopy(code)}
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;
+  ta.style.cssText='position:fixed;left:-9999px';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');
+    const btn=document.querySelector('.btn-copy');
+    btn.textContent='已复制 \u2713';setTimeout(()=>btn.textContent='复制存档代码',1500);
+  }catch(e){}
+  document.body.removeChild(ta);
+}
+
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>截止前48小时 · 大学心理事件簿</title>
+
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#141820;--bg2:#1a1f2b;--bg3:#222833;
+  --card:rgba(255,255,255,0.04);--card-hover:rgba(255,255,255,0.08);
+  --red:#e74c5e;--red-dim:rgba(231,76,94,0.12);
+  --amber:#e7a84c;--amber-dim:rgba(231,168,76,0.12);
+  --green:#4ce78a;--green-dim:rgba(76,231,138,0.12);
+  --blue:#4c9de7;--blue-dim:rgba(76,157,231,0.12);
+  --purple:#9b6fe7;
+  --text:#e8eaf0;--text2:#9ba3b5;--text3:#5a6170;
+  --font-mono:'Courier New',monospace;
+  --font-body:system-ui,'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 800px 500px at 50% 0%,rgba(231,76,94,0.04) 0%,transparent 70%)}
+#app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100vh;padding:0 20px}
+.screen{display:none;opacity:0}.screen.active{display:block;animation:fadeUp 0.6s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* TITLE */
+#title-screen{text-align:center}
+#title-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:fadeUp 0.8s ease forwards}
+.title-timer-decor{font-family:var(--font-mono);font-size:3rem;font-weight:700;color:var(--red);margin-bottom:16px;letter-spacing:0.05em;text-shadow:0 0 40px rgba(231,76,94,0.3);animation:timerGlow 2s ease-in-out infinite}
+@keyframes timerGlow{0%,100%{text-shadow:0 0 30px rgba(231,76,94,0.2)}50%{text-shadow:0 0 60px rgba(231,76,94,0.4)}}
+.title-main{font-size:1.8rem;font-weight:700;letter-spacing:0.08em;color:var(--text);margin-bottom:6px}
+.title-sub{font-size:0.82rem;color:var(--text2);letter-spacing:0.25em;margin-bottom:40px}
+.btn-start{background:transparent;border:1px solid var(--red);color:var(--red);padding:14px 44px;font-size:0.9rem;letter-spacing:0.2em;cursor:pointer;border-radius:2px;transition:all 0.3s;font-family:var(--font-body)}
+.btn-start:hover{background:var(--red-dim);box-shadow:0 0 30px rgba(231,76,94,0.15)}
+
+/* SELECT */
+#gender-screen{display:none;opacity:0;min-height:100vh;text-align:center}
+#gender-screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;animation:fadeUp 0.6s ease forwards}
+.sel-heading{font-size:1.05rem;color:var(--text);margin-bottom:6px}
+.sel-sub{font-size:0.78rem;color:var(--text3);margin-bottom:28px;letter-spacing:0.1em}
+.gender-grid{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.gender-card{width:140px;background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:22px 16px;cursor:pointer;transition:all 0.3s;text-align:center}
+.gender-card:hover{background:var(--card-hover);border-color:rgba(231,76,94,0.3);transform:translateY(-3px);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.gender-icon{font-size:2rem;margin-bottom:8px}
+.gender-label{font-size:0.9rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.gender-desc{font-size:0.72rem;color:var(--text2);line-height:1.5}
+#char-screen{display:none;opacity:0;min-height:100vh;padding-top:20px}
+#char-screen.active{display:block;animation:fadeUp 0.6s ease forwards}
+.char-grid{display:flex;flex-direction:column;gap:8px}
+.char-card{display:flex;align-items:flex-start;gap:12px;background:var(--card);border:1px solid rgba(255,255,255,0.04);border-radius:6px;padding:14px 12px;cursor:pointer;transition:all 0.3s}
+.char-card:hover{background:var(--card-hover);border-color:rgba(231,76,94,0.2);transform:translateX(4px)}
+.char-ava{width:38px;height:38px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff}
+.char-body{flex:1;min-width:0}
+.char-name{font-size:0.88rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.char-trait{font-size:0.7rem;color:var(--amber);margin-bottom:4px}
+.char-desc{font-size:0.76rem;line-height:1.6;color:var(--text2)}
+
+/* DUAL TRACK BAR */
+.dual-bar{position:sticky;top:0;z-index:100;padding:12px 0 10px;background:linear-gradient(to bottom,var(--bg) 70%,transparent)}
+.countdown{font-family:var(--font-mono);font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:10px;letter-spacing:0.05em;transition:color 0.5s}
+.countdown.urgent{color:var(--red);animation:urgentPulse 1s ease-in-out infinite}
+@keyframes urgentPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.countdown.normal{color:var(--amber)}
+.dual-tracks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.track{text-align:center}
+.track-label{font-size:0.65rem;color:var(--text3);margin-bottom:4px;letter-spacing:0.08em}
+.track-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden}
+.track-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1)}
+.track-fill.progress{background:linear-gradient(90deg,var(--blue),var(--green))}
+.track-fill.morale{background:linear-gradient(90deg,var(--amber),var(--red))}
+.track-val{font-size:0.7rem;margin-top:3px;font-weight:600;font-variant-numeric:tabular-nums;transition:color 0.3s}
+
+/* CHAT MESSAGES */
+.chat-window{background:var(--bg2);border-radius:10px;padding:14px;margin:16px 0;border:1px solid rgba(255,255,255,0.04)}
+.chat-header{text-align:center;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.04);margin-bottom:10px}
+.chat-header .group-name{font-size:0.8rem;color:var(--text3)}
+.chat-msg{display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;animation:msgIn 0.3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-ava{width:32px;height:32px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:600;color:#fff}
+.chat-content{flex:1}
+.chat-sender{font-size:0.68rem;color:var(--text3);margin-bottom:2px}
+.chat-bubble{background:rgba(255,255,255,0.06);padding:8px 12px;border-radius:3px 10px 10px 10px;font-size:0.84rem;line-height:1.6;max-width:85%;color:var(--text)}
+.chat-time{font-size:0.6rem;color:var(--text3);margin-top:3px}
+.chat-status{text-align:center;font-size:0.7rem;color:var(--text3);padding:6px 0;font-style:italic}
+.typing-indicator{color:var(--text3);font-size:0.75rem;padding:4px 0}
+.typing-indicator span{animation:blink 1.4s infinite both}
+.typing-indicator span:nth-child(2){animation-delay:0.2s}
+.typing-indicator span:nth-child(3){animation-delay:0.4s}
+@keyframes blink{0%,80%,100%{opacity:0.2}40%{opacity:1}}
+
+/* NARRATION */
+.inner-thought{font-size:0.82rem;line-height:1.8;color:var(--text2);margin:14px 0;padding:10px 14px;border-left:2px solid rgba(231,76,94,0.3);font-style:italic;background:rgba(231,76,94,0.03);border-radius:0 4px 4px 0}
+.scene-title{font-size:0.95rem;color:var(--red);letter-spacing:0.15em;margin:28px 0 6px;font-weight:700}
+.time-stamp{font-family:var(--font-mono);font-size:0.72rem;color:var(--text3);letter-spacing:0.1em;margin:20px 0 6px}
+
+/* CHOICES */
+.choices{margin:18px 0}
+.choice-prompt{font-size:0.7rem;color:var(--red);letter-spacing:0.2em;margin-bottom:10px}
+.choice-btn{display:block;width:100%;background:var(--card);border:1px solid rgba(255,255,255,0.04);border-radius:6px;padding:14px 16px;margin-bottom:8px;text-align:left;color:var(--text);font-size:0.84rem;line-height:1.6;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);position:relative;overflow:hidden}
+.choice-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(231,76,94,0.04),transparent);opacity:0;transition:opacity 0.3s}
+.choice-btn:hover{background:var(--card-hover);border-color:rgba(231,76,94,0.25);transform:translateX(4px);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.choice-btn:hover::before{opacity:1}
+.choice-btn.disabled{opacity:0.2;pointer-events:none}
+.choice-tag{display:inline-block;font-size:0.6rem;padding:2px 6px;border-radius:2px;margin-right:6px;font-weight:600}
+.choice-tag.push{background:var(--blue-dim);color:var(--blue)}
+.choice-tag.care{background:var(--green-dim);color:var(--green)}
+.choice-tag.both{background:var(--amber-dim);color:var(--amber)}
+.choice-tag.bad{background:var(--red-dim);color:var(--red)}
+
+/* FEEDBACK */
+.feedback-box{margin:14px 0;animation:feedIn 0.4s ease forwards}
+@keyframes feedIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.feedback-result{background:rgba(255,255,255,0.03);border-radius:6px;padding:12px 14px;font-size:0.84rem;line-height:1.8;color:var(--text);margin-bottom:8px;border-left:3px solid var(--red)}
+.dual-change{display:flex;gap:10px;margin-bottom:8px}
+.dual-chip{font-size:0.7rem;padding:3px 8px;border-radius:3px;font-weight:600}
+.dual-chip.prog-up{background:var(--blue-dim);color:var(--blue)}
+.dual-chip.prog-down{background:var(--red-dim);color:var(--red)}
+.dual-chip.mor-up{background:var(--green-dim);color:var(--green)}
+.dual-chip.mor-down{background:var(--amber-dim);color:var(--amber)}
+.analysis-box{background:linear-gradient(135deg,rgba(76,157,231,0.05),rgba(231,76,94,0.03));border:1px solid rgba(76,157,231,0.1);border-radius:6px;padding:12px 14px;margin:8px 0 16px}
+.analysis-label{font-size:0.62rem;letter-spacing:0.2em;color:var(--blue);margin-bottom:5px}
+.analysis-text{font-size:0.78rem;line-height:1.8;color:var(--text2)}
+.analysis-text strong{color:var(--amber);font-weight:500}
+.btn-continue{display:block;margin:18px auto;background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--text3);padding:10px 30px;font-size:0.8rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-continue:hover{border-color:var(--red);color:var(--red)}
+
+/* ENDINGS */
+.ending-icon{font-size:2.8rem;text-align:center;margin:32px 0 12px}
+.ending-title{font-size:1.3rem;text-align:center;color:var(--text);margin-bottom:6px;font-weight:700}
+.ending-text{font-size:0.85rem;line-height:2;color:var(--text2);margin:16px 0}
+.ending-comment{background:linear-gradient(135deg,rgba(76,157,231,0.06),rgba(231,76,94,0.04));border:1px solid rgba(76,157,231,0.1);border-radius:8px;padding:16px;margin:18px 0}
+.ending-comment-label{font-size:0.62rem;color:var(--blue);letter-spacing:0.2em;margin-bottom:6px}
+.ending-comment-text{font-size:0.8rem;line-height:1.85;color:var(--text2)}
+.summary-card{background:var(--card);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:20px;margin:20px 0;text-align:center}
+.summary-item{margin:12px 0}
+.summary-label{font-size:0.68rem;color:var(--text3);letter-spacing:0.12em;margin-bottom:3px}
+.summary-value{font-size:0.95rem;color:var(--text);font-weight:600}
+.summary-dual{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.summary-stat{background:rgba(255,255,255,0.02);padding:10px;border-radius:4px}
+.summary-stat-label{font-size:0.68rem;color:var(--text3)}
+.summary-stat-val{font-size:1.1rem;font-weight:700}
+.summary-tip{font-size:0.78rem;color:var(--text2);line-height:1.8;text-align:left;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04)}
+.reflect-box{margin:20px 0;padding:18px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(100,160,220,0.2)}
+.reflect-label{font-size:0.65rem;letter-spacing:0.25em;color:var(--blue);margin-bottom:10px;font-weight:600}
+.reflect-q{font-size:0.78rem;line-height:1.85;color:var(--text2);margin:10px 0;padding-left:14px;border-left:2px solid rgba(100,160,220,0.3)}
+.reflect-hint{font-size:0.68rem;color:var(--text3);margin-top:12px;font-style:italic}
+.btn-restart{display:inline-block;margin-top:18px;background:var(--red-dim);border:1px solid rgba(231,76,94,0.3);color:var(--red);padding:10px 34px;font-size:0.85rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);letter-spacing:0.15em}
+.btn-restart:hover{background:rgba(231,76,94,0.2)}
+.btn-back{display:inline-block;margin-top:10px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text3);padding:9px 28px;font-size:0.78rem;cursor:pointer;border-radius:3px;transition:all 0.3s;font-family:var(--font-body);text-decoration:none}
+.btn-back:hover{border-color:rgba(231,76,94,0.3);color:var(--red)}
+.scroll-anchor{height:1px;width:1px}
+.archive-section{margin-top:18px;background:linear-gradient(135deg,rgba(231,76,94,0.06),rgba(74,158,200,0.06));border:1px solid rgba(231,76,94,0.15);border-radius:6px;padding:16px;text-align:center}
+.archive-label{font-size:0.72rem;color:var(--red);letter-spacing:0.25em;margin-bottom:8px}
+.archive-code{font-family:'Courier New',monospace;font-size:0.82rem;color:var(--text);background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:4px;margin:8px 0;user-select:all;word-break:break-all;letter-spacing:0.05em}
+.btn-copy{background:rgba(231,76,94,0.1);border:1px solid rgba(231,76,94,0.25);color:var(--red);padding:6px 16px;font-size:0.75rem;cursor:pointer;border-radius:3px;transition:all 0.25s;font-family:var(--font-body)}
+.btn-copy:hover{background:rgba(231,76,94,0.2)}
+.btn-copy.copied{background:rgba(74,158,200,0.12);border-color:rgba(74,158,200,0.3);color:var(--blue)}
+.archive-hint{font-size:0.65rem;color:var(--text3);margin-top:6px}
+/* === MY RECORDS === */
+.my-records-block{width:100%;max-width:380px;margin:0 auto 20px}
+.my-records-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;cursor:pointer;background:rgba(231,76,94,0.06);border:1px solid rgba(231,76,94,0.12);border-radius:8px;transition:all 0.3s;user-select:none}
+.my-records-toggle:hover{background:rgba(231,76,94,0.1)}
+.my-records-label{font-size:0.75rem;letter-spacing:0.1em;color:inherit;opacity:0.6}
+.my-records-arrow{font-size:0.7rem;opacity:0.4;transition:transform 0.3s}
+.my-records-block.expanded .my-records-arrow{transform:rotate(180deg)}
+.my-records-list{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease;opacity:0}
+.my-records-block.expanded .my-records-list{max-height:600px;opacity:1;margin-top:8px}
+.my-record-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;background:rgba(231,76,94,0.04);border:1px solid rgba(231,76,94,0.06);border-radius:6px;transition:background 0.2s}
+.my-record-item:hover{background:rgba(231,76,94,0.08)}
+.my-record-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.my-record-info{flex:1;min-width:0}
+.my-record-title{font-size:0.78rem;font-weight:600;line-height:1.4;color:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.my-record-meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.my-record-code{font-family:'Courier New',monospace;font-size:0.65rem;opacity:0.5;letter-spacing:0.03em}
+.my-record-date{font-size:0.62rem;opacity:0.4}
+@media(max-width:540px){#app{padding:0 16px}.title-main{font-size:1.5rem}.title-timer-decor{font-size:2.4rem}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title-screen" class="screen active">
+    <div class="title-timer-decor">48:00:00</div>
+    <div class="title-main">截止前48小时</div>
+    <div class="title-sub">大学 · 心理事件簿</div>
+    <button class="btn-start" onclick="startGame()">开 始 倒 计 时</button>
+  </div>
+  <div id="gender-screen" class="screen">
+    <div class="sel-heading">选择你的小组</div>
+    <div class="sel-sub">同样的压力，不同的应对方式</div>
+    <div class="gender-grid">
+      <div class="gender-card" onclick="selectGender('F')"><div class="gender-icon">🌙</div><div class="gender-label">女生小组</div><div class="gender-desc">6人学习小组<br>隐忍 · 内耗 · 求全</div></div>
+      <div class="gender-card" onclick="selectGender('M')"><div class="gender-icon">🔥</div><div class="gender-label">男生小组</div><div class="gender-desc">6人学习小组<br>硬撑 · 嘴硬 · 面子</div></div>
+    </div>
+  </div>
+  <div id="char-screen" class="screen">
+    <div class="sel-heading">选择你的角色</div>
+    <div class="sel-sub">每个人都有自己没说出口的秘密</div>
+    <div class="char-grid" id="char-grid"></div>
+  </div>
+  <div id="game-screen" class="screen">
+    <div class="dual-bar" id="dual-bar"></div>
+    <div id="story-container"></div>
+  </div>
+</div>
+
+<script>
+/* === RECORD STORAGE === */
+function saveGameRecord(eid,code,title,icon,ec){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');if(!a[eid])a[eid]=[];a[eid].unshift({code:code,title:title,icon:icon,endingCode:ec,ts:Date.now()});if(a[eid].length>20)a[eid]=a[eid].slice(0,20);localStorage.setItem('psych_game_records',JSON.stringify(a));}catch(e){}}
+function getGameRecords(eid){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');return a[eid]||[];}catch(e){return[];}}
+function renderRecordsBlock(eid){var recs=getGameRecords(eid);if(!recs.length)return;var ts=document.getElementById('title-screen');if(!ts)return;var btn=ts.querySelector('.btn-start');if(!btn)return;var b=document.createElement('div');b.className='my-records-block';b.innerHTML='<div class="my-records-toggle" onclick="this.parentElement.classList.toggle(\'expanded\')"><span class="my-records-label">\uD83D\uDCCB 我的记录 ('+recs.length+')</span><span class="my-records-arrow">\u25BE</span></div><div class="my-records-list">'+recs.map(function(r){var d=new Date(r.ts);var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return '<div class="my-record-item"><span class="my-record-icon">'+r.icon+'</span><div class="my-record-info"><div class="my-record-title">'+r.title+'</div><div class="my-record-meta"><span class="my-record-code">'+r.code+'</span><span class="my-record-date">'+ds+'</span></div></div></div>';}).join('')+'</div>';ts.insertBefore(b,btn);}
+renderRecordsBlock('E2');
+// ============================================================
+//  EVENT 2: 截止前48小时 — COUNTDOWN + DUAL TRACK
+// ============================================================
+let gender='F',playerChar='A',currentAct=0,choices=[];
+let progress=28,morale=60;
+let lastQuadrant='';
+let timeLeft='48:00:00';
+const storyEl=document.getElementById('story-container');
+const TIMES=['48:00:00','36:00:00','12:00:00','02:00:00','00:00:00'];
+
+const CHARS={
+  F:{
+    A:{name:'小A',color:'#4c9de7',trait:'组长 · 冒名顶替综合症',desc:'被随机指定为组长。每次分配任务都觉得自己不配，害怕被发现"其实什么都不会"。'},
+    B:{name:'小B',color:'#e74c5e',trait:'打工人 · 时间极其有限',desc:'在校外奶茶店打工养活自己，每晚十一点才下班。不是不想做——是真的没有时间。'},
+    C:{name:'小C',color:'#e7a84c',trait:'完美主义 · 自己的部分改了8遍',desc:'对质量有近乎病态的执念。自己的部分已经重写了八遍还不满意，却没精力帮别人。'},
+    D:{name:'小D',color:'#4ce78a',trait:'暴脾气 · 家里刚出事',desc:'群里最先爆发的人。但没人知道——她爸上周刚住院了，她每天都在崩溃边缘。'},
+    E:{name:'小E',color:'#9b6fe7',trait:'讨好型 · 答应帮所有人',desc:'答应帮小A做数据、帮小C校对格式、帮小D找资料——结果自己的部分一个字没写。'},
+    F:{name:'小F',color:'#e7746f',trait:'社恐 · 发消息犹豫半天',desc:'打了一段话，删掉，再打，再删。最终发出一个"嗯"。最怕的不是做作业，而是在群里说话。'}
+  },
+  M:{
+    A:{name:'小A',color:'#4c9de7',trait:'被迫组长 · 不想当坏人',desc:'抽签抽到组长。管理人？他连自己的作息都管不好。但deadline来了，只能硬着头皮上。'},
+    B:{name:'小B',color:'#e74c5e',trait:'嘴炮王 · 行动力为零',desc:'群里最活跃的人——发表情包、接梗、吹牛。但一到干活就自动消失。不是故意的，就是……坐不住。'},
+    C:{name:'小C',color:'#e7a84c',trait:'卷王 · 闷声扛活',desc:'默默改了三个人的稿子，每次都改到凌晨。不是不想说——是觉得说了也没用，不如自己做。'},
+    D:{name:'小D',color:'#4ce78a',trait:'火药桶 · 忍无可忍',desc:'私聊催了三次没人理。终于在群里炸了。不后悔，但也不知道炸完了之后该怎么办。'},
+    E:{name:'小E',color:'#9b6fe7',trait:'和事佬 · 笑着就累了',desc:'谁吵架他劝谁。自己的活凑合着做，觉得团队氛围比成绩重要。但这次，火灭不了了。'},
+    F:{name:'小F',color:'#e7746f',trait:'透明人 · 存在感为零',desc:'全组说话最少的人。作业做完了没人问，遇到困难了没人帮。有时候怀疑自己是不是多余的。'}
+  }
+};
+
+function getScenes(){
+  const F=gender==='F';const p=playerChar;const ch=CHARS[gender];
+  const pName=ch[p].name;
+
+  const act1={
+    time:'48:00:00',title:'第一幕 · 群消息风暴',stamp:'【距截止 48小时】',
+    chatMsgs:F?[
+      {who:'D',text:'@所有人 PPT还有人在做吗？？？距离截止还有48小时 小B你的部分呢？？'},
+      {who:'D',text:'@小E @小F 你们的进度到哪了 有人能回复一下吗'},
+      {who:'C',text:'我的部分做完了 已经改了好几版了'},
+      {who:'E',text:'那个……我在帮小C校对 自己的还没开始 抱歉🙏'},
+      {who:'status',text:'小B 正在输入…'},
+      {who:'status',text:'小B 撤回了一条消息'},
+      {who:'status',text:'小F 已读'}
+    ]:[
+      {who:'D',text:'我说你们能不能动一下？？48小时了 PPT连框架都没填完'},
+      {who:'D',text:'@小B 你那部分到底做了没？你发表情包倒是挺积极'},
+      {who:'B',text:'做了做了 差不多了 明天给'},
+      {who:'C',text:'我帮你们改了三个人的 谢谢'},
+      {who:'status',text:'小A 正在输入…'},
+      {who:'status',text:'小F 默默发送了一个文件📎'}
+    ],
+    narr:({
+      A:F?'手机震个不停。你盯着群消息，手指悬在键盘上。\n\n你是组长。你应该说点什么。但你怕说错。怕显得太强势，也怕显得不够负责。\n\n"我有什么资格管别人？我自己的部分也才做了一半。"':'群炸了。你看着手机，头皮发麻。\n\n你是组长。理论上应该你来控场。但你连群消息都不敢@所有人——怕被骂。',
+      B:F?'小D的消息像一记耳光。\n\n你不是不想做。你下午四点上班，晚上十一点下班，回来洗完澡已经十二点了。你拿什么时间做？\n\n但你没法在群里说这些。太丢人了。':'你看到自己被@的那一刻，脸就红了。\n\n你知道自己没做。你也不知道为什么就是坐不住——每次打开文档就想划走。',
+      C:F?'你看着群消息，嘴角微微抽搐。\n\n你已经改了八遍了。八遍。每一版都觉得不够好。现在其他人连一遍都没有。\n\n一种深深的不公平感涌上来。但你不想说——说了像是在表功。':'你闷头改着PPT，听到群消息响了。又吵了。\n\n你已经默默改了三个人的稿子。没人说谢谢。你现在的心情只有一个字：烦。',
+      D:F?'你发完消息，心跳得很快。\n\n你知道自己语气很冲。但你控制不了——爸爸住院的消息你还没告诉任何人，每天假装没事已经用光了所有的能量。\n\n剩下的，只有愤怒。':'你按下发送键，砰。\n\n爽了三秒。然后开始慌——完了，这下整个组都恨我了吧。\n\n但你就是忍不了了。忍了一周了。',
+      E:F?'你看着群消息，胃一缩。\n\n小D点名了你。你确实没做完——因为你在帮小C校对、帮小A整理格式、帮所有人做了所有事，唯独没做自己的。\n\n但你没法解释。说出来就像在邀功。':'你正吃着饭，差点噎住。\n\n群里炸了。你第一反应是赶紧打字"大家冷静"——但打了又删了。这次冷静不了。',
+      F:F?'"@小F 已读"\n\n你看着这行字，觉得讽刺。你两天前就做完了自己的部分，安安静静放在文件夹里。没人问过。\n\n现在小D@你了，仿佛你也是"没做的人"之一。\n\n你想解释——但光是想到要在群里打字，手就开始抖。':'你在自习室看着群消息。面无表情。\n\n小D@了你。你的部分昨晚就做完了，但你没发。\n\n为什么没发？因为——每次你发东西，群里都没人理。'
+    })[p],
+    choices:[
+      {text:F?({A:'在群里发消息："收到！我来整理一下大家的进度，今晚八点线上碰一下？"',B:'鼓起勇气回复："抱歉各位，我最近时间确实很紧……我今晚加班完赶出来。"',C:'把自己的完成版本发到群里："我的部分在这里。大家可以参考这个格式。"',D:'追加一条："抱歉刚才语气太冲了。但我们真的得动起来了。需要帮忙的说一声。"',E:'在群里说："我来列一个任务清单，大家认领？我可以帮忙做对接。"',F:'深呼吸，把做好的文件发到群里。不加任何文字。'})[p]:({A:'在群里说："兄弟们，我来分个工。今晚大家报一下进度。"',B:'回复："做了做了……我明天中午前一定交。说到做到。"',C:'默默把改好的三份稿子发群里："都改了。你们看看。"',D:'补一句："我不是针对谁。大家都辛苦。但总得有人说实话。"',E:'打圆场："好了好了，现在最重要的是赶紧做。我来协调？"',F:'发送了自己完成的文件，附一句"这是我的部分"。'})[p],
+       progDelta:10,morDelta:5,tag:'both'},
+      {text:F?({A:'私聊小D："你语气能不能好一点？这样谁还愿意做？"',B:'私聊小A："组长你能帮我跟大家说一下吗……我实在开不了口。"',C:'私聊小A："我觉得与其催，不如把不行的人的部分分给能做的人。"',D:'继续在群里施压："我需要每个人现在报进度。立刻。"',E:'分别私聊每个人："你没事吧？""你的部分需要帮忙吗？""别着急~"',F:'私聊组长："我做完了。需要我做别的吗？"'})[p]:({A:'私聊小D："兄弟消消气，我来处理。"',B:'私聊组长："A哥，我这两天有点事……能不能帮我说一下？"',C:'在群里说："废话少说，报进度。一个一个来。"',D:'继续追问："@小B 你说差不多了是差多少？截图发来看看。"',E:'私聊小D："哥们算了，他们不是故意的。"',F:'什么都没发。但打开了文档开始检查自己的部分。'})[p],
+       progDelta:5,morDelta:-5,tag:'push'},
+      {text:F?({A:'没有回复。默默打开PPT，开始把别人没做的部分自己做了。',B:'关掉手机。假装没看到。明天再说。',C:'在笔记本上记下每个人完成了多少。你觉得记录比说话有用。',D:'越想越气。又发了一条更长的消息，把这一周的不满全写了。',E:'回了一句"知道了~"然后继续帮小C改格式。自己的部分？等会儿吧。',F:'手指悬在键盘上。打了一句话，删了。又打了一句，又删了。最终锁屏。'})[p]:({A:'叹了口气。什么都没回。打开电脑开始默默补别人的部分。',B:'丢下手机继续打游戏。明天的事明天说。',C:'耳机一戴，继续改PPT。懒得跟他们废话。',D:'不回了。爱做不做。我的部分交了就行。',E:'发了个"好的好的"。然后开始玩手机。累了。',F:'已读。没有回复。打开文档又关上。反正没人看。'})[p],
+       progDelta:-5,morDelta:-10,tag:'bad'}
+    ],
+    feedback:[
+      {result:F?'你的消息发出去之后，群里的气氛明显缓和了。小C第一个回复："好的，我可以帮忙校对其他人的部分。"小E跟上："我来做任务表！"\n\n小D沉默了一会儿，发了个"行"。\n\n小B……还是没回。但你注意到她的头像亮了。也许她在看。':'你的消息一发，群里活了。大家开始报进度、认领任务。\n\n小D消停了。小F居然主动发了自己的文件。\n\n你松了一口气——但也知道，这只是开始。',
+       analysis:'<strong>行动导向型回应</strong>——在群体焦虑爆发时，第一个提出"具体方案"的人会自然成为情绪锚点。心理学中的<strong>替代性控制感</strong>（vicarious control）理论指出：当人们感到失控时，任何"可执行的计划"都会显著降低群体焦虑水平。你不需要完美的方案——你只需要第一个行动。'},
+      {result:F?'私聊有效，但也有限。你处理了一个人的情绪，但群里的僵局没有被打破。\n\n其他人还在等——等有人站出来说"我们该怎么办"。而你选择了在幕后运作。\n\n进度没停，但也没明显推进。':'你的私聊起了作用——至少两个人消停了。但群里还是冷冰冰的。\n\n进度在推，但是是你一个人在推。这种模式能维持多久？',
+       analysis:'<strong>幕后协调者的两难</strong>——私聊是一种"低风险高共情"的沟通策略，适合安抚个体情绪。但在<strong>群体危机</strong>中，它的局限在于：解决了A的情绪，B和C并不知道。团队需要的不只是情绪安抚——还有<strong>公开的方向感</strong>。'},
+      {result:F?'群里更安静了。你以为沉默就是平静——但其实每个人都在屏幕另一端焦虑着。\n\n没有人知道谁在做、谁没做、下一步该干什么。计时器不会因为你闭眼就停下来。':'群安静得可怕。你以为不回就没事了——但deadline不会等你。\n\n其他人也开始不回了。沉默会传染。',
+       analysis:'<strong>沉默的传染效应</strong>——在群体中，一个人的不回应会被其他人解读为"不需要行动"的信号。心理学中的<strong>多元无知</strong>（pluralistic ignorance）——"大家都没动，说明不着急"——是团队项目中最危险的心理陷阱。每个人都在等别人先动，结果没有人动。'}
+    ]
+  };
+
+  const act2={
+    time:'36:00:00',title:'第二幕 · 线上碰头',stamp:'【距截止 36小时】',
+    narr:({
+      A:F?'线上会议开了。六个人的摄像头，四个开着，两个黑屏。\n\n你盯着进度表格——完成度：25%。\n\n你该说什么？催进度？安慰大家？假装一切都在掌控中？':'腾讯会议开了。你看着六个头像——三个黑屏。\n\n你是组长。但你甚至不知道该怎么开场。',
+      B:F?'你在奶茶店后厨偷偷打开了手机。屏幕上是小组视频会议。\n\n你没开摄像头——穿着工作围裙，你不想被看到。':'你躺在床上接入会议。摄像头关着。\n\n其实你手边连电脑都没开。',
+      C:F?'你第一个进入会议。看着进度表格，深呼吸。\n\n你的部分已经完美了。但整体？连60分都够呛。\n\n这种焦虑让你想把所有人的部分都重写一遍。':'你已经在会议里等了五分钟了。PPT开着，标红的批注密密麻麻。\n\n你准备了一肚子话。但你知道说了也白说。',
+      D:F?'你开着摄像头，但把脸别向一边。\n\n你不想让任何人看到你哭过的眼睛。\n\n爸爸今天下午又做了一次检查。你还没收到结果。':'你打开会议，脸冷着。\n\n你不想道歉。你说的都是事实。\n\n但——如果其他人都不做了怎么办？',
+      E:F?'你笑着打了个招呼："大家辛苦啦~"\n\n没人回应。\n\n你的笑容僵了一秒。然后你又笑了。你总是这样——笑着笑着就累了。':'你开了个玩笑暖场。没人笑。\n\n尴尬。你清了清嗓子，说"那我们开始吧"。',
+      F:F?'你开了摄像头——又关了——又开了——最终关了。\n\n你想过要不要主动汇报自己的部分。但轮到你说话的时候，你只挤出了一句："我那个……差不多了。"':'你没开摄像头。没开麦。\n\n你在听。一直在听。但没人问你的意见。'
+    })[p],
+    choices:[
+      {text:F?({A:'主动分享自己的不安："说实话，我这个组长当得也很慌。但咱们一起想办法。"',B:'开麦说了实话："对不起大家，我在打工……每天很晚才下班。我不是在摸鱼。"',C:'分享自己的框架："我做了一个整体模板，大家按这个格式填，能省很多时间。"',D:'深呼吸，然后说："我道歉，刚才在群里太冲了。但我真的很着急。"',E:'说："与其互相催，不如现在就开始。我屏幕共享，我们一起写。"',F:'打开麦："我的部分做完了。如果……如果有人需要帮忙，我可以。"'})[p]:({A:'"行了别扯了，直接分工。谁做什么，现在说清楚。"',B:'"我承认我拖了。从现在开始做。你们盯着我。"',C:'共享屏幕，展示自己改过的所有内容："参考一下。"',D:'"刚才语气不好。但情况就是这样——我们得赶。"',E:'"我有个提议——不如分成三个小组，两两配合。"',F:'默默打开屏幕共享，展示自己完成的部分。不说话。'})[p],
+       progDelta:12,morDelta:8,tag:'both'},
+      {text:F?({A:'按照任务表一个一个点名问进度："小B？小E？小F？"',B:'说"我尽量今晚赶一下"，然后关了麦。',C:'指出每个人的问题："小B的数据有错、小E的格式不对、小D的结构要改。"',D:'不说话。等别人先开口。',E:'一边安慰小D一边帮小C整理格式。自己的？等会儿。',F:'打字在聊天框里："我做完了。"然后闭麦了。'})[p]:({A:'挨个问进度："你的百分之多少了？"',B:'"差不多了差不多了。"（其实什么都没做）',C:'直接开始帮别人改。一言不发。',D:'冷着脸听完所有人的汇报。然后说"行，那就这样"。',E:'给每个人发私聊鼓励："加油哦~"',F:'在聊天框打了句"收到"。'})[p],
+       progDelta:8,morDelta:-5,tag:'push'},
+      {text:F?({A:'开完会你突然觉得好累。关了电脑，心想"不行了，我搞不定"。',B:'没出现在会议上。第二天说"手机没电了"。',C:'中途退出了会议。受不了了。打开自己的文档继续改第九遍。',D:'在会议上又爆发了。把所有人骂了一遍。然后挂断了。',E:'全程在当和事佬。会议结束后发现自己的部分还是空的。',F:'全程没说一个字。会议结束后关了电脑。'})[p]:({A:'会开了，但你什么都没说。挂了之后继续一个人默默做。',B:'没进会议。"忘了。"',C:'中途退出了。"我自己做比开会效率高。"',D:'又吵了一架。然后退出会议。',E:'全程打哈哈。结束后啥也没干。',F:'进了会议。十五分钟后偷偷退了。'})[p],
+       progDelta:-8,morDelta:-12,tag:'bad'}
+    ],
+    feedback:[
+      {result:F?'会议结束后，群里的消息变了。不再是指责和沉默——开始有人说"我做完了""帮我看看这段"。\n\n一种微弱但真实的协作感正在形成。进度终于开始动了。':'你们居然开始正儿八经地干活了。群里开始出现文件、截图、讨论。\n\n不完美，但在动。',
+       analysis:'<strong>心理安全感的建立</strong>——Google的"亚里士多德项目"研究发现，高效团队最重要的特质不是能力，而是<strong>心理安全感</strong>（psychological safety）——成员觉得可以承认错误、说出困难、提出想法而不会被惩罚。你的坦诚/主动打开了这扇门。'},
+      {result:F?'会议在一种紧绷的效率中结束了。任务分配了，但大家的脸色都不太好看。\n\n进度在推，但氛围像拉紧的橡皮筋——随时可能断。':'活推进了。但没人笑。\n\n效率有了，温度没了。长久来看，这种模式撑不了太久。',
+       analysis:'<strong>任务导向 vs 关系导向</strong>——管理学中的"双重关注模型"（dual concern model）指出，<strong>只关注任务而忽视关系</strong>的团队虽然短期内能完成目标，但成员的情感消耗（emotional exhaustion）会急剧上升，导致后续合作意愿下降。催进度有效，但代价是团队的长期信任。'},
+      {result:F?'会议不了了之。进度没有任何推进。\n\n群里又回到了死一般的沉寂。每个人都在自己的角落里焦虑着，但没有人愿意再开口。\n\n计时器不会等你。':'会没白开——白开了。\n\n进度归零。氛围冰点。每个人都觉得"不是我的问题"。\n\n但计时器一直在跑。',
+       analysis:'<strong>群体性习得性无助</strong>——当团队经历反复的沟通失败后，成员会发展出一种集体性的"算了"心态——心理学中称为<strong>习得性无助</strong>（learned helplessness）。每个人都觉得"说了也没用"，于是没有人说。这不是懒惰——是绝望。打破它的唯一方式是：有一个人先做出不同的选择。'}
+    ]
+  };
+
+  const act3={
+    time:'12:00:00',title:'第三幕 · 水面下的冰山',stamp:'【距截止 12小时】',
+    narr:F
+      ? '凌晨十二点。群里突然活了——小B发了一条长消息。\n\n"对不起大家。我不是在摸鱼。我每天下午四点到晚上十一点都在打工。我妈身体不好，学费生活费都是我自己在赚。我不是不想做作业——我是真的没有时间。"\n\n群里沉默了整整两分钟。\n\n然后小D说了一句："……我也有事没跟你们说。我爸上周住院了。"'
+      : '凌晨了。群里突然有人发语音——是小B。\n\n"兄弟们我坦白了。我不是在摸鱼。我真的就是……坐不下来。一打开文档脑子就一片空白。我觉得我可能有点问题。"\n\n五秒沉默。\n\n然后小D打字了："既然都说了……我爸上周出了车祸。我这周全在医院。"',
+    choices:[
+      {text:F?({A:'在群里回复："谢谢你们愿意说出来。从现在开始，我们一起扛。谁有困难就说，我来调配。"',B:'（如果你是小B）回复小D："原来你也……对不起我之前不知道。你爸怎么样了？"',C:'放下自己的文档。回复："我之前只顾着自己的部分。小B，你把你能做的发我，我来帮你整合。"',D:'（如果你是小D）私聊小B："谢谢你先说了。我一个人扛了一周了……"',E:'说："你们太辛苦了。我来多做一点。告诉我你们做不了的部分。"',F:'鼓起最大的勇气打字："我不太会说话。但……你们需要什么我都可以帮。我时间很多。"'})[p]:({A:'"兄弟们，咱们都不容易。从现在起，谁能做多少做多少，我来兜底。"',B:'（如果你是小B）"小D你爸没事吧？别硬撑着——有事说一声。"',C:'长叹一口气。然后把自己的任务列表共享了出来："来，重新分工。"',D:'（如果你是小D）私聊小B："兄弟，我也有事没说……谢谢你先开口了。"',E:'"靠，你们咋都不说呢？放心，兄弟帮你扛。"',F:'打字——删掉——打字——发送："我能帮忙。告诉我做什么。"'})[p],
+       progDelta:10,morDelta:15,tag:'care'},
+      {text:F?({A:'私聊小B："你怎么不早说？我可以帮你分担。"——但群里没说话。',B:'（如果你是小B）没有回复小D。你不知道该说什么。',C:'心想：原来如此。但现在说什么都不如赶紧做。你打开PPT继续改。',D:'（如果你是小D）看着群消息，没有回复。你不知道怎么面对自己刚才的愤怒。',E:'给每个人发了一个拥抱emoji。然后看了一眼自己的空白文档，叹了口气。',F:'看着群消息。手指放在键盘上。三分钟过去了。还是没打字。'})[p]:({A:'私聊小B和小D分别说了句"辛苦了"。群里没表态。',B:'（如果你是小B）沉默了。不知道该说什么。',C:'不回消息。直接开始干活。感动没用，交稿才有用。',D:'（如果你是小D）已读。没有回复。你不擅长这种场合。',E:'发了句"理解理解"。然后继续发呆。',F:'已读。'})[p],
+       progDelta:5,morDelta:0,tag:'push'},
+      {text:F?({A:'心想：这些是他们的私事。我管不了。我只能管作业。',B:'（如果你是小B）后悔说了。你不想被同情。你只想做完走人。',C:'暗想：所以呢？大家都有困难。但deadline不会因为你家有事就延期。',D:'（如果你是小D）觉得说了也没用。反正作业还是要做。',E:'你想安慰大家，但突然觉得好累。你也想有人安慰你。',F:'关掉手机。你受不了这种氛围。每次看到别人的痛苦，你自己也会跟着崩。'})[p]:({A:'这些是他们的事。你管不了。你只能管PPT。',B:'（如果你是小B）"算了别提了。做作业吧。"',C:'心想：感动了然后呢？PPT还是没做完。',D:'（如果你是小D）啥也没说。烦了。你自己的事都处理不过来。',E:'你想说点暖心的，但脑子一片空白。人太多了，你照顾不过来。',F:'退出了群聊页面。你不想看这些了。'})[p],
+       progDelta:-3,morDelta:-12,tag:'bad'}
+    ],
+    feedback:[
+      {result:F?'一个小时后，群里开始出现从未有过的对话：\n\n"小B你明天几点下班？我帮你的部分先做个框架，你回来填数据就行。"\n\n"小D你不用做了，休息去吧。我和小C分了你的任务。"\n\n"小F，你的部分做得很好，帮我看看我这段行不行？"\n\n进度在推，但更重要的是——每个人第一次感觉到"我不是一个人"。':'群消息开始变了。不再是催促和指责——而是"你那部分我来""你先休息""做完了帮我看看"。\n\n这种感觉很奇怪。很暖。像是——真正的团队。',
+       analysis:'<strong>脆弱性的传染效应</strong>——当一个人冒着风险说出真相后，它会产生一种"许可效应"——让其他人觉得"我也可以说"。心理学家称之为<strong>互惠性自我暴露</strong>（reciprocal self-disclosure）。真正的团队不是"每个人都很强"，而是<strong>"每个人都能说自己不行"</strong>。'},
+      {result:F?'小B和小D的坦白让气氛缓和了一些。但没有实质性的改变——大家各忙各的，只是指责少了。\n\n进度缓慢推进。但那种"我们是一个团队"的感觉，还差一点。':'知道了原因，但没有人提出解决方案。\n\n信息有了，行动没有。进度在爬，但是一个人一个人地爬。',
+       analysis:'<strong>共情不等于行动</strong>——知道了对方的困难是第一步，但如果止步于"我理解了"而没有"我能做什么"，<strong>共情就成了消费</strong>。真正的支持不是一句"加油"——而是"你的部分我来做，你去处理你的事"。'},
+      {result:F?'群里的坦白变成了一次没有下文的独白。\n\n小B和小D说了真话，但没有人接住。那种"说了也没用"的感觉比不说更糟——因为它验证了最悲观的预期："果然不会有人帮我。"\n\n士气跌到冰点。进度几乎停滞。':'小B和小D的话掉进了沉默里。\n\n没人回应。他们冒了最大的风险说出真话，得到的回报是——已读不回。\n\n这种伤害，比被骂更深。',
+       analysis:'<strong>被忽视的自我暴露</strong>——心理学研究表明，<strong>说出脆弱后不被回应</strong>比最初不说更有害。这被称为"社交疼痛"（social pain）——fMRI研究显示，被忽视激活的脑区与物理疼痛相同。对说出真话的人来说，沉默意味着"你的痛苦不值得回应"。'}
+    ]
+  };
+
+  const act4={
+    time:'02:00:00',title:'第四幕 · 最后两小时',stamp:'【距截止 2小时】',
+    narr:({
+      A:F?'凌晨四点。你的眼睛快睁不开了。\n\nPPT在屏幕上闪烁。还差……还差最后一点。\n\n你看了一眼群消息。小C在线。小F在线。小D——她的头像三小时没动了，也许睡了，也许在医院。\n\n只剩两小时了。你做最后一个决定。':'最后两小时。你盯着屏幕，精神恍惚。\n\n进度条到了——你不确定够不够。\n\n最后一次选择。',
+      B:F?'你刚从奶茶店回来。凌晨四点。\n\n你的部分……做了一半。剩下的，你真的做不动了。\n\n但你打开了电脑。':'你盯着文档。两小时。\n\n这次你真的要做了。不是说说而已。',
+      C:F?'你的部分已经改到第九版了。完美。无可挑剔。\n\n但你打开整体PPT一看——其他人的部分惨不忍睹。排版乱的、数据错的、格式不统一的……整体完成度大概70%。\n\n你改了八遍的那些页像镶在废墟里的宝石。你要做一个选择：花最后两小时去救别人的烂摊子，还是守住自己的完美？':'你的部分早就做完了。改了又改，无可挑剔。\n\n但整体呢？你打开PPT翻了一遍——别人的部分漏洞百出。你改了三个人的稿子还是不够。\n\n两小时。你是继续帮他们擦屁股，还是管好自己那一亩三分地？',
+      D:F?'医院走廊的灯很亮。你在长椅上打开电脑。\n\n爸爸睡了。你没睡。你打开了群消息——大家还在做。\n\n你的部分……也许你可以做一点。':'凌晨了。你坐在床上。\n\n群里还在忙。你的部分——还有人在帮你做。\n\n你要不要加入？你有没有力气加入？',
+      E:F?'你帮完所有人之后终于打开了自己的文档。空白。\n\n两小时。从零开始。\n\n你突然很想哭。':'你终于打开了自己的部分。白茫茫一片。\n\n两个小时。够吗？\n\n你不知道。但你开始打字了。',
+      F:F?'群消息一直在响。你在看。一直在看。\n\n你想帮忙。你真的想。但你不知道怎么开口说"我来"。\n\n也许——你可以不说话。直接做。':'你打开群消息。大家在忙。\n\n你看到有一块没人做的部分。\n\n也许……你直接做了就行了。不用说话。'
+    })[p],
+    choices:[
+      {text:F?({A:'在群里说："最后两小时了。大家辛苦了。能做多少做多少——有问题随时叫我。"',B:'把做完的一半发到群里："这是我能做到的。剩下的谁能帮忙补一下？对不起。"',C:'放下自己那几页的完美执念，去修补别人最严重的问题。"我的部分够了。剩下的时间救整体。我们先交。"',D:'从医院发了一条消息："虽然不在学校，但我能做一点线上的工作。分配给我吧。"',E:'承认自己的部分没做，同时把帮别人做的内容整合进去。"对不起大家，但我不是什么都没做——我帮你们做了这些。"',F:'把自己做完的部分发出去，顺便默默补完了一个空缺的板块。没有说一个字。'})[p]:({A:'"兄弟们最后冲一把。我把没人做的部分兜底了。能做多少是多少。"',B:'"做了一半在这里。剩下的——真不好意思，谁能帮补一下。"',C:'不再纠结质量了。把别人最烂的几页快速修到能看的程度。"先交再说。完美是奢侈品。"',D:'从被窝里爬起来。"我来做最后的排版和检查。"',E:'"我的部分没做完……但我帮你们整合了PPT。不算白干吧？"',F:'默默做完了两个空缺的板块。发到群里。没有说话。'})[p],
+       progDelta:15,morDelta:10,tag:'both'},
+      {text:F?({A:'自己默默做完所有剩余部分。不告诉任何人。',B:'私聊组长："我做不完了。你帮我交了吧。"',C:'一页一页地改别人的稿子。质量必须达标——哪怕改到最后一秒。',D:'放弃了。关掉电脑。你今晚没有力气了。',E:'还在帮别人。自己的部分放弃了。',F:'做了，但没发。在纠结措辞。'})[p]:({A:'默默把所有人的活干完了。一个人。',B:'"做不完了。该交什么交什么吧。"',C:'继续改改改。一个标点都不放过。',D:'算了。不做了。',E:'把自己的时间全给了别人。自己的部分交了个半成品。',F:'做了一个板块。但因为没发出去，没人知道。'})[p],
+       progDelta:5,morDelta:-8,tag:'push'},
+      {text:F?({A:'心想：反正也来不及了。随便交吧。',B:'没有打开电脑。明天再解释。',C:'崩溃了。把PPT关了。"达不到标准宁可不交。"',D:'关机。把手机调静音。你够了。',E:'你太累了。躺下了。也许明天道歉。',F:'你本来想发文件的。但你觉得发了也没人看。算了。'})[p]:({A:'"爱咋咋地吧。"',B:'手机关机。直接睡了。',C:'关了PPT。"不完美不如不交。"',D:'不做了。去打游戏了。管他呢。',E:'说了句"你们加油"然后去睡了。',F:'退出了群聊。安静地消失了。'})[p],
+       progDelta:-10,morDelta:-15,tag:'bad'}
+    ],
+    feedback:[
+      {result:F?'六点钟，提交按钮被按下。\n\n不完美。有错别字，有格式问题，有一页图表没对齐。\n\n但你们交了。六个人的名字都在上面。\n\n群里最后一条消息是小F发的——全组发言最少的那个人——一个字："交了。"\n\n然后小D回了一个："辛苦了。"\n\n然后是沉默。但这次的沉默，是安心的沉默。':'提交了。\n\n不是满分作品。但六个人都贡献了。\n\n群里最后的消息："交了。""辛苦。""下次还这个组。"\n\n你不确定下次会不会更好——但至少，这次你们没散。',
+       analysis:'<strong>不完美的完成 > 完美的未完成</strong>——心理学中的"完美主义悖论"指出，对完美的追求往往导致<strong>更差的结果</strong>——因为它消耗了本可以用于行动的能量。真正的成长不是做到完美，而是学会在不完美中<strong>继续前进</strong>。你们的PPT不是最好的——但它是六个人一起做出来的。这比分数更有价值。'},
+      {result:F?'勉强交了。质量一般。\n\n但至少——交了。\n\n群里没有人说"辛苦了"。每个人都累得没力气说话了。\n\n也许休息之后，有些话还可以慢慢说。':'踩线交了。\n\n不是什么好作品。但至少不是零分。\n\n群里很安静。大家各回各的。\n\n有些裂痕还在。但至少——还有"下次"。',
+       analysis:'<strong>任务完成的心理代价</strong>——当一个团队靠"硬撑"而不是"协作"完成任务时，虽然结果看起来一样，但心理代价完全不同。成员会经历<strong>情绪耗竭</strong>（emotional exhaustion），下次再面对团队合作时，他们的第一反应不是期待，而是恐惧。'},
+      {result:F?'截止时间到了。\n\n你们没交。\n\n或者说——交了一个残缺不全的版本。老师在群里留言："有几位同学需要单独来办公室谈一下。"\n\n群聊从此沉寂。偶尔有人发一条"通知转发"，像一个还在呼吸但已经脑死亡的群。':'没交。\n\n或者说，交了个半成品。一眼能看出是临时拼凑的。\n\n群沉了。此后再也没有人主动发过消息。\n\n六个人的名字还在一个群里，但这个群已经是一座坟墓。',
+       analysis:'<strong>团队瓦解的不可逆性</strong>——团队失败后，成员倾向于进行<strong>外部归因</strong>（"都怪那个人"），而非反思系统性问题。这种归因方式会导致关系的永久性损伤——因为每个人都觉得自己是"唯一尽力的那个人"。真正能修复的不是"结果"，而是<strong>"过程中是否感受到了善意"</strong>。'}
+    ]
+  };
+
+  return [act1,act2,act3,act4];
+}
+
+function getEnding(){
+  const F=gender==='F';const p=playerChar;
+  const highP=progress>=75,highM=morale>=60;
+
+  // Determine quadrant
+  let quadrant;
+  if(highP&&highM) quadrant='best';
+  else if(highP&&!highM) quadrant='pyrrhic';
+  else if(!highP&&highM) quadrant='honor';
+  else quadrant='collapse';
+
+  // ========== Per-character ending texts ==========
+  const endingTexts = {
+    // ───────── BEST ENDING (highP && highM) ─────────
+    best: {
+      F: {
+        A: '提交按钮按下去的那一刻，你的手是抖的。\n\n'
+          +'不是因为紧张——而是因为你终于可以放下了。这48小时里，你一直在问自己同一个问题："我配当这个组长吗？"你害怕分配任务是在显摆，害怕催进度是在得罪人，害怕说错一句话就被所有人讨厌。你觉得自己是个冒牌货，只是运气好被随机选中了而已。\n\n'
+          +'但是最后几个小时发生的事，让你的想法动摇了。小B说出了打工的事，小D说出了爸爸住院的事——而她们之所以愿意说，是因为你先说了那句"我这个组长当得也很慌"。是你先承认了自己的不完美，才给了别人说出真话的勇气。\n\n'
+          +'群里最后一条消息是小F发的——那个几乎从不说话的女孩——"谢谢组长。这是我第一次觉得自己被一个团队需要。"你看着这条消息看了很久。\n\n'
+          +'也许"配不配"这个问题本身就问错了。不是因为你完美所以你配，而是因为你愿意在不完美的时候依然站出来——所以你配。你不是一个没有恐惧的领导者。你是一个带着恐惧依然选择了担当的人。\n\n'
+          +'这比"什么都不怕"厉害多了。',
+
+        B: '你是在奶茶店的后厨看到"提交成功"的消息的。\n\n'
+          +'站在油腻的地板上，穿着沾满糖浆的围裙，手机屏幕的光映在你疲惫的脸上。你的同事喊你去洗杯子，你说"等一下"——然后你哭了。不是伤心，是一种说不出来的解脱。\n\n'
+          +'这48小时里，你做了一件你一直觉得自己永远不会做的事——你告诉了别人你在打工。你说了那些你觉得"太丢人"的话：妈妈身体不好，学费自己赚，每晚十一点下班。你以为说出来会被同情、被怜悯、被用那种让人难受的眼神看着。\n\n'
+          +'但没有。小C说"你把能做的发给我，我帮你整合"。小F默默帮你补了数据那一页。小A在群里说"小B辛苦了，有她在的部分虽然少但很扎实"。没有人可怜你。她们只是——接住了你。\n\n'
+          +'你从来以为示弱是一种失败。但这一次，你发现示弱有时候是一种邀请——它邀请别人走近你，用行动而不是言语告诉你："你不需要一个人扛。"\n\n'
+          +'奶茶店的灯很亮。你擦了擦眼泪，去洗杯子了。但你心里有一个地方，比以前暖了。',
+
+        C: '你花了很长时间盯着最终提交的PPT。\n\n'
+          +'它不完美。第17页的图表颜色不统一。第23页的行间距差了0.5。参考文献的格式有三处不规范。这些你都看到了。它们像小刺一样扎在你眼睛里。\n\n'
+          +'但你没有改。你选择了提交。\n\n'
+          +'这件事对你来说比通宵改PPT难一万倍。你从小就被"做到最好"这四个字绑架着——考试扣了两分会难过一整天，作文被老师圈了一个错别字能记半年。你活在一个自己搭建的牢笼里：不够好就不配交出去，不够好就不配被看到。\n\n'
+          +'是什么改变了你？也许是凌晨四点的时候，小E发来消息说"C姐，你已经够好了。真的。"也许是小B带着歉意交出那份并不完整的数据时，你突然意识到——她付出了她所能付出的一切，而这就够了。如果她的"不完美"都值得被接受，那你的是不是也可以？\n\n'
+          +'你在提交后收到了小A的私聊："谢谢你。你的部分撑起了整个PPT的质量。"你想说"可是还有很多地方不够好"——但你没有。你回了一个"谢谢"。\n\n'
+          +'这是你第一次允许自己在"不够好"的状态下被感谢。那感觉很陌生。但不坏。',
+
+        D: '你是坐在医院走廊的长椅上看到提交消息的。\n\n'
+          +'爸爸在病房里睡着了。走廊的日光灯嗡嗡响着，白得刺眼。你的手机震了一下——群消息："交了。"然后是小C的："辛苦了大家。"然后是小E的："小D你爸怎么样了？好好休息。"\n\n'
+          +'你盯着那条消息看了很久。"你爸怎么样了。"这句话你等了一周。你等了一周有人这样问你，而不是只关心你"那部分做了没"。\n\n'
+          +'这48小时里你做了一件很不体面的事——你在群里发了火。很大的火。你骂了所有人。你知道那不对。但你控制不了。你爸住院之后你每天都在假装没事，上课、吃饭、回消息，像个正常人。所有的情绪都被你吞下去了，只有愤怒会偶尔从缝隙里漏出来。\n\n'
+          +'但后来发生了一件事——你道歉了。你在那个最需要逞强的时刻，选择了柔软。你说"对不起"。然后你说了爸爸的事。你以为会被嫌弃，被嫌矫情。但小B说了她的事。小F帮你做了你那部分。小A在群里说"小D不需要道歉"。\n\n'
+          +'原来愤怒的背面不是平静——是疼。你不是一个脾气差的人。你是一个伤口太深、来不及好好疼的人。而这群人让你知道了：你可以疼。你被允许疼。',
+
+        E: '提交之后，你终于打开了自己那份几乎是空白的文档。\n\n'
+          +'你帮小A整理了格式。帮小C校对了数据。帮小D做了她没来得及做的章节。帮小F润色了措辞。帮小B补了缺的那一页。你帮了所有人。\n\n'
+          +'除了你自己。\n\n'
+          +'这件事你已经习惯了。从小就是这样——谁需要帮忙你就去，谁不开心你就笑，谁吵架你就劝。你是那个永远不会说"不"的人。因为你害怕——害怕如果你说了"不"，她们就不需要你了。而如果没有人需要你，你就什么都不是。\n\n'
+          +'但这次不一样。凌晨四点的时候，你终于忍不住在群里说了一句："对不起大家，我自己的部分没做完。"你以为会被骂。但小A说："小E，你帮了所有人。你的部分我们来帮你。"小C说："把你帮我做的那些算到你的贡献里。你做得比谁都多。"\n\n'
+          +'你突然意识到一件事：你一直以为你的价值在于"帮别人"。但她们在乎的不是你做了多少——而是你这个人。你不需要燃烧自己才能被接受。你什么都不做，你也值得被喜欢。\n\n'
+          +'这个认知像一根针，轻轻扎破了你心里那个吹了很久的气球。不是破碎——是释放。',
+
+        F: '提交之后，你关上电脑，在黑暗中坐了很久。\n\n'
+          +'你想整理一下这48小时发生了什么。你做了什么。你——成为了什么。\n\n'
+          +'在一开始，你是那个"已读不回"的人。小D@你的时候，你觉得全身都在发抖。你做完了自己的部分，但你不敢发。你打了好多字，又删了。你最怕的不是做作业——而是在群里说话。每一句话发出去之前，你都要在心里预演十遍别人可能的反应。大多数时候，预演的结果是"算了不说了"。\n\n'
+          +'但这一次，你做了一件不一样的事。你把文件发了出去——没有任何解释，没有任何前言。就是一个文件。然后小A说："小F的部分做得好好。"然后小C说："格式好整齐，我要参考。"你坐在屏幕前，心跳得飞快。不是害怕。是——被看到了。\n\n'
+          +'后来在最后几个小时，你做了更勇敢的事——你开了麦，说了一句"我可以帮忙"。声音很小，但说出来了。小E说："太好了小F！"你不知道为什么，那一刻你鼻子酸了。\n\n'
+          +'你一直觉得自己是多余的。是透明的。是那个有没有都无所谓的人。但这一次你发现：也许你不需要声音很大——你只需要被听见一次。一次就够了。'
+      },
+      M: {
+        A: '提交完毕那一刻，你靠在椅背上，长长地吐了一口气。\n\n'
+          +'你本来不想当组长的。抽签抽到的那一刻，你脑子里闪过的第一个念头是"完了"。你连自己的生活都管不好——饭不好好吃，觉不好好睡，上课迟到是常态。让你管五个人？开什么玩笑。\n\n'
+          +'但这48小时里发生了一件奇怪的事。你发现——你不需要变成一个完美的人才能当好组长。你只需要做一件事：在别人都不开口的时候，第一个开口。你说了"我也慌"，然后小D也说了他的事，小B也坦白了。不是因为你给了什么好建议——而是因为你先承认了自己不行。\n\n'
+          +'群里最后的消息是："下次还这个组。我先预定。"小D——那个一开始最火爆的人——发了一条很长的消息，说了谢谢。小F发了首歌。歌名你记不清了，但你存了下来。\n\n'
+          +'也许当组长不是"什么都会"。也许就是——"什么都不确定，但愿意第一个往前走"。\n\n'
+          +'你以前觉得这是软弱。现在你觉得这叫勇敢。',
+
+        B: '提交完成的群消息弹出来的时候，你正在盯着天花板发呆。\n\n'
+          +'你坦白了。你在群里说了你一直不敢说的话——"我不是在摸鱼。我是真的坐不下来。一打开文档脑子就空白。"你以为会被骂。会被嫌弃。会被说"借口真多"。\n\n'
+          +'但小D说："你也有难处啊。"小A说："那你能做多少做多少，剩下的我兜底。"小C直接把你那部分帮你改了。他们没有可怜你——他们只是把你当兄弟。\n\n'
+          +'你从小就习惯用嘴炮掩饰一切。发表情包、接梗、插科打诨——因为只要一直在笑，就没人会追问你为什么不做事。你以为那是聪明。但其实那是恐惧。你害怕被看到真实的你——那个坐不住的、可能有点问题的你。\n\n'
+          +'这一次你让他们看到了。天没有塌。他们还在。他们甚至——更靠近了。\n\n'
+          +'也许你不需要一直搞笑。也许你可以偶尔认真地说："兄弟们，我需要帮忙。"',
+
+        C: '你看着最终版的PPT，叹了一口气。\n\n'
+          +'不够好。你知道。第14页的排版有问题。第8页的数据图表颜色不够协调。结尾的总结太仓促了。这些你全看到了。它们像沙子一样硌着你。\n\n'
+          +'但你还是交了。\n\n'
+          +'这48小时里，你改了所有人的稿子。你凌晨三点还在调格式。你从头到尾没有抱怨过一句——不是因为你不想抱怨，而是因为你觉得"抱怨没用，不如自己做"。你一直是这样的人：闷头干活，不说话，把所有情绪吞掉，把所有不满转化成行动。\n\n'
+          +'但这次有人看到了。小A在群里说："小C一个人改了三个人的稿子，大家说声谢谢。"小D说了。小E说了。连小F都发了个消息说"谢谢C哥"。你盯着屏幕，不知道该回什么。\n\n'
+          +'你习惯了不被看到。习惯了"反正说了也没用"。但原来——不是没用。是你从来没给别人机会去看到你。这一次，你让他们看到了。\n\n'
+          +'不完美的PPT，但是被看到了的你。也许这就够了。',
+
+        D: '坐在床上看到"提交成功"的时候，你发现自己攥着的拳头松开了。\n\n'
+          +'你这一周过得像地狱。你爸出了车祸。你每天在医院和学校之间来回跑。你假装一切正常——上课，吃饭，回消息。但你的情绪像一个拧紧的水龙头，每一秒都在漏。终于在48小时前，你在群里炸了。\n\n'
+          +'你骂了所有人。你知道不该那样。但你控制不了。那些愤怒不是冲他们——是冲这个操蛋的世界。你爸躺在病床上，你却得在这里催别人写PPT。你觉得荒谬。你觉得愤怒。你觉得——孤独。\n\n'
+          +'但后来你做了一件你以为自己永远不会做的事——你道了歉。你说了爸爸的事。你把那些你觉得"太丢人"的脆弱摆在了五个大男生面前。小B说了他的事。小A说"兄弟，你先照顾家里，PPT我兜底"。小C帮你做了你那部分。\n\n'
+          +'你一直以为男人就该硬扛。哭是丢人的。求助是软弱的。但这五个人告诉你——不是。有些重量，不是一个人该扛的。\n\n'
+          +'你爸还在医院。但你不再是一个人了。',
+
+        E: '提交后你躺在床上，盯着天花板，觉得身体被掏空了。\n\n'
+          +'你帮小A分了工。帮小D圆了场。帮小B打了掩护。帮小C校了对。帮小F鼓了劲。你是所有人的减震器，所有人的和事佬，所有人的安全气囊。\n\n'
+          +'但你自己的部分——最后凑合交了一个半成品。\n\n'
+          +'你一直是这样。谁吵架你劝谁。谁有困难你帮谁。你觉得团队的氛围比你自己的成绩重要。你笑着笑着，就累了。你打圆场打到最后，发现自己站在圆的中心，孤零零的。\n\n'
+          +'但这次，在凌晨最后那段时间，你终于说了一句："我自己的没做完。"你以为会被骂。但小A说："兄弟你帮了所有人，你的部分我们来。"小C说："你做的事比PPT重要。"你愣了。\n\n'
+          +'你第一次意识到——也许你不需要一直当那个照顾所有人的人。也许你也可以被照顾一次。也许你的价值不在于你帮了多少忙，而在于你这个人本身。\n\n'
+          +'你想哭。但你笑了。——然后你意识到，你其实可以不笑。',
+
+        F: '提交之后，群里在聊天。你没说话。但你在看。\n\n'
+          +'小D说"兄弟们牛逼"。小B说"下次还这个组"。小A说"大家辛苦了"。你看着这些消息，心里涌上来一种奇怪的暖。\n\n'
+          +'你是全组最安静的人。从头到尾你说的话加起来可能不超过二十句。大多数时候你在"已读"——不是不想回，是不知道怎么回。每次你想说话的时候，脑子里就有一个声音在说："你说了也没人在意。你说了反而奇怪。别说了。"\n\n'
+          +'但这一次，你做了一件了不起的事。你把做好的文件发了出去。你在最后关头默默补了两个空缺的板块。你没有说话——你用行动说了。小A说："小F太稳了。"小C说："发现小F的东西质量最高。"\n\n'
+          +'你发现——也许你不需要变成一个健谈的人。也许你的方式就是"默默做好"。这不是缺陷，这是你的力量。\n\n'
+          +'你在群里发了一首歌的链接。没说话。但歌名叫《朋友》。小D回了一句："懂了。"你觉得这可能是你这学期最快乐的时刻。'
+      }
+    },
+
+    // ───────── PYRRHIC ENDING (highP && !highM) ─────────
+    pyrrhic: {
+      F: {
+        A: 'PPT交了。成绩出来的那天，你看着屏幕上的B+，内心却是一片荒芜。\n\n'
+          +'你做到了所有"组长该做的事"——分工、催促、检查、提交。但你是怎么做到的？你催小B的时候，她的回复越来越短。你给小D分配任务的时候，她在医院走廊里。你要求小F汇报进度的时候，她打了字又删了。\n\n'
+          +'你把一切都安排得很好。唯独忘了问一句："你们还好吗？"\n\n'
+          +'群里最后一条消息是小D发的："下次不要这个组了。"你盯着那条消息看了很久。你想问"为什么"——但你知道为什么。你用效率杀死了温度。你用"负责任"掩盖了"不敢面对别人的脆弱"。因为面对别人的脆弱，就得面对自己的。\n\n'
+          +'成绩单上写着B+。你心里写着"我是不是又搞砸了"。冒名顶替综合症没有因为成绩好而消失——它反而更重了。因为你证明了自己可以完成任务，但也证明了自己在真正重要的事情上——又一次缺席了。',
+
+        B: '成绩出来了。B+。你看着手机屏幕，在奶茶店的休息室里。\n\n'
+          +'你应该高兴的。你赶出来了。熬了两个通宵，在下班后的每一个深夜里一个字一个字地打。你做到了。\n\n'
+          +'但代价是什么？你没有告诉任何人你在打工。你选择了一个人硬扛。小D催你的时候你沉默，小A问你进度的时候你说"快了"，小E要帮你的时候你说"不用"。你把所有人推开了——因为你宁愿被当成"不负责任的人"，也不愿意被当成"需要帮助的人"。\n\n'
+          +'可是你看到了最后群里的氛围。冷冰冰的。小D说"太累了"。小F说"下次别了"。你们交了作业，但你们之间再也没有了信任。\n\n'
+          +'你学到了一个残酷的道理：把自己藏起来确实可以保护自己。但藏得太久，别人就真的不找你了。',
+
+        C: '你看着最终评分——B+——心里只有一个想法：不够。\n\n'
+          +'但这次不是因为PPT不够好。而是因为过程不够好。\n\n'
+          +'这48小时里，你把自己的标准强加给了所有人。你指出小B的数据有错，小E的格式不对，小D的结构要改——你说的都对。但你的"对"像一把刀。每一次纠正都在说"你不够好"。你没有意识到，完美主义不仅在折磨你自己——它也在折磨别人。\n\n'
+          +'小E最后在群里说了一句让你很久都忘不掉的话："我帮了所有人，但在小C面前我永远觉得自己做得不够好。"\n\n'
+          +'你呆住了。你从来不知道你的标准对别人来说是一种伤害。你以为追求完美是一种美德——但如果这种美德让身边的人都觉得自己不行，那它还算美德吗？\n\n'
+          +'PPT的质量确实不错。但你失去了五个人的信任。你用完美交换了孤独。',
+
+        D: '成绩出来了。老师说"做得不错"。\n\n'
+          +'你一个字都不想听。\n\n'
+          +'这48小时里，你一直在愤怒。对小B愤怒，对小E愤怒，对所有不做事的人愤怒。你催、你骂、你逼。最后作业确实交了——但也是你把小C逼到凌晨四点改了所有人的稿子、把小F吓得不敢说话换来的。\n\n'
+          +'你爸还在医院。你没有告诉任何人。你把所有的疼痛都转化成了愤怒，把愤怒当成武器甩向了身边的人。你以为这样自己就不用面对那些脆弱。\n\n'
+          +'但群最后安静了。不是平静的安静——是所有人都不想再说话的安静。小B退了群。小E说"下次换组"。你坐在医院走廊里看着这些消息，突然觉得自己好像失去了什么。\n\n'
+          +'你赢了作业。但你推开了所有人。而你最需要的，恰恰是身边有人。',
+
+        E: '成绩是B+。你应该高兴的。\n\n'
+          +'但你高兴不起来。\n\n'
+          +'你这48小时做了什么？你帮小A整理了进度表。帮小C校对了两遍。帮小D找了资料。帮小B做了她没时间做的部分。帮小F鼓了劲。你帮了所有人——然后自己的部分赶了个半成品出来。\n\n'
+          +'最讽刺的是：没有人觉得你付出了很多。因为你从来不说。你笑着说"没事没事我顺手"，所有人就真的以为你只是"顺手"。你的牺牲被你自己的讨好掩盖了。\n\n'
+          +'群里最后的消息充满了疲惫和怨气。每个人都觉得自己付出最多、收获最少。你想说"我也很累"——但你不敢。因为你害怕一旦说出来，她们就发现你其实没有那么"万能"，然后就不需要你了。\n\n'
+          +'你在自我牺牲和自我消耗之间模糊了界限。你帮了所有人，但你不快乐。也许"被需要"这件事，并不能真正填满你心里的洞。',
+
+        F: '你看着群里冷冰冰的最后几条消息，关掉了手机。\n\n'
+          +'成绩出来了。B+。你的部分做得很好——安静地、完整地、不引人注目地做好了。但过程中发生的那些事，让你再也不想打开这个群了。\n\n'
+          +'小D吵架的时候你没有说话。小B被质问的时候你没有说话。小E崩溃的时候你没有说话。你有很多话想说——"小B她在打工你们不知道吗""小D她家里有事""小E已经很累了"——但每一句话打出来又删掉了。\n\n'
+          +'你的沉默不是冷漠。你比任何人都看得清楚。但你说不出口。你怕说错。怕被嫌烦。怕那个小心翼翼搭建起来的"安全的隐形状态"被打破。\n\n'
+          +'于是你眼睁睁看着这个群一步步变冷。你做了你的部分，但你没有做一个团队成员该做的另一半——让别人知道你在看、在听、在乎。\n\n'
+          +'你是全组唯一没有跟任何人产生冲突的人。但你也是唯一——完全没有被任何人记住的人。'
+      },
+      M: {
+        A: '成绩B+。你看着这个分数，苦笑了一下。\n\n'
+          +'你当了48小时的组长。你分工了、催促了、兜底了。你做了一个"领导者"该做的一切——除了一件事：你没有问过任何人"你还好吗"。\n\n'
+          +'你觉得那是矫情。男人嘛，干活就行了，问什么感受。但小D退群了。小B说"别拉我"。小C默默取消了群置顶。你把活干完了，但把人干没了。\n\n'
+          +'你以为组长就是"管事"。但也许组长还得"管人"。不是管他们做什么——是在乎他们感觉怎样。你不擅长这个。你连自己的感觉都不太在乎。\n\n'
+          +'但你心里有个声音在说：下次，也许可以不一样。',
+
+        B: '交了。B+。\n\n'
+          +'你做到了。最后一天你真的坐下来做了。做得不完美，但你做了。\n\n'
+          +'可是你回头看这48小时，你发现你花了80%的时间在逃避，20%在补救。你吹了牛说"差不多了"——其实什么都没做。你发了表情包打岔——其实是不想面对自己什么都没干的事实。\n\n'
+          +'最后你被逼到角落才动手。你确实完成了——但代价是什么？小D再也不信你了。小A以后分工不会给你重要的部分了。你在这群人眼里，从"嘴炮王"变成了"不靠谱的人"。\n\n'
+          +'你知道你不是不靠谱。你是——坐不住。每次打开文档脑子就空白。但你没有说出来。你用嘴炮掩盖了这一切。然后，信任碎了。',
+
+        C: '你看着成绩。B+。还行。\n\n'
+          +'但你的心情跟"还行"一点关系都没有。你改了三个人的稿子。凌晨四点还在调格式。从头到尾没说过一句"谢谢"以外的废话。你觉得"做"比"说"重要。\n\n'
+          +'但现在你发现了一个问题：没人知道你做了多少。或者说，他们知道，但他们不感激——他们觉得你在炫耀。你默默付出，别人觉得你在"卷"。你帮别人改稿子，别人觉得你在"嫌弃"他们。\n\n'
+          +'你不理解。你只是想把事情做好。为什么把事情做好也是错的？\n\n'
+          +'因为你没有跟任何人沟通。你把合作变成了独角戏。你帮了所有人但推开了所有人。这不是一个人能走通的路。',
+
+        D: 'B+。你爸还在医院。你什么感觉都没有。\n\n'
+          +'这48小时里你做了两件事：发火和干活。你催了、骂了、逼了。最后作业交了。但群也死了。\n\n'
+          +'你爸住院的事你没告诉任何人。你把所有的疼都变成了脾气。你觉得——告诉他们有什么用？他们帮不了你。他们连作业都做不好。\n\n'
+          +'但你心里有一个很小的声音在问：如果你说了呢？如果你在最炸的那一刻说的不是"你们能不能动一下"而是"兄弟们我爸住院了我真的快扛不住了"——结果会不同吗？\n\n'
+          +'你不知道。你没有给自己和他们那个机会。你选择了愤怒。愤怒确实有用——它推动了进度。但它也推开了所有人。',
+
+        E: 'B+。你笑了一下。然后叹了口气。\n\n'
+          +'你这48小时一直在当和事佬。小D炸了你劝。小B拖了你帮。小A焦虑了你安慰。你笑着笑着，累了。\n\n'
+          +'你自己的部分凑合着交了。不是你做不好——是你把所有时间都给了别人。你觉得团队氛围比成绩重要。但这次氛围也没救回来——因为火太大了。\n\n'
+          +'你尽力了。但你发现一个残酷的事实：你可以当所有人的安全气囊，但没有人当你的。你永远是笑着的那个，累了也笑，委屈了也笑。可是谁来问你一句"你累不累"？\n\n'
+          +'答案是：没有人。因为你笑得太好了。好到没人觉得你需要被问。',
+
+        F: '成绩出来了。B+。\n\n'
+          +'群里有人说"算了总算交了"。你没有回复。你什么都没回。整个48小时你说的话加起来不超过十句。\n\n'
+          +'你做了你的部分。做得很好。安安静静地做好了。但当小D在群里爆炸的时候，你没说话。当小B坦白的时候，你没回应。当最后大家在冲刺的时候，你默默补了空缺——但没有人知道是你补的。\n\n'
+          +'你就像一个幽灵。存在于这个团队里，但从未真正"在场"。\n\n'
+          +'你知道你有话想说。你看得比谁都清楚——谁在挣扎、谁在逞强、谁需要帮助。但你说不出来。你的沉默不是冷漠——是恐惧。你害怕说了没人理。害怕说错了被嘲笑。害怕你的声音一出来就会暴露你其实有多在意这个团队。\n\n'
+          +'可是没有人知道。因为你什么都没说。'
+      }
+    },
+
+    // ───────── HONOR ENDING (!highP && highM) ─────────
+    honor: {
+      F: {
+        A: 'PPT的成绩不太好。老师在评语里写了"整体完成度不够"。\n\n'
+          +'你作为组长，第一个看到了这条评语。你的第一反应是愧疚——你是组长，这是你的责任。你应该催得更紧、管得更严、让大家少说感受多干活。\n\n'
+          +'但你想了想这48小时里发生的事。小B说出了打工的秘密。小D说出了家里的事。小F第一次在群里说了完整的句子。小E终于承认自己太累了。这些事，都是因为你先说了那句"我也不知道怎么办"。\n\n'
+          +'你没有做一个"高效的组长"。但你做了一件也许更重要的事——你做了一个"让大家敢说真话的人"。你把自己的脆弱放在了所有人面前，然后发现脆弱不是一种弱点，而是一种邀请。\n\n'
+          +'群里最后的消息是小C说的："成绩不太好。但下次我们早点开始。这次过程中大家都挺好的。"\n\n'
+          +'你知道"下次"会更好。因为这群人之间有了信任——而信任是世上最难建立、也最有价值的东西。你这个"冒牌组长"，做到了最真的事。',
+
+        B: '成绩不好。你看到的第一眼，胃缩了一下。\n\n'
+          +'你觉得是你的错。如果你不用打工，如果你时间更多，如果你能做更多——也许就不会这样。那种熟悉的自责又来了，像一只手掐住你的喉咙。\n\n'
+          +'但然后你看到了群消息。小A说："成绩就这样了。但大家辛苦了。"小C说："下次我们提前两周开始。"小D说："小B别自责，你已经做了你能做的。"\n\n'
+          +'你的眼眶湿了。不是因为成绩差——而是因为有人说了"小B别自责"。你从来没有听过这句话。从你开始打工那天起，你就活在"不够"的阴影里——时间不够、钱不够、精力不够、做的不够。你以为所有人都会因为你"不够"而嫌弃你。\n\n'
+          +'但她们没有。她们知道了你在打工之后，不仅没有嫌弃你——还替你分担了。成绩是不好。但你第一次觉得自己不是一个人在承受。\n\n'
+          +'也许"不够"不是你的错。也许——你已经足够了。',
+
+        C: '你看着最终评分，心里在滴血。\n\n'
+          +'不够好。远远不够好。你的那部分是好的——改了八遍，接近完美。但整体？离你的标准差了十万八千里。你想把那个PPT删了重做。你想跟老师解释"这不是我的真实水平"。\n\n'
+          +'但你没有。你深呼吸了一下。因为这48小时里，有一件事改变了你——你看到了小B的眼泪（即使是隔着屏幕），看到了小D的愤怒背后的疼，看到了小F打了一段话又删掉的那种犹豫。你发现：在你执着于"第17页图表颜色不统一"的时候，其他人在执着于"活下去"。\n\n'
+          +'完美主义是你的盔甲。但盔甲穿久了会生锈，会长在肉里。这一次你选择了脱掉一点点——不是放弃标准，而是在标准之外，多看了一眼那些人。\n\n'
+          +'成绩不好。但小B说"谢谢你帮我改了格式"。小A说"C的部分是全组最好的"。你发现——被认可的感觉，不一定来自分数。有时候来自一句真心的谢谢。',
+
+        D: '成绩出来了。不好。\n\n'
+          +'你本该愤怒。一周前的你一定会愤怒。但现在你坐在医院走廊里，看着这个分数，居然觉得……还好。\n\n'
+          +'因为这48小时里发生了比分数更重要的事——你哭了。在群里。你道了歉，说了爸爸的事，然后——你哭了。视频会议上，你以为自己关了摄像头，但其实没关。她们看到了。小E第一个说"小D你哭了？怎么了？"然后小A说"你不需要再假装了"。\n\n'
+          +'你这一周过得太辛苦了。你的愤怒不是因为作业——是因为你快碎了但没有人知道。你用最尖锐的方式推开所有人，因为你怕被看到那个脆弱的自己。\n\n'
+          +'但她们接住了你。不是用"加油"，是用行动——帮你做了你的部分，帮你请了假，帮你带了饭。你这辈子都没被这样对待过。\n\n'
+          +'成绩不好。但你的心比一周前完整了一点。也许这就够了。',
+
+        E: '成绩不太好。你叹了口气——然后笑了。\n\n'
+          +'你帮了所有人。又是。你帮小A整理格式、帮小C校对、帮小D找资料、帮小B补数据、帮小F润色。你的部分？来不及了。交了个半成品。\n\n'
+          +'但这一次不一样。这一次你说了"我自己的没做完"。不是在所有事情结束之后的懊悔——而是在过程中的坦白。你第一次承认"我帮了所有人但忘了帮自己"。\n\n'
+          +'小A说了一句你从没听过的话："小E，你可以不帮。你可以说不。我们不会因为你说不就不喜欢你。"\n\n'
+          +'那一刻你愣住了。你一直以为你的价值在于"有用"。在于被需要。你帮所有人，因为你害怕不帮就不被接受。但小A说——你可以不帮。你不帮也是被接受的。\n\n'
+          +'成绩不好。但你学到了一件比成绩重要一万倍的事：你不需要燃烧自己才能有光。你本身就是光。',
+
+        F: '成绩不好。你看了一眼就关了页面。\n\n'
+          +'你在意的不是成绩。你在意的是——这48小时里，你说了话。真的说了。\n\n'
+          +'在最后关头，你打开了麦克风。你说了"我可以帮忙"。五个字。对别人来说也许微不足道。但对你来说，那五个字比写一整页PPT还要难。你的心跳了一百八十下。你的手在抖。你的声音很小很小。\n\n'
+          +'但小E说："太好了小F！"小A说："需要你帮忙看一下排版。"她们听到了。她们回应了。你没有被无视。你没有被嘲笑。你打了两年害怕的那件事没有发生。\n\n'
+          +'你一直觉得自己是多余的。是那个"有没有都一样"的人。但这一次你发现——也许不是你多余，而是你一直没有让别人有机会发现你不多余。你不需要变成一个外向的人。你只需要偶尔——偶尔打开麦克风。\n\n'
+          +'成绩不好。但你今天说了话。这件事，比任何成绩都值得被记住。'
+      },
+      M: {
+        A: '成绩出来了。C。你看着这个分数，叹了口气。\n\n'
+          +'你是组长。成绩不好，第一个被说的就是你。你知道这个。但你还是选择了在这48小时里优先关注的是人，而不是PPT。\n\n'
+          +'你说了"兄弟们我也慌"。你帮小D圆了场。你让小B慢慢来。你没有催、逼、骂。你做了一个"不那么有效率"的组长——但也许是一个"还不错"的人。\n\n'
+          +'群里没有人因为成绩差骂你。小D说"下次一定行"。小B说"下学期我包了"。你知道这些话未必都能兑现——但他们愿意说"下次还这个组"，这本身就说明了什么。\n\n'
+          +'你以前觉得组长就是要"搞定一切"。但也许组长最重要的工作是——让每个人觉得"待在这个组里是安全的"。成绩可以下次再来。信任没了就没了。',
+
+        B: '成绩C。你耸耸肩。意料之中。\n\n'
+          +'但你心里有一个地方松了。因为你做了一件你从来没做过的事——你在群里说了实话。"我不是在摸鱼。我是真的坐不下来。"你以为会被骂。但小A说"那你做你能做的"。小D说"你也有你的难处"。\n\n'
+          +'成绩不好。但你第一次被人当真正的你看待了——不是那个嘴炮王，不是那个接梗小王子，而是那个……有点问题但在努力的人。\n\n'
+          +'群里最后的消息是"下次还这个组"。你不确定下次你能不能做得更好。但你确定的是——这群人值得你试一试。',
+
+        C: '分数出来了。C。你盯着它看了三十秒，然后关了页面。\n\n'
+          +'你的部分是好的。你知道。但整体就是这样了。你帮别人改了三个人的稿子——但时间不够了，整体完成度还是差。\n\n'
+          +'以前的你会很愤怒。会觉得"都怪他们拖后腿"。但这次你没有。因为你知道了小D爸爸的事、小B的坐不住、小F的不敢说话。每个人都有自己的冰山。你看到的只是水面上的那一角。\n\n'
+          +'小D在群里说"谢谢C帮我改了稿子"。小A说"C是全组最稳的"。你闷声点了个赞。嘴角没忍住翘了一下。\n\n'
+          +'也许不是所有事都得你一个人扛。也许下次，你可以早一点说"我需要帮忙"。',
+
+        D: '成绩不好。但你的心比一周前轻了。\n\n'
+          +'你说了。你终于说了爸爸的事。在群里，当着五个大男生的面。你以为他们会觉得你矫情。但小B说了他的事。小A说"兄弟你先顾家"。小C帮你做了你那部分。\n\n'
+          +'你这辈子都被教育"男人要硬扛"。哭是丢人的。求助是弱的。但这五个人——他们没有嘲笑你。他们甚至——更尊重你了。因为你在最该逞强的时候选择了诚实。\n\n'
+          +'你爸还在医院。你还是会每天跑去看他。但你知道——你不再是一个人了。有人在替你扛着那些你扛不动的东西。\n\n'
+          +'成绩是C。但你这48小时学到的东西，比一个学期都多。',
+
+        E: '成绩C。你笑了笑。"意料之中。"\n\n'
+          +'你这48小时在干嘛？你在劝小D消气。在帮小B打掩护。在给小F鼓劲。在替小A分忧。你是六个人的安全气囊。但你自己——你的部分凑合交了个半成品。\n\n'
+          +'但这次不一样。这次你在最后说了一句"其实我也累了"。你没有笑着说。你认真地说了。然后小A说"那你歇会儿"。小D说"你做的比你以为的多"。\n\n'
+          +'你第一次被允许不笑。第一次被允许说累。那种感觉很奇怪。像是一直绷着的一根弦，终于松了一点点。\n\n'
+          +'成绩不好。但你发现了一件事：你不需要一直当那个照顾所有人的人。你也可以被照顾。',
+
+        F: '成绩出来了。C。你看了一眼。\n\n'
+          +'你不太在意成绩。你在意的是另一件事——这48小时里，你打了一段话，没有删掉，发了出去。\n\n'
+          +'就是那句"我能帮忙。告诉我做什么。"九个字。你打了五分钟。手抖了三分钟。按发送键的时候闭了眼睛。但你发了。\n\n'
+          +'小A说"好的F你帮忙看一下排版"。就这样。就这么简单。你花了两年害怕的事情，原来就是这么简单。\n\n'
+          +'你一直觉得自己是多余的。是那个存在感为零的人。但这一次你发现——不是你多余，是你一直把自己藏着。你藏得太好了，好到所有人都以为你不在。\n\n'
+          +'成绩不好。但你开口了。这一步，比任何分数都重。'
+      }
+    },
+
+    // ───────── COLLAPSE ENDING (both low) ─────────
+    collapse: {
+      F: {
+        A: '截止时间过去了。你盯着屏幕上的提交链接，没有点。\n\n'
+          +'或者说——你点了。交了一个半成品。你做了能做的，但那远远不够。其他人的部分要么缺失，要么是最后十分钟匆忙粘贴的。一份六个人的作业，看上去像一个人在独自挣扎。\n\n'
+          +'你是组长。你该负责。但你连自己都没能负起责来。从第一天开始你就在想"我不配"，想了48个小时，想到最后变成了事实——你真的没做好。不是因为你不配，而是因为你花了太多时间在"证明自己不配"上面，没有剩下力气去做事。\n\n'
+          +'冒名顶替综合症赢了。你输了。但也许——也许这不是终点。也许下一次，当那个声音在你脑子里说"你不配"的时候，你可以回答它："也许我不配。但我可以试。"\n\n'
+          +'群沉了。但你还在。你还可以试。',
+
+        B: '截止了。你没交。\n\n'
+          +'你的手机上有23条未读消息。你不敢看。你知道里面一定有人在骂你，一定有人在说"小B又消失了"。你不想解释了。解释什么？你在打工？你没时间？这些话说出来只会让你觉得更惨。\n\n'
+          +'你坐在奶茶店的后厨，穿着沾满糖浆的围裙，盯着手机屏幕上那些消息提示。你什么都没打开。你选择了你最熟悉的方式——关掉。假装没看到。假装不存在。\n\n'
+          +'可是你知道这不对。你知道你不是因为不在乎才消失的——你是因为太在乎了。你在乎到你宁愿消失也不愿意面对"让大家失望"这件事。你把自己藏进沉默里，以为沉默能保护你。但沉默只是让你更孤独了。\n\n'
+          +'群死了。六个人的名字还在，但再也不会有人说话了。你偶尔翻到它——夹在外卖群和班级通知群之间——会有一秒钟的刺痛。然后你划过去了。\n\n'
+          +'但那一秒的痛说明你还在乎。也许下一次——如果有下一次——你可以在消失之前说一句："我需要帮忙。"',
+
+        C: '你看着那份提交的PPT，觉得想吐。\n\n'
+          +'不是生理上的——是心理上的。你的部分改了八遍，近乎完美。但旁边紧挨着的是别人粗制滥造的页面，格式乱七八糟，数据张冠李戴。整个PPT像一件半边是丝绸半边是抹布的衣服。\n\n'
+          +'你本来可以帮她们。你的能力够。你的时间也够。但你没有。你选择了在自己的完美里待着。你把自己的部分改了第八遍、第九遍，而不是去看一眼别人的第一版。你用"完美主义"筑起了一面墙，把自己和所有人隔开了。\n\n'
+          +'你告诉自己"我的部分没问题"。是的。你的部分没问题。但作业不是你一个人的。\n\n'
+          +'你一直以为完美是一种追求。但这一次你发现：当完美变成了逃避跟别人协作的借口，它就不再是美德了。它只是一座精致的孤岛。\n\n'
+          +'成绩很差。你的岛还在。但你开始怀疑——也许你该造一座桥了。',
+
+        D: '你在医院走廊里看到了成绩通知。D。\n\n'
+          +'你把手机翻过去，屏幕朝下。\n\n'
+          +'你已经不在乎了。你爸在里面。你连他的检查结果都还没看到。一个小组作业的成绩算什么？你为这件事发了多少火？骂了多少人？值吗？\n\n'
+          +'你想起来你在群里说的那些话。每一句都很狠。你骂小B不负责，骂小E光打嘴炮，骂小F不说话。你觉得你在"推进度"。但其实你在发泄。你把对生活的愤怒全倒在了她们身上。\n\n'
+          +'她们不应该承受你的怒火。但你控制不了。你爸住院之后你的世界就碎了，而你不知道除了愤怒还能怎么表达。你从来没被教过怎么说"我很疼"。你只被教过怎么说"你们都有问题"。\n\n'
+          +'群死了。她们不会再理你了。你不怪她们。你只是——好累。好想有一个人在身边，不需要你做任何事，就待着就好。',
+
+        E: '截止时间过去了。你的部分——空的。\n\n'
+          +'不是完全空的。有个标题。有两行字。那是你在帮完所有人之后，凌晨五点打出来的两行字。然后你趴在桌上睡着了。\n\n'
+          +'你帮了所有人。从头到尾。帮小A分工、帮小C校对、帮小D找资料、帮小B补数据、帮小F鼓劲。你是这个团队的万能胶。但万能胶自己是没有形状的——它只是把别人粘在一起，自己什么都不是。\n\n'
+          +'你知道问题出在哪里。你不敢说"不"。每次有人需要帮忙，你就答应了。不是因为你想帮——是因为你怕不帮就不被喜欢。你的自我价值整个建立在"被别人需要"上面。一旦没人需要你，你就空了。\n\n'
+          +'现在你看着自己那份空白的文档，觉得讽刺。你帮了所有人。但你把自己帮没了。\n\n'
+          +'群也完了。她们不知道你付出了多少。她们只看到了你"什么都没交"。你的牺牲变成了你的罪名。',
+
+        F: '你坐在黑暗中看着手机。群安静了。彻底安静了。\n\n'
+          +'你做了你的部分。做完了。但你没有发。\n\n'
+          +'你打了一段说明文字，删了。打了一句"这是我做的"，删了。打了一个"做完了"，删了。最后时间过了。你的文件安安静静地躺在你的电脑里，没有人知道它的存在。\n\n'
+          +'你知道这很荒谬。你做了，但因为不敢发出去，等于没做。你的恐惧比截止时间更有力量——它把你钉在原地。你这辈子已经被它钉了太多次了。想举手回答问题——没举。想参加社团面试——没去。想跟室友说"我们一起吃饭"——没说。\n\n'
+          +'每一次"没有"都像一块砖，一块块垒起来，把你围在了一个越来越小的世界里。你在那个世界里很安全。但也很孤独。\n\n'
+          +'群死了。没有人记得你。你已经习惯了不被记得。但今夜，在黑暗中，你允许自己承认：你不想习惯。你想被看见。你只是不知道怎么做。'
+      },
+      M: {
+        A: '截止了。交了个半成品。成绩D。\n\n'
+          +'你是组长。你该负责。但你做了什么？你叹气。你焦虑。你默默补了一些别人没做的部分。但你从头到尾没有——真正地——站出来过。\n\n'
+          +'你怕当坏人。怕催促。怕被骂。你想当一个"不得罪人"的组长。但结果是——什么都没推动。你的"好人"是一种伪装。伪装下面是一个不相信自己有能力改变任何事的人。\n\n'
+          +'也许你确实改变不了。但也许你没试过。你从一开始就说服自己"我搞不定"——然后你真的没搞定。这不是预言成真——这是你自己投了降。\n\n'
+          +'群死了。你知道你可以做得更好。这个认知——虽然痛——至少说明你还没有完全放弃。',
+
+        B: '没交。或者说交了个废纸。\n\n'
+          +'你从头到尾什么都没做。不是什么。你做了：你发了表情包。你说了"差不多了"。你打了一局又一局的游戏。你做了所有你不需要做的事，就是没做你需要做的那件。\n\n'
+          +'你知道自己有问题。不是懒——是坐不住。每次打开文档，脑子就嗡嗡的。你不知道为什么。你只知道这件事你不想跟任何人说。\n\n'
+          +'你用嘴炮掩盖了一切。你以为只要一直笑一直闹，就没人会发现你其实什么都没做。但最后大家都发现了。信任碎了。群死了。你的名字和"不靠谱"绑在了一起。\n\n'
+          +'也许——也许你该跟什么人聊聊。不是关于作业。是关于你为什么坐不下来。',
+
+        C: '成绩D。你看了一眼就关了。\n\n'
+          +'你做了自己的部分。改了三个人的稿子。凌晨四点还在调格式。但最后还是D。因为你做得再多，也只是在补别人的洞——而洞太多了。\n\n'
+          +'你很愤怒。你觉得不公平。你付出了最多，结果跟什么都没做的人拿一样的分数。你想骂人。你想退群。你想说"以后再也不帮你们了"。\n\n'
+          +'但你没有说。你闷声退了出去。像你一直做的那样——不说话。不解释。把所有的不满吞回去，变成更深的疲惫。\n\n'
+          +'也许问题不是"他们不做"。也许问题是"你从来不说"。你不说你需要帮忙。不说你很累。不说你其实也撑不住了。你把"沉默地扛"当成了骄傲——但骄傲最后只剩下你一个人。',
+
+        D: '成绩D。你不在乎。你已经不在乎任何事了。\n\n'
+          +'你爸在医院。你在群里炸了。骂了所有人。退了群。你做了所有你不该做的事。然后你一个人坐在床上，手机关机，盯着天花板。\n\n'
+          +'你把所有人推开了。不是因为你想——是因为你不知道怎么说"我需要帮忙"。你从小就被教"自己的事自己扛"。你扛了一周。扛到了你的极限。然后你碎了。碎成了愤怒。\n\n'
+          +'群死了。他们恨你了吧。你不怪他们。你知道你说了很过分的话。但你也知道——那些话背后是求救。只是你把求救变成了攻击，把"帮帮我"变成了"你们都有问题"。\n\n'
+          +'你需要帮助。不是PPT的帮助。是——真正的帮助。',
+
+        E: '成绩D。你还在笑。\n\n'
+          +'不是开心的笑。是你那种条件反射的笑。遇到什么事都笑。好事笑。坏事也笑。崩溃了还是笑。你已经不知道不笑的时候自己长什么样了。\n\n'
+          +'你帮了所有人。但你自己的部分空白一片。你的时间全给了别人。你的精力全给了"维持团队氛围"——但氛围还是崩了。你的调解没有用。你的讨好没有用。你什么都没做成。\n\n'
+          +'最讽刺的是：你是全组最累的人，但也是全组最"看不出来"的人。因为你一直在笑。你的笑是一面墙——挡住了别人看到你的机会，也挡住了你看到自己的机会。\n\n'
+          +'你好累。你真的好累。你能不能——不笑了？你能不能就说一句"我也不行了"？',
+
+        F: '群死了。你什么都没说。你一直什么都没说。\n\n'
+          +'你做了自己的部分。做完了。但没发。你进了会议。但没开麦。你看了所有消息。但没回复。你是这个团队里存在感最低的人——低到最后连成绩单上你的名字都像多余的。\n\n'
+          +'你知道你可以做更多。你可以发那个文件。你可以说那句"我做完了"。你可以在小D发火的时候回一句"我理解"。你可以——但你没有。\n\n'
+          +'每一次"没有"都让你更安全，也更孤独。你把自己缩成了一个点。一个不占空间的点。你以为这样就不会被伤害——但你也不会被看到了。\n\n'
+          +'最让你难过的不是成绩差。是——你做了东西却没有发出去。你有能力，但你的恐惧比你的能力更强大。你被困在了自己的沉默里。\n\n'
+          +'也许有一天你会打开麦克风。也许有一天你会按下发送键。但今天不是那一天。今天你只是——又一次看着机会从指缝间漏过去了。'
+      }
+    }
+  };
+
+  // ========== Quadrant-level metadata ==========
+  const endingMeta = {
+    best: {
+      icon: '🌟',
+      title: '团魂燃烧',
+      comment: '你做到了最难的事——在自己也很艰难的时候，仍然选择了回应别人的需要。这不是圣人行为——这是<strong>真正的合作</strong>。当每个人都愿意说"我不行"，也愿意说"但我可以帮你"的时候，团队就从"名义上的小组"变成了"真正的共同体"。心理学研究反复证明：<strong>心理安全感</strong>是高效团队最重要的特质。你们在这48小时里建立的东西，比任何成绩都更有意义——因为它证明了：一群不完美的人，可以完美地互相托住。'
+    },
+    pyrrhic: {
+      icon: '⚡',
+      title: '惨胜',
+      comment: '任务完成了，但关系碎了。这就是<strong>"惨胜"</strong>的代价。管理学中有一个概念叫"<strong>关系资本</strong>"（relational capital）——它无法用成绩衡量，但决定了人们是否愿意再次合作。在这48小时里，进度条走到了终点，但士气跌到了谷底。每个人都在问自己同一个问题："值吗？"答案写在那个再也不会响起的群聊里——有些胜利，比失败更让人心寒。'
+    },
+    honor: {
+      icon: '🌈',
+      title: '虽败犹荣',
+      comment: '你们没有交出一份完美的作业——但你们完成了一件更难的事：<strong>建立了信任</strong>。心理学研究表明，团队的长期绩效取决于成员之间的信任水平，而非单次任务的表现。你们这次的"失败"恰恰为下一次的成功奠定了最重要的基础。因为每个人都知道了：在这个团队里说真话是安全的。被理解的感觉不会因为分数而消失——它会沉淀下来，成为你们之间看不见的桥。'
+    },
+    collapse: {
+      icon: '💔',
+      title: '全面崩盘',
+      comment: '当一个团队失去了所有的信任和动力，崩盘不是"发生"的——是"被允许发生"的。每一次沉默、每一次逃避、每一次"反正也来不及了"，都是在给崩盘投票。<strong>没有一个人"杀死了"这个团队——每个人都递了一把刀</strong>。但这不是终点。心理学家维克多·弗兰克尔说过：人最后的自由，是选择面对任何处境时的态度。下一次——如果有下一次——你的任何一个不同的选择，都可能改变所有人的结局。崩盘不可怕。可怕的是——以为自己没有选择。'
+    }
+  };
+
+  const ending = {
+    icon: endingMeta[quadrant].icon,
+    title: endingMeta[quadrant].title,
+    text: endingTexts[quadrant][F?'F':'M'][p],
+    comment: endingMeta[quadrant].comment
+  };
+
+  // ========== Per-character styles and tips (3 tiers) ==========
+  let aCount=choices.filter(c=>c===0).length;
+
+  // Style definitions: per-character, per-tier
+  const styleMap = {
+    good: { // aCount >= 3
+      A: '坦诚型领导者',
+      B: '勇敢的求助者',
+      C: '知进退的完美主义者',
+      D: '柔软的行动派',
+      E: '有边界的支持者',
+      F: '无声的贡献者'
+    },
+    mid: { // aCount >= 1
+      A: '犹豫的协调者',
+      B: '半透明的挣扎者',
+      C: '纠结的质量控',
+      D: '欲言又止的愤怒者',
+      E: '疲惫的好人',
+      F: '想被看见的隐形人'
+    },
+    bad: { // aCount === 0
+      A: '缺位的组长',
+      B: '消失的成员',
+      C: '孤岛的完美主义者',
+      D: '失控的情绪者',
+      E: '透支的讨好者',
+      F: '被遗忘的角落'
+    }
+  };
+
+  // Tip definitions: per-character, per-tier
+  const tipMap = {
+    good: {
+      A: '你在每个关键时刻都选择了坦诚——包括坦诚自己的恐惧。冒名顶替综合症不会因为一次成功就消失，但你今天证明了一件事：不完美的领导者，也可以带出真正的团队。你不需要什么都会——你只需要第一个敢说"我也不确定"。这种勇气，比任何技巧都有力量。',
+      B: '你做了最难的事——在所有人面前承认了自己的困境。你以为示弱是一种失败，但事实上它是一种邀请。当你说出"我在打工，我没有时间"的那一刻，你给了其他人说真话的许可。你的勇敢不在于做了多少——而在于你让别人看到了真实的你。',
+      C: '你做出了完美主义者最难做出的选择——放手。你接受了"够好"替代"完美"，把精力分给了需要帮助的人。这不是降低标准——这是拓宽视野。完美不只是自己的部分无瑕疵，也可以是整个团队一起抵达终点。你正在学习一种新的完美。',
+      D: '你在最愤怒的时刻选择了道歉，在最需要逞强的时候选择了柔软。你说了家里的事。你让别人看到了愤怒背后的疼。这种勇气不是天生的——它是你在至暗时刻做出的选择。愤怒会过去。但你今天展示的真实，会被记住很久。',
+      E: '你终于开始了那个最重要的练习——说"不"。或者至少，说"我也需要帮助"。你一直以为自己的价值在于帮助别人。但今天你发现：你不帮忙的时候，别人依然在乎你。你的价值不取决于你的有用程度——你本身就值得被珍惜。',
+      F: '你开口了。对你来说，这比任何人做的任何事都更勇敢。你打了字没有删掉。你打开了麦克风。你说了"我可以帮忙"。世界没有因此坍塌。没有人嘲笑你。他们回应了你。你这辈子害怕的那件事——被听见——终于发生了。而它是好的。'
+    },
+    mid: {
+      A: '你在一些时刻站了出来，在另一些时刻退缩了。冒名顶替综合症让你在每次做决定之前都要跟自己的恐惧搏斗——这很消耗。但请记住：组长不需要每次都对。你只需要在关键时刻不消失。你做到了一半。下一次，也许可以多半次。',
+      B: '你试着开口了，但又缩回去了。你在"说实话"和"藏起来"之间反复横跳。这种拉扯让你比任何人都累。你的挣扎不是因为你不够勇敢——是因为你太久没被允许示弱了。下一次也许可以多走一步：不是"我尽量"，而是"我需要帮忙"。',
+      C: '你在帮助别人和固守完美之间拉锯。有时候你放手了，有时候你又缩回了那个"只管自己"的壳里。完美主义是一种保护机制——它让你觉得"只要我的部分够好我就安全了"。但安全和孤独只有一线之隔。你正在那条线上走。',
+      D: '你有时候控制住了脾气，有时候没有。你在道歉和爆发之间摇摆。这不是虚伪——这是一个伤口太深的人在学习新的表达方式。愤怒是你最熟悉的语言，但它不是你唯一的语言。每一次你选择了柔软，都是一次练习。练习够多了，它就会变成本能。',
+      E: '你帮了很多人，但也在一些时刻意识到了自己的透支。你开始看到那个模式了——别人一需要帮忙你就无法拒绝。这不是善良，这是恐惧：害怕不被需要。知道这一点很重要。下一步是：偶尔说"这次我不帮"，然后看看天是否会塌。',
+      F: '你打了一些字，发了一些出去，也删了很多。你在"被看到"和"藏起来"之间犹豫。这已经是进步了——至少你在犹豫，而不是直接放弃。你的每一次按下发送键，都是在跟恐惧博弈。你赢了一些，输了一些。但你在战斗。这本身就是勇敢。'
+    },
+    bad: {
+      A: '你选择了最安全的路——也是最贵的路。你没有站出来，没有开口，没有承担组长的角色。你以为"不出错"就够了。但在团队里，不作为本身就是一种选择——它告诉别人"没有人在管"。冒名顶替综合症让你相信你不配。但也许真正的问题不是"配不配"——而是你从来没给自己一个机会去试。',
+      B: '你消失了。像你一直做的那样。手机关掉，消息不看，假装世界暂停了。但世界没有暂停。别人在做、在吵、在崩溃、在撑着——而你不在。你的缺席不只是"没做作业"——它是对其他五个人说："我不在乎。"你在乎。你只是不知道怎么把"在乎"变成行动。',
+      C: '你把自己的部分改了九遍。完美。无可挑剔。但你旁边的人在挣扎、在求助、在需要你——你头都没抬。完美主义在你身上不是追求卓越——它是一种回避。你躲在"做到最好"里面，回避与人合作的不确定、不完美、不可控。你的孤岛很漂亮。但没有人想住在岛上。',
+      D: '你把所有人推开了。你的愤怒像一堵墙——它确实保护了你不被看到脆弱的样子。但它也关上了所有人想帮你的门。你不是一个坏人。你是一个受了伤却不知道怎么喊痛的人。下一次——如果你能在最想发火的那一刻停三秒钟，问自己"我真正想说的是什么"——也许一切都会不同。',
+      E: '你帮了所有人，忘了自己。又是这样。你的讨好已经不是善良了——它是一种瘾。你需要被需要。你害怕一旦停下来，就会发现自己其实是空的。所以你不停地给、不停地帮、不停地笑——直到你什么都不剩。你的空白文档不是懒惰的证据——它是你自我消耗的证据。你该停下来了。',
+      F: '你又一次选择了沉默。选择了安全。选择了不被看到。你做了东西但没发出去。你有话想说但没开口。你的恐惧赢了。但请听我说：沉默不是你的命运。它只是你目前最熟悉的应对方式。也许下一次——哪怕只是一次——你可以在按下删除键之前等三秒钟。三秒钟就够了。'
+    }
+  };
+
+  let tier = aCount >= 3 ? 'good' : (aCount >= 1 ? 'mid' : 'bad');
+  let style = styleMap[tier][p];
+  let tip = tipMap[tier][p];
+
+  return {ending,style,tip,quadrant};
+}
+
+// --- UI ---
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function appendHTML(html){const d=document.createElement('div');d.innerHTML=html;storyEl.appendChild(d);setTimeout(()=>{try{const rect=d.getBoundingClientRect();const vh=window.innerHeight||document.documentElement.clientHeight;if(rect.top>vh*0.6){window.scrollBy({top:rect.top-vh*0.25,behavior:'smooth'})}else if(rect.top>vh){d.scrollIntoView({behavior:'smooth',block:'center'})}}catch(e){window.scrollBy(0,200)}},150)}
+function disableChoices(){document.querySelectorAll('.choice-btn:not(.disabled)').forEach(b=>b.classList.add('disabled'))}
+
+function renderDualBar(){
+  const urgent=timeLeft==='02:00:00'||timeLeft==='00:00:00';
+  document.getElementById('dual-bar').innerHTML=`
+    <div class="countdown ${urgent?'urgent':'normal'}">${timeLeft}</div>
+    <div class="dual-tracks">
+      <div class="track"><div class="track-label">📊 作业完成度</div><div class="track-bar"><div class="track-fill progress" id="prog-fill" style="width:${progress}%"></div></div><div class="track-val" id="prog-val" style="color:var(--blue)">${progress}%</div></div>
+      <div class="track"><div class="track-label">💛 团队士气</div><div class="track-bar"><div class="track-fill morale" id="mor-fill" style="width:${morale}%"></div></div><div class="track-val" id="mor-val" style="color:var(--amber)">${morale}%</div></div>
+    </div>`;
+}
+function updateDual(pd,md){
+  progress=Math.max(0,Math.min(100,progress+pd));
+  morale=Math.max(0,Math.min(100,morale+md));
+  const pf=document.getElementById('prog-fill'),pv=document.getElementById('prog-val');
+  const mf=document.getElementById('mor-fill'),mv=document.getElementById('mor-val');
+  if(pf)pf.style.width=progress+'%';if(pv)pv.textContent=progress+'%';
+  if(mf)mf.style.width=morale+'%';if(mv)mv.textContent=morale+'%';
+}
+
+// --- FLOW ---
+function startGame(){show('gender-screen')}
+function selectGender(g){
+  gender=g;const ch=CHARS[g];let html='';
+  ['A','B','C','D','E','F'].forEach(k=>{const c=ch[k];html+=`<div class="char-card" onclick="selectChar('${k}')"><div class="char-ava" style="background:${c.color}">${c.name[1]}</div><div class="char-body"><div class="char-name">${c.name}</div><div class="char-trait">${c.trait}</div><div class="char-desc">${c.desc}</div></div></div>`});
+  document.getElementById('char-grid').innerHTML=html;show('char-screen');
+}
+function selectChar(c){
+  playerChar=c;progress=25;morale=60;choices=[];currentAct=0;storyEl.innerHTML='';timeLeft=TIMES[0];
+  renderDualBar();show('game-screen');showAct(0);
+}
+
+function showAct(idx){
+  const scenes=getScenes();const act=scenes[idx];currentAct=idx;timeLeft=act.time;renderDualBar();
+  let html=`<div class="scene-title">${act.title}</div><div class="time-stamp">${act.stamp}</div>`;
+  if(act.chatMsgs){
+    html+='<div class="chat-window"><div class="chat-header"><span class="group-name">学习小组 (6)</span></div>';
+    act.chatMsgs.forEach(m=>{
+      if(m.who==='status'){html+=`<div class="chat-status">${m.text}</div>`;return}
+      const c=CHARS[gender][m.who];
+      html+=`<div class="chat-msg"><div class="chat-ava" style="background:${c.color}">${c.name[1]}</div><div class="chat-content"><div class="chat-sender">${c.name}</div><div class="chat-bubble">${m.text}</div></div></div>`;
+    });
+    html+='</div>';
+  }
+  act.narr.split('\n\n').forEach(l=>{if(l.trim())html+=`<div class="inner-thought">${l}</div>`});
+  html+='<div class="choices"><div class="choice-prompt">—— 你 的 选 择 ——</div>';
+  act.choices.forEach((c,i)=>{
+    html+=`<button class="choice-btn" onclick="actChoose(${idx},${i})">${c.text}</button>`;
+  });
+  html+='</div>';
+  appendHTML(html);
+}
+
+function actChoose(actIdx,choiceIdx){
+  disableChoices();choices.push(choiceIdx);
+  const scenes=getScenes();const act=scenes[actIdx];const c=act.choices[choiceIdx];const fb=act.feedback[choiceIdx];
+  updateDual(c.progDelta,c.morDelta);
+
+  let chipHtml='<div class="dual-change">';
+  const ps=c.progDelta>0?'+':'';const ms=c.morDelta>0?'+':'';
+  chipHtml+=`<span class="dual-chip ${c.progDelta>=0?'prog-up':'prog-down'}">完成度 ${ps}${c.progDelta}%</span>`;
+  chipHtml+=`<span class="dual-chip ${c.morDelta>=0?'mor-up':'mor-down'}">士气 ${ms}${c.morDelta}%</span></div>`;
+
+  let html=`<div class="feedback-box">${chipHtml}<div class="feedback-result">${fb.result}</div><div class="analysis-box"><div class="analysis-label">心 理 解 析</div><div class="analysis-text">${fb.analysis}</div></div>`;
+  if(actIdx<3){
+    html+=`<button class="btn-continue" onclick="showAct(${actIdx+1})">继 续</button>`;
+  } else {
+    html+=`<button class="btn-continue" onclick="showEnding()">查 看 结 局</button>`;
+  }
+  html+='</div>';
+  appendHTML(html);
+}
+
+function showEnding(){
+  timeLeft='00:00:00';renderDualBar();
+  const {ending,style,tip,quadrant}=getEnding();lastQuadrant=quadrant;const ch=CHARS[gender][playerChar];
+  let html=`<div class="ending-icon">${ending.icon}</div><div class="ending-title">${ending.title}</div>`;
+  ending.text.split('\n\n').forEach(l=>{if(l.trim())html+=`<div class="ending-text">${l}</div>`});
+  html+=`<div class="ending-comment"><div class="ending-comment-label">结 局 评 语</div><div class="ending-comment-text">${ending.comment}</div></div>`;
+  html+=`<div class="summary-card"><div class="summary-item"><div class="summary-label">扮演角色</div><div class="summary-value">${ch.name} · ${ch.trait}</div></div>`;
+  html+=`<div class="summary-dual"><div class="summary-stat"><div class="summary-stat-label">📊 最终完成度</div><div class="summary-stat-val" style="color:var(--blue)">${progress}%</div></div><div class="summary-stat"><div class="summary-stat-label">💛 最终士气</div><div class="summary-stat-val" style="color:var(--amber)">${morale}%</div></div></div>`;
+  html+=`<div class="summary-item"><div class="summary-label">你的协作风格</div><div class="summary-value">${style}</div></div>`;
+  html+=`<div class="summary-tip">${tip}</div>`;
+  html+=`<div class="reflect-box"><div class="reflect-label">课 后 反 思</div>`;
+  html+=`<div class="reflect-q">在你的真实小组合作经历中，你更倾向于"催进度"还是"维持关系"？你觉得这两者真的不可兼得吗？</div>`;
+  html+=`<div class="reflect-q">小组里总有人做得多、有人做得少。当你发现有人"搭便车"时，你通常会怎么做？你选择的方式，解决了问题还是回避了问题？</div>`;
+  html+=`<div class="reflect-q">如果你是这个小组的组长，在任务开始的第一天你会做什么不同的事，来避免最后48小时的混乱？</div>`;
+  html+=`<div class="reflect-hint">这些问题没有标准答案。可以写在纸上，也可以带到课堂讨论中。</div></div>`;
+  const archiveCode=generateArchiveCode();
+  saveGameRecord('E2',archiveCode,ending.title,ending.icon,archiveCode.split('-').pop());
+  html+=`<div class="archive-section"><div class="archive-label">存 档 码</div><div class="archive-code" id="archive-code">${archiveCode}</div><button class="btn-copy" id="copy-btn" onclick="copyCode()">复制存档码</button><div class="archive-hint">保存此代码，可记录你的协作风格与结局</div></div>`;
+  html+=`<button class="btn-restart" onclick="restartGame()">重 新 开 始</button><br><a href="index.html" class="btn-back">返回事件选择</a></div>`;
+  appendHTML(html);
+  document.getElementById('dual-bar').style.display='none';
+}
+
+function generateArchiveCode(){
+  const g=gender==='F'?'F':'M';
+  const qKeys={best:'BST',pyrrhic:'PYR',honor:'HNR',collapse:'CLP'};
+  const eCode=qKeys[lastQuadrant]||'UNK';
+  return `E2-${g}${playerChar}-${choices.join('')}-${eCode}`;
+}
+function copyCode(){
+  const code=document.getElementById('archive-code').textContent;
+  const btn=document.getElementById('copy-btn');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>{btn.textContent='已复制';btn.classList.add('copied');setTimeout(()=>{btn.textContent='复制存档码';btn.classList.remove('copied')},2000)}).catch(()=>fallbackCopy(code,btn));
+  }else{fallbackCopy(code,btn)}
+}
+function fallbackCopy(text,btn){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-9999px';document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');btn.textContent='已复制';btn.classList.add('copied');setTimeout(()=>{btn.textContent='复制存档码';btn.classList.remove('copied')},2000)}catch(e){btn.textContent='请手动复制'}
+  document.body.removeChild(ta);
+}
+
+function restartGame(){
+  progress=25;morale=60;choices=[];currentAct=0;storyEl.innerHTML='';timeLeft='48:00:00';
+  document.getElementById('dual-bar').style.display='';
+  show('title-screen');
+}
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>

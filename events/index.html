@@ -1,15 +1,443 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>测试小游戏</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大学·心理事件簿</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#f5f0e8;
+  --bg-card:rgba(255,255,255,0.7);
+  --bg-card-hover:rgba(255,255,255,0.95);
+  --warm:#c8956b;
+  --accent-pink:#d4728a;
+  --accent-blue:#7a9ec4;
+  --text-primary:#3a3632;
+  --text-secondary:#7a756e;
+  --text-dim:#b0a99f;
+  --font-body:system-ui,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --font-display:"Georgia","Songti SC","SimSun",serif;
+}
+html{font-size:16px}
+body{
+  font-family:var(--font-body);
+  background:var(--bg-deep);
+  color:var(--text-primary);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 20%, rgba(122,158,196,0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 80% 70%, rgba(212,114,138,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 300px at 50% 50%, rgba(200,149,107,0.06) 0%, transparent 70%);
+}
+.container{
+  position:relative;z-index:1;
+  max-width:560px;margin:0 auto;padding:20px 20px;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.lamp{
+  width:50px;height:50px;margin-bottom:20px;
+  border-radius:50%;
+  background:radial-gradient(circle, #e8c9a0 0%, rgba(232,201,160,0.3) 40%, transparent 70%);
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:0.6;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+.series-title{
+  font-family:var(--font-display);
+  font-size:1.6rem;font-weight:700;
+  letter-spacing:0.08em;
+  color:var(--text-primary);
+  margin-bottom:6px;text-align:center;
+}
+.series-sub{
+  font-size:0.82rem;color:var(--text-secondary);
+  letter-spacing:0.25em;margin-bottom:28px;text-align:center;
+}
+.event-grid{
+  display:flex;flex-direction:column;gap:10px;
+  width:100%;
+}
+.event-card{
+  display:block;text-decoration:none;color:inherit;
+  background:rgba(255,255,255,0.6);
+  border:1px solid rgba(0,0,0,0.06);
+  border-radius:10px;
+  padding:16px 18px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+  position:relative;overflow:hidden;
+}
+.event-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, rgba(200,149,107,0.06), transparent);
+  opacity:0;transition:opacity 0.3s;
+}
+.event-card:hover{
+  background:rgba(255,255,255,0.95);
+  border-color:rgba(200,149,107,0.3);
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.06);
+}
+.event-card:hover::before{opacity:1}
+.event-card-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:6px;
+}
+.event-num{
+  width:30px;height:30px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.event-card-title{
+  font-family:var(--font-display);
+  font-size:0.95rem;font-weight:600;
+  color:var(--text-primary);
+}
+.event-card-subtitle{
+  font-size:0.72rem;color:var(--warm);margin-top:1px;
+}
+.header-tags{
+  display:inline;margin-left:2px;
+}
+.header-tags span{
+  display:inline-block;
+  font-size:0.62rem;color:var(--text-dim);font-style:normal;
+  background:rgba(0,0,0,0.03);
+  padding:1px 5px;border-radius:2px;
+  margin-left:3px;white-space:nowrap;vertical-align:baseline;
+}
+.event-card-desc{
+  font-size:0.78rem;line-height:1.6;
+  color:var(--text-secondary);
+}
+.event-card.locked{
+  opacity:0.45;pointer-events:none;
+}
+.event-card.locked .event-card-title::after{
+  content:' (即将推出)';
+  font-size:0.75rem;color:var(--text-dim);font-weight:400;
+}
+.footer{
+  margin-top:28px;margin-bottom:16px;
+  font-size:0.72rem;color:var(--text-dim);
+  letter-spacing:0.1em;text-align:center;
+}
+@media(max-width:540px){
+  .series-title{font-size:1.35rem}
+  .container{padding:0 16px}
+}
+
+/* ===== CONCEPT MAP ===== */
+.map-btn{
+  position:fixed;top:14px;right:14px;z-index:200;
+  background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);
+  border:1px solid rgba(0,0,0,0.08);border-radius:8px;
+  padding:8px 14px;cursor:pointer;
+  font-family:var(--font-body);font-size:0.72rem;color:var(--text-primary);
+  letter-spacing:0.08em;transition:all 0.3s;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+  display:flex;align-items:center;gap:6px;
+}
+.map-btn:hover{background:rgba(255,255,255,0.95);border-color:var(--warm);color:var(--warm)}
+.map-overlay{
+  display:none;position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,0.3);backdrop-filter:blur(2px);
+}
+.map-overlay.open{display:block}
+.map-panel{
+  position:fixed;top:0;right:-420px;z-index:301;
+  width:400px;max-width:92vw;height:100vh;
+  background:var(--bg-deep);
+  border-left:1px solid rgba(0,0,0,0.08);
+  box-shadow:-4px 0 24px rgba(0,0,0,0.08);
+  overflow-y:auto;padding:24px 20px;
+  transition:right 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.map-overlay.open .map-panel{right:0}
+.map-close{
+  position:absolute;top:14px;right:14px;
+  background:none;border:none;font-size:1.2rem;
+  color:var(--text-dim);cursor:pointer;padding:4px 8px;
+}
+.map-close:hover{color:var(--text-primary)}
+.map-title{
+  font-family:var(--font-display);font-size:1.05rem;
+  font-weight:700;color:var(--text-primary);
+  margin-bottom:4px;letter-spacing:0.06em;
+}
+.map-sub{font-size:0.7rem;color:var(--text-dim);margin-bottom:18px;letter-spacing:0.08em}
+.map-event{margin-bottom:16px}
+.map-event-head{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:8px;padding-bottom:6px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+.map-event-num{
+  width:22px;height:22px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.58rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.map-event-name{font-size:0.8rem;font-weight:600;color:var(--text-primary)}
+.map-concept{
+  display:flex;gap:8px;margin:6px 0;padding:6px 10px;
+  border-radius:6px;background:rgba(255,255,255,0.5);
+  border:1px solid rgba(0,0,0,0.04);
+}
+.map-concept-name{
+  font-size:0.72rem;font-weight:600;color:var(--text-primary);
+  white-space:nowrap;flex-shrink:0;
+}
+.map-concept-desc{font-size:0.68rem;color:var(--text-secondary);line-height:1.6}
+.map-footer{
+  margin-top:16px;padding-top:12px;
+  border-top:1px solid rgba(0,0,0,0.06);
+  font-size:0.68rem;color:var(--text-dim);line-height:1.7;
+}
+.event-card-records{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:8px;padding-top:8px;
+  border-top:1px solid rgba(0,0,0,0.04);
+  font-size:0.7rem;
+}
+.rec-badge{
+  color:var(--text-secondary);
+  display:flex;align-items:center;gap:4px;
+}
+.rec-count{
+  font-size:0.6rem;
+  background:rgba(200,149,107,0.12);
+  color:var(--warm);
+  padding:1px 5px;border-radius:2px;
+}
+.rec-date{
+  color:var(--text-dim);font-size:0.62rem;
+}
+</style>
 </head>
 <body>
-    <h1>我的小游戏测试</h1>
-    <p>如果能看到这段文字，说明页面能正常加载！</p>
-    <!-- 可以加一行简单的JS测试 -->
-    <script>
-        console.log("页面加载成功！");
-    </script>
+<button class="map-btn" onclick="document.getElementById('mapOverlay').classList.add('open')">
+  <span style="font-size:0.85rem">&#128218;</span> 心理学概念图谱
+</button>
+<div class="container">
+  <div class="lamp"></div>
+  <div class="series-title">大学·心理事件簿</div>
+  <div class="series-sub">心理成长型互动叙事游戏</div>
+
+  <div class="event-grid">
+    <a class="event-card" href="event1.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#5b8ec9,#3a6db5)">01</div>
+        <div>
+          <div class="event-card-title">未读消息</div>
+          <div class="event-card-subtitle">闪回 · 情绪温度计 · 日记体 <span class="header-tags"><span>4人情绪追踪</span><span>8种结局</span><span>5-8分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">九月返校，有人搬走了——回到三月的裂痕，在四个室友的情绪之间寻找平衡。</div>
+    </a>
+
+    <a class="event-card" href="event2.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#d4548a,#b03a6e)">02</div>
+        <div>
+          <div class="event-card-title">截止前48小时</div>
+          <div class="event-card-subtitle">倒计时 · 双轨制 · 群聊碎片 <span class="header-tags"><span>6人各有隐痛</span><span>4种结局</span><span>6-10分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">6人小组作业倒计时开始——催进度就伤感情，顾感情就拖进度，你怎么选？</div>
+    </a>
+
+    <a class="event-card" href="event3.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#e0a050,#c07a30)">03</div>
+        <div>
+          <div class="event-card-title">借出去的钱</div>
+          <div class="event-card-subtitle">罗生门 · 信任天平 · 访谈体 <span class="header-tags"><span>证据收集</span><span>8种结局</span><span>6-10分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">同一笔借款，四个人四个版本的"真相"——听完所有证词，你信谁？</div>
+    </a>
+
+    <a class="event-card" href="event4.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#9b6bb5,#7a4e9a)">04</div>
+        <div>
+          <div class="event-card-title">那条消息该不该发</div>
+          <div class="event-card-subtitle">双视角 · 信号解读 · 暧昧博弈 <span class="header-tags"><span>安全感/期待感双轨</span><span>6种结局</span><span>5-8分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">暧昧期的两个人，同一段对话，两种解读——你能找到让两颗心同时靠近的节奏吗？</div>
+    </a>
+
+    <a class="event-card" href="event5.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#3a8a6e,#2a6e52)">05</div>
+        <div>
+          <div class="event-card-title">独处的那一夜</div>
+          <div class="event-card-subtitle">深夜独白 · 三值博弈 · 时间流 <span class="header-tags"><span>焦虑/精力/效能三线</span><span>7种结局</span><span>5-8分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">期末考前夜，室友都走了，只剩你和十个小时——天亮时你会是什么样子？</div>
+    </a>
+
+    <a class="event-card" href="event6.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#c45a5a,#9a3535)">06</div>
+        <div>
+          <div class="event-card-title">电话那头的期待</div>
+          <div class="event-card-subtitle">期待轨迹 · 未来镜像 · 时间快进 <span class="header-tags"><span>亲子双轨博弈</span><span>5种结局</span><span>6-10分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">从大一到大四，每一通电话都是你的方向和父母期待之间的博弈。</div>
+    </a>
+
+    <a class="event-card" href="event7.html">
+      <div class="event-card-header">
+        <div class="event-num" style="background:linear-gradient(135deg,#4a7a8a,#2e5a68)">07</div>
+        <div>
+          <div class="event-card-title">为什么而活</div>
+          <div class="event-card-subtitle">碎片探索 · 意义锚点 · 自由阅读 <span class="header-tags"><span>3个意义锚点</span><span>6种结局</span><span>6-8分钟</span></span></div>
+        </div>
+      </div>
+      <div class="event-card-desc">六段记忆碎片，三个意义锚点——你为什么而活，答案也许就藏在你的选择里。</div>
+    </a>
+  </div>
+
+  <div class="footer">选择一个事件，开始你的故事<br><span style="margin-top:6px;display:inline-block">游戏作者：中桥职业技术大学-赵鑫</span></div>
+</div>
+
+<div class="map-overlay" id="mapOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="map-panel">
+  <button class="map-close" onclick="document.getElementById('mapOverlay').classList.remove('open')">&times;</button>
+  <div class="map-title">心理学概念图谱</div>
+  <div class="map-sub">7个事件涉及的全部心理学理论与概念</div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#5b8ec9,#3a6db5)">01</div>
+      <div class="map-event-name">未读消息 · 宿舍人际</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">无条件积极关注</div><div class="map-concept-desc">认真倾听本身就在传递"你的感受很重要"</div></div>
+    <div class="map-concept"><div class="map-concept-name">自我暴露</div><div class="map-concept-desc">减少视觉接触时人更容易说真话，促进深层对话</div></div>
+    <div class="map-concept"><div class="map-concept-name">脆弱性互惠效应</div><div class="map-concept-desc">一个人先示弱，会激活他人的信任回馈</div></div>
+    <div class="map-concept"><div class="map-concept-name">情绪回避</div><div class="map-concept-desc">长期不表达情绪，裂痕会从暂时变成永久</div></div>
+    <div class="map-concept"><div class="map-concept-name">社会参照</div><div class="map-concept-desc">人们观察他人反应来决定自己的行为，第一个回应者定调</div></div>
+    <div class="map-concept"><div class="map-concept-name">旁观者冷漠</div><div class="map-concept-desc">亲密关系中的无视传递的是"你不存在"</div></div>
+  </div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#d4548a,#b03a6e)">02</div>
+      <div class="map-event-name">截止前48小时 · 团队协作</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">多元无知</div><div class="map-concept-desc">"大家都没说，应该不急"——集体沉默的陷阱</div></div>
+    <div class="map-concept"><div class="map-concept-name">心理安全感</div><div class="map-concept-desc">高效团队的核心：成员敢于承认错误和表达困难</div></div>
+    <div class="map-concept"><div class="map-concept-name">双重关注模型</div><div class="map-concept-desc">只顾任务不顾关系，情绪耗竭会反噬效率</div></div>
+    <div class="map-concept"><div class="map-concept-name">习得性无助</div><div class="map-concept-desc">沟通反复失败后产生的集体"说了也没用"心态</div></div>
+    <div class="map-concept"><div class="map-concept-name">完美主义悖论</div><div class="map-concept-desc">追求完美消耗的精力恰恰阻碍了行动本身</div></div>
+    <div class="map-concept"><div class="map-concept-name">社交疼痛</div><div class="map-concept-desc">被无视激活的脑区与物理疼痛相同（fMRI证据）</div></div>
+  </div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#e0a050,#c07a30)">03</div>
+      <div class="map-event-name">借出去的钱 · 信任判断</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">确认偏误</div><div class="map-concept-desc">先入为主：最先听到的版本获得最多信任</div></div>
+    <div class="map-concept"><div class="map-concept-name">首因效应</div><div class="map-concept-desc">最初接收到的信息对判断有不成比例的影响</div></div>
+    <div class="map-concept"><div class="map-concept-name">情感启发式</div><div class="map-concept-desc">情绪反应替代了理性分析——眼泪会降低判断质量</div></div>
+    <div class="map-concept"><div class="map-concept-name">三角验证</div><div class="map-concept-desc">可靠结论需要多个来源的交叉确认</div></div>
+    <div class="map-concept"><div class="map-concept-name">基本归因错误</div><div class="map-concept-desc">人倾向于归咎个人而非系统，成熟判断需要看到制度因素</div></div>
+    <div class="map-concept"><div class="map-concept-name">自我价值条件化</div><div class="map-concept-desc">文化训练让人觉得"我不配要求"，导致攻击指向自身</div></div>
+  </div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#9b6bb5,#7a4e9a)">04</div>
+      <div class="map-event-name">那条消息该不该发 · 亲密关系</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">印象管理</div><div class="map-concept-desc">控制回复速度来调控对方预期，但有被误读为冷淡的风险</div></div>
+    <div class="map-concept"><div class="map-concept-name">防御策略</div><div class="map-concept-desc">沉默保护自己免于暴露，但会被对方解读为拒绝</div></div>
+    <div class="map-concept"><div class="map-concept-name">具体化邀约</div><div class="map-concept-desc">给出具体时间地点传递的是认真，降低对方的决策成本</div></div>
+    <div class="map-concept"><div class="map-concept-name">退让策略</div><div class="map-concept-desc">"你忙吧"听起来体贴，实际是在回避被拒绝的风险</div></div>
+  </div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#3a8a6e,#2a6e52)">05</div>
+      <div class="map-event-name">独处的那一夜 · 压力应对</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">焦虑的双因素模型</div><div class="map-concept-desc">焦虑由生理唤醒和认知评估共同决定，改变任一因素即可缓解</div></div>
+    <div class="map-concept"><div class="map-concept-name">自我效能感</div><div class="map-concept-desc">"我能做到"的信念直接影响行动力和抗压能力</div></div>
+    <div class="map-concept"><div class="map-concept-name">拖延的情绪调节理论</div><div class="map-concept-desc">拖延本质上是在用短期情绪安慰替代长期目标</div></div>
+    <div class="map-concept"><div class="map-concept-name">正念与接纳</div><div class="map-concept-desc">不试图消灭焦虑，而是带着焦虑继续行动</div></div>
+    <div class="map-concept"><div class="map-concept-name">睡眠剥夺与认知功能</div><div class="map-concept-desc">通宵后的大脑相当于法定醉酒状态的认知损伤</div></div>
+  </div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#c47a3a,#9a5a20)">06</div>
+      <div class="map-event-name">电话那头的期待 · 亲子沟通</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">分离-个体化</div><div class="map-concept-desc">大学是建立独立自我的关键期，摩擦是成长的必经过程</div></div>
+    <div class="map-concept"><div class="map-concept-name">报喜不报忧</div><div class="map-concept-desc">保护家人的同时切断了被支持的可能性</div></div>
+    <div class="map-concept"><div class="map-concept-name">非暴力沟通</div><div class="map-concept-desc">"我知道你担心"比"你别管我"有效得多</div></div>
+    <div class="map-concept"><div class="map-concept-name">认知失调</div><div class="map-concept-desc">言行不一的微小妥协日积月累，模糊真实的自我</div></div>
+    <div class="map-concept"><div class="map-concept-name">面子文化</div><div class="map-concept-desc">父母在亲戚前的"说法"是社会身份，公开反驳伤害的不只是观点</div></div>
+    <div class="map-concept"><div class="map-concept-name">自我分化</div><div class="map-concept-desc">真正的独立不是切断联系，而是保持自我的同时维系情感纽带</div></div>
+    <div class="map-concept"><div class="map-concept-name">真我与假我</div><div class="map-concept-desc">Winnicott：长期活在"假我"中的人会感到深层空虚</div></div>
+    <div class="map-concept"><div class="map-concept-name">平行独白</div><div class="map-concept-desc">两个人在说话但没人在听——形式上的沟通，实质上的隔离</div></div>
+  </div>
+
+  <div class="map-event">
+    <div class="map-event-head">
+      <div class="map-event-num" style="background:linear-gradient(135deg,#4a7a8a,#2e5a68)">07</div>
+      <div class="map-event-name">为什么而活 · 生命意义</div>
+    </div>
+    <div class="map-concept"><div class="map-concept-name">意义疗法</div><div class="map-concept-desc">Frankl：人的核心驱力不是快乐，而是寻找生命的意义</div></div>
+    <div class="map-concept"><div class="map-concept-name">PERMA模型</div><div class="map-concept-desc">Seligman的幸福五要素：积极情绪、投入、关系、意义、成就</div></div>
+    <div class="map-concept"><div class="map-concept-name">存在主义心理学</div><div class="map-concept-desc">面对死亡、自由、孤独和无意义四大终极关怀的勇气</div></div>
+    <div class="map-concept"><div class="map-concept-name">三种价值</div><div class="map-concept-desc">Frankl：体验价值（感受世界）、创造价值（贡献世界）、态度价值（面对苦难）</div></div>
+    <div class="map-concept"><div class="map-concept-name">心流理论</div><div class="map-concept-desc">Csikszentmihalyi：全神贯注于挑战性活动时产生的最优体验</div></div>
+    <div class="map-concept"><div class="map-concept-name">恐惧管理理论</div><div class="map-concept-desc">对死亡的觉知激发人寻找超越个体的文化意义系统</div></div>
+    <div class="map-concept"><div class="map-concept-name">负性能力</div><div class="map-concept-desc">Keats：在不确定和疑惑中安住的能力，不急于找到答案</div></div>
+    <div class="map-concept"><div class="map-concept-name">道德提升</div><div class="map-concept-desc">目睹他人善行时产生的温暖感和向善动力（helper's high）</div></div>
+  </div>
+
+  <div class="map-footer">
+    以上概念贯穿7个事件的叙事与反馈，每个概念在游戏中均有对应的选择情境和心理透镜分析。可配合课堂讲授使用：先让学生体验事件，再对照图谱讨论相关理论。
+  </div>
+</div>
+</div>
+<script>
+(function(){
+  function getGameRecords(eid){try{var a=JSON.parse(localStorage.getItem('psych_game_records')||'{}');return a[eid]||[];}catch(e){return[];}}
+  var eventIds=['E1','E2','E3','E4','E5','E6','E7'];
+  var cards=document.querySelectorAll('.event-card');
+  for(var i=0;i<cards.length&&i<eventIds.length;i++){
+    var recs=getGameRecords(eventIds[i]);
+    if(!recs.length)continue;
+    var latest=recs[0];
+    var d=new Date(latest.ts);
+    var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    var badge=document.createElement('div');
+    badge.className='event-card-records';
+    badge.innerHTML='<span class="rec-badge">'+latest.icon+' '+latest.title
+      +(recs.length>1?' <span class="rec-count">+' +(recs.length-1)+'</span>':'')
+      +'</span><span class="rec-date">'+ds+'</span>';
+    cards[i].appendChild(badge);
+  }
+})();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>感恩日记 · 三件好事</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #fff9e6;
+            font-family: 'Segoe UI', 'Ma Shan Zheng', 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .journal-container {
+            max-width: 600px;
+            width: 100%;
+            background: #ffffffdd;
+            backdrop-filter: blur(8px);
+            border-radius: 40px 40px 30px 30px;
+            box-shadow: 0 20px 30px rgba(255, 180, 100, 0.15), 0 0 0 4px #ffe5c4, 0 0 0 8px #ffd8a8;
+            padding: 28px 22px;
+            border: 2px solid #ffc086;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #c96b2e;
+            text-shadow: 2px 2px 0 #ffe3b0;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            letter-spacing: 3px;
+        }
+        .header p {
+            font-size: 0.95rem;
+            color: #b25923;
+        }
+
+        /* 日期卡片 */
+        .date-card {
+            background: #ffe3b0;
+            border-radius: 40px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px solid #ffb257;
+            box-shadow: 0 6px 0 #d47a2c;
+        }
+        .date-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .date-today {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #8b4b1f;
+            line-height: 1.2;
+        }
+        .streak {
+            font-size: 0.8rem;
+            color: #b25923;
+            background: #fff1cc;
+            padding: 3px 12px;
+            border-radius: 30px;
+            border: 1px solid #ffb257;
+        }
+
+        /* 输入卡片 */
+        .entry-card {
+            background: #fffcf0;
+            border-radius: 30px;
+            padding: 18px 16px;
+            margin-bottom: 12px;
+            border: 2px solid #ffc086;
+            box-shadow: 0 4px 0 #e5944a;
+        }
+        .entry-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .entry-emoji {
+            font-size: 1.8rem;
+        }
+        .entry-input {
+            flex: 1;
+            background: #ffffff;
+            border: 2px solid #ffc086;
+            border-radius: 30px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            color: #4a2e1a;
+            outline: none;
+            transition: 0.1s;
+        }
+        .entry-input:focus {
+            border-color: #ff8c42;
+        }
+        .entry-tag {
+            background: #ffedd4;
+            border: 2px solid #ffb257;
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            color: #8b4b1f;
+            cursor: pointer;
+            display: inline-block;
+            margin-left: 30px;
+        }
+        select.tag-select {
+            background: #fff;
+            border: 2px solid #ffb257;
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            color: #4a2e1a;
+            outline: none;
+            margin-top: 6px;
+            margin-left: 30px;
+            width: calc(100% - 30px);
+        }
+
+        /* 底部按钮 */
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 25px 0 15px;
+            justify-content: center;
+        }
+        .btn {
+            background: #fffcf0;
+            border: 2px solid #ffb257;
+            border-radius: 40px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            color: #b25923;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #d47a2c;
+            transition: 0.1s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+        .btn.primary {
+            background: #ffb86b;
+            border-color: #e5944a;
+            color: #5e2e12;
+            box-shadow: 0 5px 0 #b25923;
+        }
+
+        /* 统计视图 */
+        .stats-section {
+            background: #fff9e6;
+            border-radius: 40px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid #ffc086;
+        }
+        .stats-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .tab-btn {
+            background: #fff0d8;
+            border: 2px solid #ffb257;
+            border-radius: 30px;
+            padding: 6px 20px;
+            font-size: 0.9rem;
+            color: #8b4b1f;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: #ffb86b;
+            border-color: #e5944a;
+            color: #5e2e12;
+        }
+        .stats-canvas {
+            width: 100%;
+            height: 200px;
+            background: #ffffff;
+            border-radius: 30px;
+            border: 2px solid #ffc086;
+            margin-bottom: 15px;
+        }
+        .wordcloud {
+            background: #ffffff;
+            border-radius: 30px;
+            border: 2px solid #ffc086;
+            padding: 15px;
+            min-height: 200px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .word-item {
+            display: inline-block;
+            margin: 5px 8px;
+            color: #c96b2e;
+            transition: 0.1s;
+        }
+
+        .reminder-set {
+            background: #ffedd4;
+            border-radius: 30px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px solid #ffb257;
+        }
+        .reminder-time {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #8b4b1f;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #d47a2c;
+            font-size: 0.8rem;
+        }
+        .site-badge {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #ffb86b;
+            color: #5e2e12;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #555;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="site-badge">中侨·心理</div>
+    <div class="journal-container">
+        <div class="header">
+            <h1>📔 三件好事</h1>
+            <p>每天记录微光，汇聚成暖阳</p>
+        </div>
+
+        <!-- 日期卡片 -->
+        <div class="date-card">
+            <div class="date-info">
+                <span class="date-today" id="todayDate"></span>
+                <span class="streak" id="streakText">累计记录 0 天</span>
+            </div>
+            <div>✨</div>
+        </div>
+
+        <!-- 三条输入卡片 -->
+        <div id="entriesContainer"></div>
+
+        <!-- 操作按钮 -->
+        <div class="button-row">
+            <button class="btn primary" id="saveBtn">💾 保存今天</button>
+            <button class="btn" id="statsBtn">📊 统计</button>
+            <button class="btn" id="reminderBtn">⏰ 提醒</button>
+        </div>
+
+        <!-- 统计区域（默认隐藏） -->
+        <div class="stats-section" id="statsSection" style="display: none;">
+            <div class="stats-tabs">
+                <button class="tab-btn active" data-view="week">周</button>
+                <button class="tab-btn" data-view="month">月</button>
+                <button class="tab-btn" data-view="cloud">云图</button>
+            </div>
+            <div id="statsView"></div>
+        </div>
+
+        <!-- 提醒设置区域（默认隐藏） -->
+        <div class="reminder-set" id="reminderPanel" style="display: none;">
+            <span>每日提醒时间</span>
+            <input type="time" id="reminderTime" value="21:00">
+            <button class="btn" style="padding:6px 16px;" id="setReminderBtn">确定</button>
+        </div>
+
+        <div class="footer-note">
+            ✦ 微小好事，值得被看见 ✦
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 存储键 ----------
+            const STORAGE_KEY = 'gratitudeJournal';
+
+            // ---------- 标签选项 ----------
+            const TAG_OPTIONS = ['朋友', '学习', '家庭', '自然', '美食', '运动', '小确幸', '成就', '其他'];
+
+            // ---------- 全局变量 ----------
+            let journalData = {};          // { "2025-03-15": [{text, tag}, ...] }
+            let selectedDate = '';          // 当前显示的日期 (YYYY-MM-DD)
+            let reminderEnabled = false;
+            let reminderHour = 21, reminderMinute = 0;
+            let reminderInterval = null;
+
+            // DOM 元素
+            const todaySpan = document.getElementById('todayDate');
+            const streakSpan = document.getElementById('streakText');
+            const entriesContainer = document.getElementById('entriesContainer');
+            const saveBtn = document.getElementById('saveBtn');
+            const statsBtn = document.getElementById('statsBtn');
+            const reminderBtn = document.getElementById('reminderBtn');
+            const statsSection = document.getElementById('statsSection');
+            const reminderPanel = document.getElementById('reminderPanel');
+            const statsView = document.getElementById('statsView');
+            const reminderTimeInput = document.getElementById('reminderTime');
+            const setReminderBtn = document.getElementById('setReminderBtn');
+
+            // ---------- 辅助函数 ----------
+            function formatDate(date = new Date()) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+
+            function getToday() {
+                return formatDate(new Date());
+            }
+
+            // 加载数据
+            function loadData() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    try {
+                        journalData = JSON.parse(stored) || {};
+                    } catch (e) {
+                        journalData = {};
+                    }
+                } else {
+                    journalData = {};
+                }
+                // 确保每天的数据是数组
+                for (let d in journalData) {
+                    if (!Array.isArray(journalData[d])) journalData[d] = [];
+                }
+            }
+
+            // 保存数据
+            function saveData() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(journalData));
+                updateStreak();
+                renderEntries();
+            }
+
+            // 计算累计天数（有记录的天数）
+            function totalDays() {
+                return Object.keys(journalData).length;
+            }
+
+            // 更新连续打卡？简单显示总天数
+            function updateStreak() {
+                streakSpan.innerText = `累计记录 ${totalDays()} 天`;
+            }
+
+            // 渲染今日输入框（如果有历史记录则填充）
+            function renderEntries() {
+                const today = getToday();
+                selectedDate = today;
+                todaySpan.innerText = today.replace(/-/g, '/');
+                const dayEntries = journalData[today] || [];
+                // 生成三条输入框
+                let html = '';
+                for (let i = 0; i < 3; i++) {
+                    const entry = dayEntries[i] || { text: '', tag: '' };
+                    const emoji = ['🌟', '💖', '☀️'][i];
+                    html += `
+                        <div class="entry-card">
+                            <div class="entry-header">
+                                <span class="entry-emoji">${emoji}</span>
+                                <input type="text" class="entry-input" id="entry_${i}" placeholder="今天有什么开心的事？" value="${entry.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}">
+                            </div>
+                            <select class="tag-select" id="tag_${i}">
+                                <option value="">选择标签（可选）</option>
+                                ${TAG_OPTIONS.map(tag => `<option value="${tag}" ${entry.tag === tag ? 'selected' : ''}>${tag}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+                entriesContainer.innerHTML = html;
+            }
+
+            // 保存当前输入到 journalData
+            function saveTodayEntries() {
+                const today = getToday();
+                const entries = [];
+                for (let i = 0; i < 3; i++) {
+                    const input = document.getElementById(`entry_${i}`);
+                    const select = document.getElementById(`tag_${i}`);
+                    if (input && input.value.trim() !== '') {
+                        entries.push({
+                            text: input.value.trim(),
+                            tag: select ? select.value : ''
+                        });
+                    }
+                }
+                if (entries.length > 0) {
+                    journalData[today] = entries;
+                } else {
+                    // 如果全部为空，可以删除当天的记录（可选）
+                    delete journalData[today];
+                }
+                saveData();
+                alert('今日记录已保存！');
+            }
+
+            // ---------- 统计视图 ----------
+            function renderStatsView(view) {
+                if (view === 'week') renderWeekChart();
+                else if (view === 'month') renderMonthChart();
+                else if (view === 'cloud') renderWordCloud();
+            }
+
+            // 周统计 (近7天柱状图)
+            function renderWeekChart() {
+                const dates = [];
+                const counts = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const dateStr = formatDate(d);
+                    dates.push(dateStr.slice(5)); // MM-DD
+                    counts.push(journalData[dateStr] ? journalData[dateStr].length : 0);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = 300;
+                canvas.height = 180;
+                const ctx = canvas.getContext('2d');
+                // 简单绘制柱状图
+                ctx.clearRect(0, 0, 300, 180);
+                ctx.fillStyle = '#fff9e6';
+                ctx.fillRect(0, 0, 300, 180);
+                const barWidth = 28;
+                const maxCount = Math.max(...counts, 1);
+                for (let i = 0; i < 7; i++) {
+                    const x = 20 + i * (barWidth + 8);
+                    const height = (counts[i] / maxCount) * 130;
+                    ctx.fillStyle = '#ffb86b';
+                    ctx.fillRect(x, 160 - height, barWidth, height);
+                    ctx.fillStyle = '#8b4b1f';
+                    ctx.font = '8px sans-serif';
+                    ctx.fillText(dates[i], x, 175);
+                }
+                statsView.innerHTML = '';
+                statsView.appendChild(canvas);
+            }
+
+            // 月统计 (近30天折线图)
+            function renderMonthChart() {
+                const dates = [];
+                const counts = [];
+                for (let i = 29; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const dateStr = formatDate(d);
+                    dates.push(dateStr.slice(5));
+                    counts.push(journalData[dateStr] ? journalData[dateStr].length : 0);
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = 500;
+                canvas.height = 180;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, 500, 180);
+                ctx.fillStyle = '#fff9e6';
+                ctx.fillRect(0, 0, 500, 180);
+                const stepX = 500 / 30;
+                const maxCount = Math.max(...counts, 1);
+                ctx.beginPath();
+                ctx.strokeStyle = '#ff8c42';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 30; i++) {
+                    const x = i * stepX + stepX/2;
+                    const y = 160 - (counts[i] / maxCount) * 130;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                statsView.innerHTML = '';
+                statsView.appendChild(canvas);
+            }
+
+            // 简单词云 (基于所有记录中的词频)
+            function renderWordCloud() {
+                // 收集所有文本
+                let allText = '';
+                for (let date in journalData) {
+                    journalData[date].forEach(e => allText += ' ' + e.text);
+                }
+                const words = allText.split(/[\s,，。.、 ]+/).filter(w => w.length >= 2);
+                const freq = {};
+                words.forEach(w => freq[w] = (freq[w] || 0) + 1);
+                const sorted = Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 30);
+                const container = document.createElement('div');
+                container.className = 'wordcloud';
+                sorted.forEach(([word, count]) => {
+                    const span = document.createElement('span');
+                    span.className = 'word-item';
+                    span.style.fontSize = (12 + count * 2) + 'px';
+                    span.style.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                    span.innerText = word;
+                    container.appendChild(span);
+                });
+                statsView.innerHTML = '';
+                statsView.appendChild(container);
+            }
+
+            // ---------- 提醒功能 ----------
+            function requestNotificationPermission() {
+                if (!('Notification' in window)) {
+                    alert('浏览器不支持通知');
+                    return false;
+                }
+                if (Notification.permission === 'granted') return true;
+                if (Notification.permission !== 'denied') {
+                    Notification.requestPermission();
+                }
+                return false;
+            }
+
+            function startReminderCheck(hour, minute) {
+                if (reminderInterval) clearInterval(reminderInterval);
+                reminderInterval = setInterval(() => {
+                    const now = new Date();
+                    if (now.getHours() === hour && now.getMinutes() === minute) {
+                        // 检查今天是否已经通知过？简单起见每次整分钟都通知
+                        if (Notification.permission === 'granted') {
+                            new Notification('感恩日记提醒', {
+                                body: '今天你记录三件好事了吗？✨',
+                                icon: ''
+                            });
+                        }
+                    }
+                }, 60000); // 每分钟检查
+            }
+
+            // 显示/隐藏统计
+            statsBtn.addEventListener('click', () => {
+                if (statsSection.style.display === 'none') {
+                    statsSection.style.display = 'block';
+                    reminderPanel.style.display = 'none';
+                    renderStatsView('week');
+                } else {
+                    statsSection.style.display = 'none';
+                }
+            });
+
+            // 统计标签切换（绑定到 statsSection，因为 tab-btn 在 stats-tabs 子元素中，不在 statsView 中）
+            statsSection.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-btn')) {
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderStatsView(e.target.dataset.view);
+                }
+            });
+
+            // 提醒面板
+            reminderBtn.addEventListener('click', () => {
+                if (reminderPanel.style.display === 'none') {
+                    reminderPanel.style.display = 'flex';
+                    statsSection.style.display = 'none';
+                } else {
+                    reminderPanel.style.display = 'none';
+                }
+            });
+
+            setReminderBtn.addEventListener('click', () => {
+                const timeStr = reminderTimeInput.value;
+                if (timeStr) {
+                    const [hour, minute] = timeStr.split(':').map(Number);
+                    reminderHour = hour;
+                    reminderMinute = minute;
+                    if (requestNotificationPermission()) {
+                        startReminderCheck(reminderHour, reminderMinute);
+                        alert('提醒已设置！');
+                    } else {
+                        alert('请允许通知权限');
+                    }
+                }
+            });
+
+            // 保存
+            saveBtn.addEventListener('click', saveTodayEntries);
+
+            // 初始化
+            loadData();
+            renderEntries();
+            updateStreak();
+
+            // 设置默认提醒时间（不自动开启）
+            reminderTimeInput.value = '21:00';
+
+            // 监听标签页切换（如果后续需要）
+        })();
+    </script>
+</body>
+</html>

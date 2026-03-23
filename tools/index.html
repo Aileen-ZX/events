@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>心理工具箱 · 轻量小工具合集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f3eee8;
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 215, 175, 0.3) 0%, transparent 30%),
+                              radial-gradient(circle at 90% 70%, rgba(200, 230, 240, 0.3) 0%, transparent 40%);
+            font-family: 'Segoe UI', 'Ma Shan Zheng', 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 900px;
+        }
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 400;
+            color: #5d4a36;
+            text-shadow: 3px 3px 0 #ebddd0;
+            letter-spacing: 4px;
+        }
+        .header p {
+            font-size: 1.1rem;
+            color: #7f6a54;
+            margin-top: 8px;
+            border-bottom: 2px dashed #cbad8c;
+            padding-bottom: 15px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1300px;
+            width: 100%;
+        }
+
+        .tool-card {
+            background: #ffffffdd;
+            backdrop-filter: blur(8px);
+            border-radius: 40px 40px 30px 30px;
+            box-shadow: 0 15px 30px rgba(110, 70, 40, 0.15), 0 0 0 2px #f0e2d2, 0 0 0 5px #fffbf5;
+            padding: 25px 20px 20px 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ffe2c1;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+        }
+        .tool-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 35px rgba(100, 60, 30, 0.2), 0 0 0 2px #f0d6bc, 0 0 0 5px #ffffff;
+        }
+
+        .tool-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.1));
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #6b4f38;
+            margin-bottom: 8px;
+            text-align: center;
+            border-bottom: 2px dotted #e5cbb3;
+            padding-bottom: 6px;
+        }
+
+        .tool-desc {
+            font-size: 0.9rem;
+            color: #8b6f56;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 15px;
+            flex: 1;
+        }
+
+        .tool-meta {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .tool-tag {
+            background: #f0e2d4;
+            border-radius: 30px;
+            padding: 5px 14px;
+            font-size: 0.7rem;
+            color: #5d4430;
+            border: 1px solid #dabfaa;
+        }
+
+        .footer-note {
+            margin-top: 50px;
+            color: #9c8875;
+            font-size: 0.9rem;
+        }
+
+        /* 每个卡片独特的顶边颜色 (微差异) */
+        .tool-card:nth-child(1) { border-top: 6px solid #ffdb8e; }  /* 日常心理卡牌 */
+        .tool-card:nth-child(2) { border-top: 6px solid #b3cfa0; }  /* SMART工坊 */
+        .tool-card:nth-child(3) { border-top: 6px solid #f7c7a0; }  /* 感恩日记 */
+        .tool-card:nth-child(4) { border-top: 6px solid #a7d0d0; }  /* 呼吸正念 */
+        .tool-card:nth-child(5) { border-top: 6px solid #e6b3b0; }  /* 情绪识别 */
+        .tool-card:nth-child(6) { border-top: 6px solid #dbb88c; }  /* 情绪实验室 */
+        .tool-card:nth-child(7) { border-top: 6px solid #c5a9d4; }  /* 人际关系地图 */
+        .tool-card:nth-child(8) { border-top: 6px solid #f1b9a5; }  /* 思维侦探所 */
+        .tool-card:nth-child(9) { border-top: 6px solid #b0c8b0; }  /* 心理杂货铺 */
+
+        /* 响应式调整 */
+        @media (max-width: 600px) {
+            .header h1 { font-size: 2rem; }
+            .tool-grid { gap: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧰 心理工具箱</h1>
+        <p>轻量小工具 · 课堂 · 自我探索</p>
+    </div>
+
+    <div class="tool-grid">
+        <!-- 1. 日常心理卡牌 (第一位) -->
+        <a href="Regular Topic Cards.html" class="tool-card">
+            <div class="tool-emoji">🃏</div>
+            <div class="tool-title">日常心理卡牌</div>
+            <div class="tool-desc">随机抽取心理话题，适合破冰、小组讨论、课堂导入。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">全主题</span>
+                <span class="tool-tag">互动</span>
+            </div>
+        </a>
+
+        <!-- 2. SMART目标工坊 -->
+        <a href="SMART WorkShop.html" class="tool-card">
+            <div class="tool-emoji">🎯</div>
+            <div class="tool-title">SMART目标工坊</div>
+            <div class="tool-desc">将模糊愿望转化为清晰计划，让目标具体、可衡量、可执行。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">学习心理</span>
+                <span class="tool-tag">自我成长</span>
+            </div>
+        </a>
+
+        <!-- 3. 感恩日记 -->
+        <a href="Diary.html" class="tool-card">
+            <div class="tool-emoji">📔</div>
+            <div class="tool-title">感恩日记</div>
+            <div class="tool-desc">每天三件好事，培养积极心态，生成周报/月报与词云。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">情绪管理</span>
+                <span class="tool-tag">生命教育</span>
+            </div>
+        </a>
+
+        <!-- 4. 呼吸和正念引导 -->
+        <a href="Breath instructor.html" class="tool-card">
+            <div class="tool-emoji">🧘</div>
+            <div class="tool-title">呼吸和正念引导</div>
+            <div class="tool-desc">科学呼吸节奏 + 每秒闪动引导，帮助即时放松、回归当下。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">情绪管理</span>
+                <span class="tool-tag">压力应对</span>
+            </div>
+        </a>
+
+        <!-- 5. 情绪识别小助手 -->
+        <a href="Emotion Recognition Assistant.html" class="tool-card">
+            <div class="tool-emoji">🔍</div>
+            <div class="tool-title">情绪识别小助手</div>
+            <div class="tool-desc">输入事件，AI识别隐藏情绪，提升情绪颗粒度，积累情绪词汇。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">情绪管理</span>
+                <span class="tool-tag">自我意识</span>
+            </div>
+        </a>
+
+        <!-- 6. 情绪实验室 -->
+        <a href="Emotion Lab.html" class="tool-card">
+            <div class="tool-emoji">🧪</div>
+            <div class="tool-title">情绪实验室</div>
+            <div class="tool-desc">组合压力源，尝试调节策略，观察情绪曲线实时变化。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">情绪管理</span>
+                <span class="tool-tag">压力应对</span>
+            </div>
+        </a>
+
+        <!-- 7. 人际关系地图 -->
+        <a href="Relation Map.html" class="tool-card">
+            <div class="tool-emoji">🗺️</div>
+            <div class="tool-title">人际关系地图</div>
+            <div class="tool-desc">绘制你的人际网络，看见距离、温度与支持系统。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">人际交往</span>
+                <span class="tool-tag">自我意识</span>
+            </div>
+        </a>
+
+        <!-- 8. 思维侦探所 -->
+        <a href="Thoughts Detective.html" class="tool-card">
+            <div class="tool-emoji">🕵️</div>
+            <div class="tool-title">思维侦探所</div>
+            <div class="tool-desc">识别认知陷阱，重构消极想法，训练成长型思维。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">自我意识</span>
+                <span class="tool-tag">学习心理</span>
+            </div>
+        </a>
+
+        <!-- 9. 心理杂货铺 -->
+        <a href="Mental Health Shop.html" class="tool-card">
+            <div class="tool-emoji">🧺</div>
+            <div class="tool-title">心理杂货铺</div>
+            <div class="tool-desc">为不同心理困扰推荐应对策略，在匹配中学习调节方法。</div>
+            <div class="tool-meta">
+                <span class="tool-tag">情绪管理</span>
+                <span class="tool-tag">人际交往</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="footer-note">
+        ✦ 点击卡片即可打开对应工具 · 所有数据存储在本地 ✦
+    </div>
+</body>
+</html>

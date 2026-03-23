@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>呼吸和正念引导</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(145deg, #c8e9f0, #b2d9e0);
+            font-family: 'Segoe UI', 'Ma Shan Zheng', 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .mindful-container {
+            max-width: 520px;
+            width: 100%;
+            background: #ffffffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 60px 60px 40px 40px;
+            box-shadow: 0 20px 30px rgba(90, 130, 130, 0.25), 0 0 0 4px #d0f0f0, 0 0 0 8px #b0e0e0;
+            padding: 30px 25px;
+            border: 2px solid #a0d0d0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2f6f6f;
+            text-shadow: 2px 2px 0 #d0f0f0;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            letter-spacing: 4px;
+        }
+        .header p {
+            font-size: 1rem;
+            color: #408080;
+            margin-top: 5px;
+        }
+
+        /* 模式选择 */
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            background: #f0fcfc;
+            border: 2px solid #80b0b0;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #2f6f6f;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #609090;
+            transition: 0.1s;
+            font-weight: 500;
+        }
+        .mode-btn.active {
+            background: #5fa0a0;
+            border-color: #408080;
+            color: white;
+            box-shadow: 0 4px 0 #306060;
+        }
+        .mode-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .music-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: #f0fcfc;
+            border-radius: 40px;
+            padding: 8px 16px;
+            border: 2px solid #80b0b0;
+        }
+
+        /* 速度调节 */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #f0fcfc;
+            border-radius: 40px;
+            padding: 8px 16px;
+            border: 2px solid #80b0b0;
+        }
+        .speed-label {
+            color: #2f6f6f;
+            font-weight: 500;
+        }
+        .speed-btn {
+            background: white;
+            border: 2px solid #609090;
+            border-radius: 30px;
+            width: 36px;
+            height: 36px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2f6f6f;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #407070;
+            transition: 0.05s;
+        }
+        .speed-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+        .speed-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2f6f6f;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        /* 呼吸圆 */
+        .breath-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #a0d8d8;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.1), inset 0 -5px 10px rgba(0,0,0,0.05), inset 0 5px 15px rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 4s ease-in-out, background 0.05s linear;
+            transform: scale(1);
+            will-change: transform;
+        }
+        .breath-circle.blink {
+            background: #b8e8e8 !important;
+        }
+        .circle-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #ffffffbb;
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #206060;
+            font-size: 1.5rem;
+            font-weight: 300;
+            box-shadow: inset 0 0 15px #b0e0e0;
+        }
+        .phase-text {
+            font-size: 1.6rem;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+        .count-text {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* 控制区 */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0 15px;
+        }
+        .btn {
+            background: #f0fcfc;
+            border: 2px solid #80b0b0;
+            border-radius: 40px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            color: #2f6f6f;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #609090;
+            transition: 0.1s;
+            font-weight: 600;
+        }
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+        .btn.primary {
+            background: #5fa0a0;
+            border-color: #408080;
+            color: white;
+            box-shadow: 0 5px 0 #306060;
+        }
+
+        /* 进度和提示 */
+        .progress-bar {
+            background: #e0f0f0;
+            border-radius: 20px;
+            height: 8px;
+            border: 2px solid #80b0b0;
+            overflow: hidden;
+            margin: 20px 0 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #5fa0a0;
+            width: 0%;
+            transition: width 0.2s;
+        }
+        .info-text {
+            text-align: center;
+            color: #408080;
+            font-size: 0.9rem;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #609090;
+            font-size: 0.8rem;
+        }
+        .site-badge {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #5fa0a0;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #555;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="site-badge">中侨·心理</div>
+    <div class="mindful-container">
+        <div class="header">
+            <h1>🧘 呼吸和正念引导</h1>
+            <p>科学节奏 · 每秒轻闪</p>
+        </div>
+
+        <!-- 模式选择 -->
+        <div class="mode-selector" id="modeSelector">
+            <button class="mode-btn active" data-mode="478">4-7-8 呼吸</button>
+            <button class="mode-btn" data-mode="belly">腹式呼吸</button>
+            <button class="mode-btn" data-mode="box">盒式呼吸</button>
+            <button class="mode-btn" data-mode="body">身体扫描</button>
+        </div>
+
+        <!-- 音乐控制 -->
+        <div class="music-control">
+            <span class="speed-label">🎵 音乐</span>
+            <button class="mode-btn" id="musicToggle">开启</button>
+            <button class="speed-btn" id="volDown">−</button>
+            <span class="speed-value" id="volValue">50%</span>
+            <button class="speed-btn" id="volUp">+</button>
+        </div>
+
+        <!-- 速度调节 -->
+        <div class="speed-control">
+            <span class="speed-label">⏱️ 速度</span>
+            <button class="speed-btn" id="speedDown">−</button>
+            <span class="speed-value" id="speedValue">1.0x</span>
+            <button class="speed-btn" id="speedUp">+</button>
+        </div>
+
+        <!-- 呼吸圆 -->
+        <div class="breath-circle" id="breathCircle">
+            <div class="circle-inner">
+                <span class="phase-text" id="phaseText">吸气</span>
+                <span class="count-text" id="cycleCount">第 1/5 轮</span>
+            </div>
+        </div>
+
+        <!-- 控制按钮 -->
+        <div class="controls">
+            <button class="btn primary" id="startBtn">开始</button>
+            <button class="btn" id="stopBtn">停止</button>
+        </div>
+
+        <!-- 进度条 -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="info-text" id="infoMessage">
+            选择一种练习，点击“开始”
+        </div>
+
+        <div class="footer-note">
+            ✦ 每秒微闪 · 专注呼吸 ✦
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 基础节奏定义（无引用标注）
+            const baseModes = {
+                '478': {
+                    name: '4-7-8 呼吸',
+                    phases: [
+                        { name: '吸气', duration: 4000 },
+                        { name: '屏息', duration: 7000 },
+                        { name: '呼气', duration: 8000 }
+                    ],
+                    cycles: 5,
+                    description: '吸气4秒 → 屏息7秒 → 呼气8秒，重复3-5次，能快速放松神经，适合睡前或焦虑时使用。'
+                },
+                'belly': {
+                    name: '腹式呼吸',
+                    phases: [
+                        { name: '吸气', duration: 4000 },
+                        { name: '呼气', duration: 6000 }
+                    ],
+                    cycles: 6,
+                    description: '吸气4秒，呼气6秒，每分钟约6次，是最舒缓的呼吸频率，适合日常减压、缓解紧张、平稳情绪。'
+                },
+                'box': {
+                    name: '盒式呼吸',
+                    phases: [
+                        { name: '吸气', duration: 4000 },
+                        { name: '屏息', duration: 4000 },
+                        { name: '呼气', duration: 4000 },
+                        { name: '屏息', duration: 4000 }
+                    ],
+                    cycles: 5,
+                    description: '吸气-屏息-呼气-屏息各4秒，适合高度紧张时快速平复，被广泛应用于压力管理。'
+                },
+                'body': {
+                    name: '身体扫描',
+                    isGuided: true,
+                    phases: [
+                        { name: '头部和面部', duration: 30000 },
+                        { name: '肩颈放松', duration: 30000 },
+                        { name: '双臂和双手', duration: 30000 },
+                        { name: '胸腔和呼吸', duration: 30000 },
+                        { name: '腹部', duration: 30000 },
+                        { name: '背部和脊柱', duration: 30000 },
+                        { name: '臀部和骨盆', duration: 30000 },
+                        { name: '双腿', duration: 30000 },
+                        { name: '双脚和脚趾', duration: 30000 },
+                        { name: '全身整合', duration: 30000 }
+                    ],
+                    cycles: 1,
+                    description: '约5分钟全身扫描，温和引导觉察身体各部位，适合身体紧绷、失眠或需要深度放松时。'
+                }
+            };
+
+            // 状态
+            let currentMode = '478';
+            let speedFactor = 1.0;
+            let isRunning = false;
+            let currentCycle = 1;
+            let currentPhaseIndex = 0;
+            let totalPhases = 0;
+            let timerId = null;
+            let blinkInterval = null;  // 每秒闪动计时器
+
+            // DOM
+            const modeBtns = document.querySelectorAll('.mode-btn');
+            const breathCircle = document.getElementById('breathCircle');
+            const phaseText = document.getElementById('phaseText');
+            const cycleCount = document.getElementById('cycleCount');
+            const progressFill = document.getElementById('progressFill');
+            const infoMessage = document.getElementById('infoMessage');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const speedDown = document.getElementById('speedDown');
+            const speedUp = document.getElementById('speedUp');
+            const speedValue = document.getElementById('speedValue');
+
+            function getCurrentMode() {
+                const mode = JSON.parse(JSON.stringify(baseModes[currentMode]));
+                if (!mode.isGuided) {
+                    mode.phases = mode.phases.map(p => ({
+                        ...p,
+                        duration: Math.round(p.duration / speedFactor)
+                    }));
+                }
+                return mode;
+            }
+
+            function updateSpeedDisplay() {
+                speedValue.innerText = speedFactor.toFixed(1) + 'x';
+            }
+
+            speedDown.addEventListener('click', () => {
+                if (speedFactor > 0.5) {
+                    speedFactor = Math.round((speedFactor - 0.1) * 10) / 10;
+                    if (speedFactor < 0.5) speedFactor = 0.5;
+                    updateSpeedDisplay();
+                }
+            });
+            speedUp.addEventListener('click', () => {
+                if (speedFactor < 2.0) {
+                    speedFactor = Math.round((speedFactor + 0.1) * 10) / 10;
+                    if (speedFactor > 2.0) speedFactor = 2.0;
+                    updateSpeedDisplay();
+                }
+            });
+
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (isRunning) {
+                        stopPractice();
+                    }
+                    modeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentMode = btn.dataset.mode;
+                    updateModeInfo();
+                });
+            });
+
+            function updateModeInfo() {
+                const mode = baseModes[currentMode];
+                infoMessage.innerText = mode.description;
+                progressFill.style.width = '0%';
+                phaseText.innerText = '待开始';
+                cycleCount.innerText = '';
+            }
+
+            // 每秒闪动函数
+            function startBlinking() {
+                if (blinkInterval) clearInterval(blinkInterval);
+                blinkInterval = setInterval(() => {
+                    breathCircle.classList.add('blink');
+                    setTimeout(() => {
+                        breathCircle.classList.remove('blink');
+                    }, 80);
+                }, 1000);
+            }
+
+            function stopBlinking() {
+                if (blinkInterval) {
+                    clearInterval(blinkInterval);
+                    blinkInterval = null;
+                }
+                breathCircle.classList.remove('blink');
+            }
+
+            function stopPractice() {
+                if (timerId) {
+                    clearTimeout(timerId);
+                    timerId = null;
+                }
+                stopBlinking();
+                isRunning = false;
+                startBtn.innerText = '开始';
+                breathCircle.style.transform = 'scale(1)';
+                phaseText.innerText = '暂停';
+                infoMessage.innerText = '练习已暂停，可重新开始';
+            }
+
+            function startPractice() {
+                if (isRunning) {
+                    stopPractice();
+                    return;
+                }
+                const mode = getCurrentMode();
+                if (!mode) return;
+
+                currentCycle = 1;
+                currentPhaseIndex = 0;
+                isRunning = true;
+                startBtn.innerText = '暂停';
+                startBlinking();  // 启动每秒闪动
+
+                if (mode.isGuided) {
+                    startGuidedPractice(mode);
+                } else {
+                    startBreathingPractice(mode);
+                }
+            }
+
+            function startBreathingPractice(mode) {
+                const phases = mode.phases;
+                const totalCycles = mode.cycles;
+                totalPhases = phases.length * totalCycles;
+
+                function runStep() {
+                    if (!isRunning) return;
+
+                    const phase = phases[currentPhaseIndex];
+                    const phaseName = phase.name;
+                    const duration = phase.duration;
+
+                    phaseText.innerText = phaseName;
+                    cycleCount.innerText = `第 ${currentCycle}/${totalCycles} 轮`;
+
+                    // 动态设置 transition 时长，使呼吸圆平滑过渡
+                    breathCircle.style.transition = `transform ${duration/1000}s ease-in-out, background 0.05s linear`;
+
+                    if (phaseName.includes('吸气')) {
+                        breathCircle.style.transform = 'scale(1.2)';
+                    } else if (phaseName.includes('呼气')) {
+                        breathCircle.style.transform = 'scale(0.9)';
+                    } else {
+                        breathCircle.style.transform = 'scale(1.2)';
+                    }
+
+                    const completed = (currentCycle - 1) * phases.length + currentPhaseIndex + 1;
+                    progressFill.style.width = (completed / totalPhases * 100) + '%';
+
+                    timerId = setTimeout(() => {
+                        currentPhaseIndex++;
+                        if (currentPhaseIndex >= phases.length) {
+                            currentPhaseIndex = 0;
+                            currentCycle++;
+                        }
+                        if (currentCycle > totalCycles) {
+                            finishPractice();
+                        } else {
+                            runStep();
+                        }
+                    }, duration);
+                }
+
+                runStep();
+            }
+
+            function startGuidedPractice(mode) {
+                const phases = mode.phases;
+                totalPhases = phases.length;
+
+                function runGuideStep() {
+                    if (!isRunning) return;
+
+                    const phase = phases[currentPhaseIndex];
+                    const text = phase.name;
+                    const duration = phase.duration;
+
+                    phaseText.innerText = text;
+                    cycleCount.innerText = `引导 ${currentPhaseIndex+1}/${phases.length}`;
+
+                    breathCircle.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        if (isRunning) breathCircle.style.transform = 'scale(1)';
+                    }, duration/2);
+
+                    progressFill.style.width = ((currentPhaseIndex+1) / totalPhases * 100) + '%';
+
+                    timerId = setTimeout(() => {
+                        currentPhaseIndex++;
+                        if (currentPhaseIndex >= phases.length) {
+                            finishPractice();
+                        } else {
+                            runGuideStep();
+                        }
+                    }, duration);
+                }
+
+                runGuideStep();
+            }
+
+            function finishPractice() {
+                phaseText.innerText = '完成';
+                cycleCount.innerText = '';
+                infoMessage.innerText = '练习完成，感谢你的专注';
+                progressFill.style.width = '100%';
+                breathCircle.style.transform = 'scale(1)';
+                stopBlinking();
+                stopPractice();
+                startBtn.innerText = '重新开始';
+                isRunning = false;
+            }
+
+            stopBtn.addEventListener('click', () => {
+                stopPractice();
+                startBtn.innerText = '开始';
+                progressFill.style.width = '0%';
+                phaseText.innerText = '待开始';
+                cycleCount.innerText = '';
+                infoMessage.innerText = baseModes[currentMode].description;
+                breathCircle.style.transform = 'scale(1)';
+            });
+
+            startBtn.addEventListener('click', () => {
+                if (isRunning) {
+                    stopPractice();
+                } else {
+                    startPractice();
+                }
+            });
+
+            updateSpeedDisplay();
+            updateModeInfo();
+
+            // ============================================
+            // 环境音乐引擎 (Web Audio API)
+            // 五声音阶随机旋律 + 延迟回响 + 柔和底垫
+            // ============================================
+            let audioCtx = null;
+            let musicPlaying = false;
+            let masterGain = null;
+            let musicVolume = 0.5;
+            let melodyTimer = null;
+            let droneNodes = [];
+
+            const musicToggle = document.getElementById('musicToggle');
+            const volDown = document.getElementById('volDown');
+            const volUp = document.getElementById('volUp');
+            const volValue = document.getElementById('volValue');
+
+            // C大调五声音阶多个八度的频率
+            const PENTATONIC = [
+                261.63, 293.66, 329.63, 392.00, 440.00,  // C4 D4 E4 G4 A4
+                523.25, 587.33, 659.25, 783.99, 880.00,  // C5 D5 E5 G5 A5
+                130.81, 146.83, 164.81, 196.00, 220.00   // C3 D3 E3 G3 A3
+            ];
+
+            function initAudio() {
+                if (audioCtx) return;
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0;
+                masterGain.connect(audioCtx.destination);
+            }
+
+            // 创建延迟/混响效果节点
+            function createReverb() {
+                const convolver = audioCtx.createConvolver();
+                const rate = audioCtx.sampleRate;
+                const length = rate * 3;
+                const impulse = audioCtx.createBuffer(2, length, rate);
+                for (let ch = 0; ch < 2; ch++) {
+                    const data = impulse.getChannelData(ch);
+                    for (let i = 0; i < length; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.5);
+                    }
+                }
+                convolver.buffer = impulse;
+                return convolver;
+            }
+
+            // 弹奏一个音符（类似钢琴泛音，自然衰减）
+            function playNote(freq, delay, duration, volume) {
+                const t = audioCtx.currentTime + delay;
+
+                // 主音
+                const osc = audioCtx.createOscillator();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+
+                // 轻微的高八度泛音
+                const osc2 = audioCtx.createOscillator();
+                osc2.type = 'sine';
+                osc2.frequency.value = freq * 2;
+
+                const noteGain = audioCtx.createGain();
+                const overtoneGain = audioCtx.createGain();
+
+                // 音量包络：快速起音，缓慢衰减
+                noteGain.gain.setValueAtTime(0, t);
+                noteGain.gain.linearRampToValueAtTime(volume, t + 0.02);
+                noteGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+                overtoneGain.gain.setValueAtTime(0, t);
+                overtoneGain.gain.linearRampToValueAtTime(volume * 0.15, t + 0.02);
+                overtoneGain.gain.exponentialRampToValueAtTime(0.001, t + duration * 0.6);
+
+                // 低通滤波柔化
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 2000;
+                filter.Q.value = 0.3;
+
+                osc.connect(noteGain);
+                osc2.connect(overtoneGain);
+                noteGain.connect(filter);
+                overtoneGain.connect(filter);
+                filter.connect(masterGain);
+
+                // 也送入混响
+                if (reverbNode) {
+                    const reverbSend = audioCtx.createGain();
+                    reverbSend.gain.value = 0.4;
+                    filter.connect(reverbSend);
+                    reverbSend.connect(reverbNode);
+                }
+
+                osc.start(t);
+                osc.stop(t + duration + 0.1);
+                osc2.start(t);
+                osc2.stop(t + duration + 0.1);
+            }
+
+            let reverbNode = null;
+
+            // 演奏一组随机旋律短句（3-5个音符）
+            function playMelodicPhrase() {
+                if (!musicPlaying) return;
+
+                const noteCount = 3 + Math.floor(Math.random() * 3); // 3-5个音
+                let time = 0;
+
+                for (let i = 0; i < noteCount; i++) {
+                    // 从五声音阶随机选音，偏好中高音区
+                    const idx = Math.floor(Math.random() * PENTATONIC.length);
+                    const freq = PENTATONIC[idx];
+                    const vol = 0.06 + Math.random() * 0.06; // 轻柔的音量
+                    const dur = 2 + Math.random() * 3; // 2-5秒衰减
+                    const gap = 0.8 + Math.random() * 2.5; // 音符间隔
+
+                    playNote(freq, time, dur, vol);
+                    time += gap;
+                }
+
+                // 下一个短句的间隔（稍长的停顿）
+                const nextPhrase = (time + 1.5 + Math.random() * 3) * 1000;
+                melodyTimer = setTimeout(playMelodicPhrase, nextPhrase);
+            }
+
+            // 低沉的持续底垫（极轻）
+            function createDrone() {
+                const freqs = [130.81, 196.00]; // C3 和 G3 纯五度
+                freqs.forEach(f => {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.value = f;
+
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0.025;
+
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 400;
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(masterGain);
+
+                    // 也送入混响
+                    if (reverbNode) {
+                        const send = audioCtx.createGain();
+                        send.gain.value = 0.3;
+                        gain.connect(send);
+                        send.connect(reverbNode);
+                    }
+
+                    osc.start();
+                    droneNodes.push({ osc, gain });
+
+                    // 缓慢的音量呼吸感
+                    function breatheDrone() {
+                        if (!musicPlaying) return;
+                        const t = audioCtx.currentTime;
+                        const target = 0.015 + Math.random() * 0.02;
+                        gain.gain.setTargetAtTime(target, t, 4);
+                        setTimeout(breatheDrone, 5000 + Math.random() * 5000);
+                    }
+                    breatheDrone();
+                });
+            }
+
+            function startMusic() {
+                initAudio();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                // 创建混响
+                reverbNode = createReverb();
+                const reverbGain = audioCtx.createGain();
+                reverbGain.gain.value = 0.5;
+                reverbNode.connect(reverbGain);
+                reverbGain.connect(masterGain);
+
+                // 渐入
+                const now = audioCtx.currentTime;
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(musicVolume, now + 3);
+
+                musicPlaying = true;
+                musicToggle.textContent = '关闭';
+                musicToggle.classList.add('active');
+
+                // 启动底垫
+                createDrone();
+                // 启动旋律
+                setTimeout(playMelodicPhrase, 1000);
+            }
+
+            function stopMusic() {
+                if (!audioCtx || !musicPlaying) return;
+                musicPlaying = false;
+
+                const now = audioCtx.currentTime;
+                masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+                masterGain.gain.linearRampToValueAtTime(0, now + 2);
+
+                musicToggle.textContent = '开启';
+                musicToggle.classList.remove('active');
+
+                if (melodyTimer) { clearTimeout(melodyTimer); melodyTimer = null; }
+
+                setTimeout(() => {
+                    droneNodes.forEach(n => { try { n.osc.stop(); } catch(e){} });
+                    droneNodes = [];
+                    if (reverbNode) { try { reverbNode.disconnect(); } catch(e){} reverbNode = null; }
+                }, 2500);
+            }
+
+            function updateVolDisplay() {
+                volValue.textContent = Math.round(musicVolume * 100) + '%';
+            }
+
+            musicToggle.addEventListener('click', () => {
+                musicPlaying ? stopMusic() : startMusic();
+            });
+
+            volDown.addEventListener('click', () => {
+                musicVolume = Math.max(0, Math.round((musicVolume - 0.1) * 10) / 10);
+                updateVolDisplay();
+                if (masterGain && musicPlaying) {
+                    masterGain.gain.setTargetAtTime(musicVolume, audioCtx.currentTime, 0.3);
+                }
+            });
+
+            volUp.addEventListener('click', () => {
+                musicVolume = Math.min(1, Math.round((musicVolume + 0.1) * 10) / 10);
+                updateVolDisplay();
+                if (masterGain && musicPlaying) {
+                    masterGain.gain.setTargetAtTime(musicVolume, audioCtx.currentTime, 0.3);
+                }
+            });
+
+            updateVolDisplay();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>日常心理卡牌 · 精简版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #1a1a2e;
+            font-family: 'Segoe UI', 'Ma Shan Zheng', 'Helvetica Neue', cursive, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .card-table {
+            max-width: 700px;
+            width: 100%;
+            background: #16213e;
+            border-radius: 50px 50px 30px 30px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.6), 0 0 0 4px #4b3b6d, 0 0 0 8px #2e1f3c;
+            padding: 30px 25px;
+            border: 2px solid #6d4c9c;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #f0e6ff;
+            text-shadow: 2px 2px 0 #4b2e5e;
+        }
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 400;
+            letter-spacing: 6px;
+        }
+        .header p {
+            font-size: 0.9rem;
+            color: #cbb8ff;
+            margin-top: 5px;
+        }
+
+        /* 控制栏：单行布局 */
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 35px;
+            background: #1f1a36;
+            border-radius: 60px;
+            padding: 15px 20px;
+            border: 2px solid #8a6bcb;
+            box-shadow: inset 0 0 0 2px #2f2350;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #2f2350;
+            padding: 5px 15px;
+            border-radius: 40px;
+            border: 1px solid #8a6bcb;
+            flex: 1 1 auto;
+            min-width: 200px;
+        }
+        .filter-group label {
+            color: #dacdff;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        select {
+            background: #1f1a36;
+            color: #f0e6ff;
+            border: 2px solid #8a6bcb;
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+            font-weight: 500;
+            width: 100%;
+        }
+        .btn {
+            background: #382e5c;
+            border: 2px solid #b79aff;
+            border-radius: 40px;
+            padding: 8px 25px;
+            font-size: 1rem;
+            color: #f0e6ff;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #21163b;
+            transition: 0.1s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+        .btn.purple {
+            background: #6d4c9c;
+            border-color: #dbbaff;
+        }
+
+        /* 大卡牌区域 */
+        .card-large {
+            perspective: 1200px;
+            margin: 20px auto 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .card-inner {
+            width: 280px;
+            height: 380px;
+            position: relative;
+            transition: transform 0.4s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .card-large.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 30px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.5), 0 0 0 3px #baa4ff, 0 0 0 7px #3e2a5a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        .card-front {
+            background: linear-gradient(145deg, #fcf5ff, #ecd9ff);
+            color: #1f0f3a;
+            transform: rotateY(180deg);
+            font-size: 1.2rem;
+            line-height: 1.6;
+            border: 2px solid #ffecb0;
+        }
+        .card-back {
+            background: #2a1c44;
+            background-image: radial-gradient(circle at 30% 30%, #ffd78c 1px, transparent 1px),
+                              radial-gradient(circle at 70% 60%, #b594ff 2px, transparent 2px),
+                              linear-gradient(115deg, #4a2f6b, #24193a);
+            border: 2px solid #c9adff;
+            color: #ffefc0;
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 8px;
+            box-shadow: inset 0 0 40px #3a265a;
+        }
+        .card-back span {
+            opacity: 0.8;
+            text-shadow: 0 0 10px #ffd700;
+        }
+        .card-question {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .card-tag {
+            display: inline-block;
+            background: #5c3d8a;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            border: 1px solid #ffdb9f;
+            margin-top: 10px;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 25px;
+            color: #b19ddf;
+            font-size: 0.9rem;
+        }
+        .site-badge {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #6d4c9c;
+            color: #f0e6ff;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(30,30,50,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #cbb8ff;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(50,40,80,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="site-badge">中侨·心理</div>
+    <div class="card-table">
+        <div class="header">
+            <h1>🔮 日常心理卡牌</h1>
+            <p>点击「抽一张」开卡 · 点击卡面翻转</p>
+        </div>
+
+        <!-- 控制栏：主题筛选 + 抽一张按钮 -->
+        <div class="control-row">
+            <div class="filter-group">
+                <label>主题</label>
+                <select id="themeSelect">
+                    <option value="all">全部</option>
+                    <option value="适应">适应</option>
+                    <option value="自我意识">自我意识</option>
+                    <option value="人际交往">人际交往</option>
+                    <option value="情绪管理">情绪管理</option>
+                    <option value="恋爱与性心理">恋爱与性心理</option>
+                    <option value="学习心理">学习心理</option>
+                    <option value="压力与挫折管理">压力与挫折管理</option>
+                    <option value="生命教育">生命教育</option>
+                </select>
+            </div>
+            <button class="btn purple" id="drawOneBtn">🎴 抽一张</button>
+        </div>
+
+        <!-- 大卡牌展示区 -->
+        <div class="card-large" id="cardLarge">
+            <div class="card-inner" id="cardInner">
+                <div class="card-front" id="cardFront">
+                    <div class="card-question" id="cardQuestion">当你特别焦虑时，你通常会做什么？</div>
+                    <div class="card-tag" id="cardTag">情绪管理</div>
+                </div>
+                <div class="card-back" id="cardBack">
+                    <span>✦</span><span>✧</span><span>✦</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            ✦ 点击卡背/卡面可翻转 · 抽一张随机获取新卡 ✦
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 卡牌库 (按8个主题分类) ----------
+            const cardLibrary = [
+                // 适应
+                { theme: '适应', question: '刚进入大学时，你遇到的最大挑战是什么？' },
+                { theme: '适应', question: '面对新环境，你通常如何让自己放松下来？' },
+                { theme: '适应', question: '你做过最有勇气的一件事是什么？' },
+                { theme: '适应', question: '离开家人独立生活后，你最想念的是什么？' },
+                { theme: '适应', question: '你如何认识新朋友？有什么小技巧吗？' },
+                // 自我意识
+                { theme: '自我意识', question: '描述一个让你感到自豪的时刻。' },
+                { theme: '自我意识', question: '你如何看待自己的优点和缺点？' },
+                { theme: '自我意识', question: '你最近有没有发现自己新的特点？' },
+                { theme: '自我意识', question: '你相信“命运”还是“选择”？为什么？' },
+                { theme: '自我意识', question: '你如何定义“幸福”？' },
+                // 人际交往
+                { theme: '人际交往', question: '你和朋友发生过最大的一次误会是什么？后来怎么解决的？' },
+                { theme: '人际交往', question: '在团队合作中，你最看重什么？' },
+                { theme: '人际交往', question: '你如何向新朋友介绍自己？' },
+                { theme: '人际交往', question: '当朋友向你倾诉烦恼时，你通常会怎么回应？' },
+                { theme: '人际交往', question: '和父母沟通时，你最常遇到的障碍是什么？' },
+                { theme: '人际交往', question: '你觉得什么样的人最容易和你成为朋友？' },
+                // 情绪管理
+                { theme: '情绪管理', question: '当你感到焦虑时，你通常会做什么让自己平静下来？' },
+                { theme: '情绪管理', question: '你最近一次感到压力是因为什么？' },
+                { theme: '情绪管理', question: '当情绪低落时，你最希望别人对你说什么？' },
+                { theme: '情绪管理', question: '你平时如何照顾自己的情绪？' },
+                { theme: '情绪管理', question: '什么事情能让你快速恢复精力？' },
+                { theme: '情绪管理', question: '你通常怎么处理愤怒的情绪？' },
+                // 恋爱与性心理
+                { theme: '恋爱与性心理', question: '你觉得一段健康的恋爱关系应该具备什么特点？' },
+                { theme: '恋爱与性心理', question: '当喜欢上一个人时，你会主动表达吗？为什么？' },
+                { theme: '恋爱与性心理', question: '你认为信任在感情中有多重要？' },
+                { theme: '恋爱与性心理', question: '分手后，你会如何帮助自己走出来？' },
+                { theme: '恋爱与性心理', question: '你对“性”的第一次了解是从哪里来的？' },
+                // 学习心理
+                { theme: '学习心理', question: '你平时如何克服学习中的拖延？' },
+                { theme: '学习心理', question: '当你遇到学习瓶颈时，你通常会怎么做？' },
+                { theme: '学习心理', question: '你相信“努力”还是“天赋”更重要？为什么？' },
+                { theme: '学习心理', question: '你最擅长什么科目的学习？有什么方法？' },
+                { theme: '学习心理', question: '你如何看待考试分数？' },
+                // 压力与挫折管理
+                { theme: '压力与挫折管理', question: '最近一次让你感到压力很大的事情是什么？你是怎么应对的？' },
+                { theme: '压力与挫折管理', question: '你经历过最大的挫折是什么？你从中学到了什么？' },
+                { theme: '压力与挫折管理', question: '当你感到不堪重负时，你会向谁求助？' },
+                { theme: '压力与挫折管理', question: '你有哪些缓解压力的独特方式？' },
+                { theme: '压力与挫折管理', question: '你认为压力对你来说是动力还是阻力？' },
+                // 生命教育
+                { theme: '生命教育', question: '你觉得人生的意义是什么？' },
+                { theme: '生命教育', question: '你希望自己成为一个怎样的人？' },
+                { theme: '生命教育', question: '什么事让你觉得自己活着很有价值？' },
+                { theme: '生命教育', question: '如果生命只剩一年，你最想做什么？' },
+                { theme: '生命教育', question: '你如何看待死亡？' },
+                { theme: '生命教育', question: '你最近有没有帮助过别人？感觉如何？' }
+            ];
+
+            // DOM 元素
+            const cardLarge = document.getElementById('cardLarge');
+            const cardInner = document.getElementById('cardInner');
+            const cardQuestion = document.getElementById('cardQuestion');
+            const cardTag = document.getElementById('cardTag');
+            const themeSelect = document.getElementById('themeSelect');
+            const drawOneBtn = document.getElementById('drawOneBtn');
+
+            // 当前卡片是否翻到正面 (flipped)
+            let isFlipped = false;
+            // 当前显示的卡片内容（用于翻转时不变）
+            let currentCard = null;
+
+            // 根据所选主题筛选卡牌
+            function filterCards(theme) {
+                if (theme === 'all') return cardLibrary;
+                return cardLibrary.filter(card => card.theme === theme);
+            }
+
+            // 从给定数组中随机抽取一张
+            function randomCard(cards) {
+                if (cards.length === 0) return null;
+                const idx = Math.floor(Math.random() * cards.length);
+                return cards[idx];
+            }
+
+            // 更新大卡片内容（不改变翻转状态）
+            function setCardContent(card) {
+                if (!card) {
+                    cardQuestion.innerText = '暂无此主题卡牌';
+                    cardTag.innerText = '请选择其他主题';
+                    return;
+                }
+                cardQuestion.innerText = card.question;
+                cardTag.innerText = card.theme;
+                currentCard = card;
+            }
+
+            // 翻转大卡片
+            function flipCard() {
+                cardLarge.classList.toggle('flipped');
+                isFlipped = !isFlipped;
+            }
+
+            // 翻到正面（显示内容）
+            function flipToFront() {
+                if (!isFlipped) {
+                    cardLarge.classList.add('flipped');
+                    isFlipped = true;
+                }
+            }
+
+            // 翻到背面
+            function flipToBack() {
+                if (isFlipped) {
+                    cardLarge.classList.remove('flipped');
+                    isFlipped = false;
+                }
+            }
+
+            // 抽一张新卡并翻到正面
+            function drawNewCard() {
+                const theme = themeSelect.value;
+                const filtered = filterCards(theme);
+                if (filtered.length === 0) {
+                    alert('该主题暂无卡牌，请选择其他主题');
+                    return;
+                }
+                const card = randomCard(filtered);
+                setCardContent(card);
+                flipToFront();  // 确保正面显示
+            }
+
+            // 点击卡牌：只负责翻转，不抽新卡
+            cardInner.addEventListener('click', (e) => {
+                // 如果当前没有卡片内容（比如初始化后未抽卡），则抽一张再翻转？但最好初始化时有一张默认卡
+                // 若当前无卡，可自动抽一张；但为了逻辑清晰，我们初始化时抽一张默认
+                if (!currentCard) {
+                    // 如果当前无卡，先自动抽一张全部主题的卡
+                    const defaultFiltered = filterCards('all');
+                    if (defaultFiltered.length > 0) {
+                        const card = randomCard(defaultFiltered);
+                        setCardContent(card);
+                        flipToFront();
+                    }
+                } else {
+                    flipCard();
+                }
+            });
+
+            // 抽一张按钮
+            drawOneBtn.addEventListener('click', () => {
+                drawNewCard();
+            });
+
+            // 初始化：自动抽一张默认卡（全部主题），但不翻到正面（保持背面）？通常初始状态显示背面更符合直觉。
+            // 我们可以在初始化时抽一张卡存在currentCard里，但保持背面。点击卡牌再翻转。
+            const initFiltered = filterCards('all');
+            if (initFiltered.length > 0) {
+                const card = randomCard(initFiltered);
+                setCardContent(card);
+                // 保持背面
+                flipToBack();
+            }
+        })();
+    </script>
+</body>
+</html>

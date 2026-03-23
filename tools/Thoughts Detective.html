@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>思维侦探所 · 国风版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f1ebe5;
+            font-family: 'Ma Shan Zheng', 'KaiTi', '楷体', 'Microsoft YaHei', serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* 主卡片：古籍函套风格 */
+        .detective-office {
+            max-width: 1100px;
+            width: 100%;
+            background: #fcf7ef;        /* 宣纸色 */
+            background-image: radial-gradient(circle at 10% 20%, rgba(166, 124, 82, 0.03) 0%, transparent 20%),
+                              repeating-linear-gradient(45deg, rgba(150, 100, 60, 0.02) 0px, rgba(150,100,60,0.02) 2px, transparent 2px, transparent 8px);
+            border-radius: 32px 32px 24px 24px;
+            box-shadow: 0 20px 40px rgba(90, 60, 30, 0.3), 0 0 0 2px #b79f87, 0 0 0 6px #624c3a;
+            padding: 30px 25px;
+            position: relative;
+            border: 1px solid #dac5ae;
+        }
+
+        /* 仿古书函的压纹 */
+        .detective-office::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            border: 1px dashed #b0937a;
+            border-radius: 20px;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px double #a77b5a;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #4e3e2e;
+            text-shadow: 2px 2px 0 #dacbb8;
+            letter-spacing: 4px;
+            font-family: 'Ma Shan Zheng', 'KaiTi', serif;
+        }
+        .badge {
+            background: #8a6e50;
+            color: #fcf2e1;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-size: 1rem;
+            border: 2px solid #b79f87;
+            box-shadow: inset 0 -2px 0 #5b4533;
+            font-family: 'Ma Shan Zheng', serif;
+        }
+
+        /* 案件档案区 */
+        .case-file {
+            background: #f4eadb;
+            border: 3px solid #9b7e64;
+            border-radius: 30px 30px 15px 15px;
+            padding: 25px 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 0 0 2px #fff7e9, 0 8px 0 #735f4a;
+            position: relative;
+        }
+        .case-label {
+            background: #c1a181;
+            color: #2f261e;
+            padding: 5px 30px;
+            display: inline-block;
+            border-radius: 50px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-size: 0.9rem;
+            border: 2px solid #624c3a;
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .case-thought {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #4a3828;
+            margin: 20px 0 5px;
+            line-height: 1.4;
+            text-align: center;
+            font-style: italic;
+        }
+        /* 新增情绪显示样式 */
+        .case-emotions {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #8f6e54;
+            margin-bottom: 10px;
+            font-style: normal;
+            border-bottom: 1px dashed #bdaa95;
+            padding-bottom: 8px;
+        }
+        .case-source {
+            text-align: right;
+            color: #917a63;
+            font-size: 0.9rem;
+            border-top: 1px dashed #bdaa95;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .refresh-case {
+            text-align: center;
+            margin-top: 5px;
+        }
+        .btn-small {
+            background: #c1a181;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 22px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #2f261e;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #7a5f47;
+            transition: 0.1s;
+            border: 2px solid #b08866;
+            font-family: 'Ma Shan Zheng', serif;
+        }
+        .btn-small:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* 侦探工具三步骤 */
+        .steps-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .step-card {
+            flex: 1 1 250px;
+            background: #f4eadb;
+            border: 3px solid #9b7e64;
+            border-radius: 30px 30px 15px 15px;
+            padding: 20px 15px;
+            box-shadow: 0 8px 0 #735f4a, inset 0 0 0 2px #fff7e9;
+            position: relative;
+        }
+        .step-number {
+            background: #4e3e2e;
+            color: #fcf2e1;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid #c1a181;
+            position: absolute;
+            top: -18px;
+            left: 20px;
+        }
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #4e3e2e;
+            margin-bottom: 20px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tool-icon {
+            font-size: 1.5rem;
+        }
+
+        /* 事实证据区 */
+        .fact-option {
+            display: block;
+            background: #fef8ed;
+            border: 2px solid #b79f87;
+            border-radius: 30px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.95rem;
+            box-shadow: 0 3px 0 #9b846b;
+            color: #3e3124;
+        }
+        .fact-option.selected {
+            background: #e4d5c2;
+            border-color: #735f4a;
+            box-shadow: 0 2px 0 #5b4533;
+            transform: translateY(2px);
+        }
+        .fact-option input {
+            display: none;
+        }
+
+        /* 思维陷阱选项 */
+        .trap-option {
+            display: block;
+            background: #fef8ed;
+            border: 2px solid #b79f87;
+            border-radius: 30px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #3e3124;
+        }
+        .trap-option.selected {
+            background: #e4d5c2;
+            border-color: #735f4a;
+            box-shadow: 0 2px 0 #5b4533;
+            transform: translateY(2px);
+        }
+        .trap-option input {
+            display: none;
+        }
+        .trap-hint {
+            font-size: 0.8rem;
+            color: #8f6e54;
+            margin-left: 5px;
+        }
+
+        /* 重构板 */
+        .reframe-input {
+            width: 100%;
+            background: #fef8ed;
+            border: 3px solid #9b7e64;
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            box-shadow: inset 0 0 0 2px #fff7e9;
+            color: #4a3828;
+            margin-bottom: 10px;
+        }
+
+        /* 结案按钮 */
+        .close-case-area {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0 25px;
+        }
+        .btn-primary {
+            background: #8a6e50;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fcf2e1;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #5b4533;
+            transition: 0.1s;
+            border: 2px solid #c1a181;
+            letter-spacing: 3px;
+            font-family: 'Ma Shan Zheng', serif;
+        }
+        .btn-primary:active {
+            transform: translateY(8px);
+            box-shadow: none;
+        }
+
+        /* 侦探报告区 */
+        .report-box {
+            background: #f4eadb;
+            border: 3px solid #9b7e64;
+            border-radius: 30px 30px 15px 15px;
+            padding: 25px 20px;
+            box-shadow: inset 0 0 0 2px #fff7e9, 0 8px 0 #735f4a;
+        }
+        .report-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #4e3e2e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px dashed #bdaa95;
+            padding-bottom: 8px;
+        }
+        .report-content {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #4a3828;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #917a63;
+            font-size: 0.8rem;
+        }
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #555;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="detective-office">
+        <div class="header">
+            <h1>🕵️ 思维侦探所</h1>
+            <div class="badge">中侨·心理</div>
+        </div>
+
+        <!-- 案件展示区 -->
+        <div class="case-file">
+            <div class="case-label">当前案件</div>
+            <div class="case-thought" id="caseThought">“我考试没考好，我真是个废物。”</div>
+            <!-- 新增情绪显示区 -->
+            <div class="case-emotions" id="caseEmotions">😔 可能伴随的情绪：挫败、自责、焦虑</div>
+            <div class="case-source" id="caseSource">—— 来自内心的控告</div>
+            <div class="refresh-case">
+                <button class="btn-small" id="newCaseBtn">🔍 新案件</button>
+            </div>
+        </div>
+
+        <!-- 侦探三步骤 -->
+        <div class="steps-row">
+            <!-- 第一步：放大镜找事实 -->
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-title"><span class="tool-icon">🔎</span> 搜集事实</div>
+                <div id="factContainer"></div>
+            </div>
+
+            <!-- 第二步：对照思维陷阱 -->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-title"><span class="tool-icon">📋</span> 识别陷阱</div>
+                <div id="trapContainer"></div>
+            </div>
+
+            <!-- 第三步：重构板 -->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-title"><span class="tool-icon">✏️</span> 重构想法</div>
+                <textarea class="reframe-input" id="reframeInput" placeholder="写下一个更合理的想法..." rows="4"></textarea>
+            </div>
+        </div>
+
+        <!-- 结案按钮 -->
+        <div class="close-case-area">
+            <button class="btn-primary" id="closeCaseBtn">⚖️ 结案</button>
+        </div>
+
+        <!-- 侦探报告 -->
+        <div class="report-box">
+            <div class="report-title"><span>📜 案件报告</span></div>
+            <div class="report-content" id="reportContent">
+                点击「结案」查看你的推理
+            </div>
+        </div>
+        <div class="footer-note">—— 明辨心思，方见真章 ——</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 案件库 (新增 emotions 字段) ----------
+            const CASES = [
+                {
+                    thought: '“我考试没考好，我真是个废物。”',
+                    facts: [
+                        '这次考试比预想低了10分',
+                        '考前熬夜复习了两天',
+                        '我以前一直学习都不好'
+                    ],
+                    commonTraps: ['过度概括', '贴标签'],
+                    emotions: ['挫败', '自责', '焦虑']        // 新增情绪
+                },
+                {
+                    thought: '“刚才那句话我说错了，所有人都在笑话我。”',
+                    facts: [
+                        '有两个人看了我一眼',
+                        '有人当场笑出声',
+                        '五分钟后大家继续讨论别的话题'
+                    ],
+                    commonTraps: ['读心术', '夸大化'],
+                    emotions: ['尴尬', '羞耻', '焦虑']
+                },
+                {
+                    thought: '“我必须要做到完美，否则就是失败。”',
+                    facts: [
+                        '这次任务得到了80分评价',
+                        '团队伙伴说整体满意',
+                        '有两个小细节可以改进'
+                    ],
+                    commonTraps: ['非黑即白', '应该句式'],
+                    emotions: ['压力', '焦虑', '自我否定']
+                },
+                {
+                    thought: '“ta今天没回我消息，肯定是对我有意见。”',
+                    facts: [
+                        'ta平时回复也不快',
+                        '今天凌晨发了一条朋友圈',
+                        '上次聊天结束时ta没说晚安'
+                    ],
+                    commonTraps: ['读心术', '预测化'],
+                    emotions: ['不安', '失落', '猜疑']
+                },
+                {
+                    thought: '“这次失败证明我什么都做不好。”',
+                    facts: [
+                        '这次任务因为天气原因取消',
+                        '室友完成一个成功的小项目',
+                        '朋友说我很擅长此事'
+                    ],
+                    commonTraps: ['过度概括', '非黑即白'],
+                    emotions: ['挫败', '无助', '自卑']
+                },
+                {
+                    thought: '“室友昨晚没理我，肯定是我哪里得罪ta了。”',
+                    facts: [
+                        'ta昨晚戴着耳机在打电话',
+                        '今天早上ta没和你打招呼',
+                        '你们之前说一起吃饭，结果ta说有事'
+                    ],
+                    commonTraps: ['读心术', '个人化', '夸大化'],
+                    emotions: ['委屈', '困惑', '担忧']
+                },
+                {
+                    thought: '“小组作业没拿高分，都是因为我没做好。”',
+                    facts: [
+                        '组里有人迟交了三天',
+                        'PPT展示时设备出故障',
+                        '老师给的评语说“整体结构完整，但......”'
+                    ],
+                    commonTraps: ['个人化', '过度概括', '心理过滤'],
+                    emotions: ['内疚', '自责', '挫败']
+                }
+            ];
+
+            // 所有思维陷阱列表
+            const TRAPS = [
+                { name: '非黑即白', desc: '只用两极看问题' },
+                { name: '过度概括', desc: '把一次放大到所有' },
+                { name: '读心术', desc: '猜测他人想法' },
+                { name: '应该句式', desc: '用“应该”压迫自己' },
+                { name: '夸大化', desc: '把小事看成灾难' },
+                { name: '个人化', desc: '把所有问题归咎自己' },
+                { name: '心理过滤', desc: '只看到负面细节' },
+                { name: '预测化', desc: '提前认定坏结果' },
+                { name: '贴标签', desc: '给自己或他人贴固定标签' }
+            ];
+
+            // 负面词库（用于判断重构想法的情绪）
+            const negativeWords = [
+                '失败', '废物', '没用', '不行', '糟糕', '倒霉', '完蛋', '绝望',
+                '没救了', '放弃', '一无是处', '差劲', '可悲', '愚蠢', '讨厌自己'
+            ];
+
+            let currentCaseIndex = 0;
+            let selectedFactIndex = null;      // 单选事实
+            let selectedTrapIndex = null;      // 单选陷阱
+
+            // DOM 元素
+            const caseThought = document.getElementById('caseThought');
+            const caseSource = document.getElementById('caseSource');
+            const caseEmotions = document.getElementById('caseEmotions'); // 新增情绪元素
+            const factContainer = document.getElementById('factContainer');
+            const trapContainer = document.getElementById('trapContainer');
+            const reframeInput = document.getElementById('reframeInput');
+            const reportContent = document.getElementById('reportContent');
+            const newCaseBtn = document.getElementById('newCaseBtn');
+            const closeCaseBtn = document.getElementById('closeCaseBtn');
+
+            // 加载指定案件
+            function loadCase(index) {
+                const c = CASES[index];
+                caseThought.innerText = c.thought;
+                caseSource.innerText = '—— 来自内心的控告';
+                // 更新情绪显示
+                if (c.emotions && c.emotions.length > 0) {
+                    caseEmotions.innerText = '😔 可能伴随的情绪：' + c.emotions.join('、');
+                } else {
+                    caseEmotions.innerText = '';
+                }
+                selectedFactIndex = null;
+                selectedTrapIndex = null;
+                reframeInput.value = '';
+                renderFacts(c.facts);
+                renderTraps(c.commonTraps);
+            }
+
+            // 渲染事实选项
+            function renderFacts(facts) {
+                let html = '';
+                facts.forEach((fact, idx) => {
+                    const selectedClass = (selectedFactIndex === idx) ? 'selected' : '';
+                    const checked = (selectedFactIndex === idx) ? 'checked' : '';
+                    html += `
+                        <label class="fact-option ${selectedClass}">
+                            <input type="radio" name="fact" value="${idx}" ${checked}> ${fact}
+                        </label>
+                    `;
+                });
+                factContainer.innerHTML = html;
+
+                // 绑定事件
+                document.querySelectorAll('.fact-option input').forEach((radio, idx) => {
+                    radio.addEventListener('change', (e) => {
+                        if (e.target.checked) {
+                            selectedFactIndex = parseInt(e.target.value);
+                            // 重新渲染以更新样式
+                            renderFacts(CASES[currentCaseIndex].facts);
+                        }
+                    });
+                });
+            }
+
+            // 渲染陷阱选项（全部列出，但案件常见陷阱用红色边框提示）
+            function renderTraps(commonTraps) {
+                let html = '';
+                TRAPS.forEach((trap, idx) => {
+                    const isCommon = commonTraps.includes(trap.name);
+                    const selectedClass = (selectedTrapIndex === idx) ? 'selected' : '';
+                    const checked = (selectedTrapIndex === idx) ? 'checked' : '';
+                    // 常见陷阱用一个小红点或边框提示（不加红点，用文字说明）
+                    html += `
+                        <label class="trap-option ${selectedClass}" style="${isCommon ? 'border-left: 6px solid #b55a3a;' : ''}">
+                            <input type="radio" name="trap" value="${idx}" ${checked}>
+                            <strong>${trap.name}</strong> — ${trap.desc}
+                            ${isCommon ? '<span class="trap-hint">(本案常见)</span>' : ''}
+                        </label>
+                    `;
+                });
+                trapContainer.innerHTML = html;
+
+                // 绑定事件
+                document.querySelectorAll('.trap-option input').forEach((radio, idx) => {
+                    radio.addEventListener('change', (e) => {
+                        if (e.target.checked) {
+                            selectedTrapIndex = idx;
+                            renderTraps(CASES[currentCaseIndex].commonTraps);
+                        }
+                    });
+                });
+            }
+
+            // 检查重构想法是否含负面词汇
+            function isNegativeReframe(text) {
+                const lower = text.toLowerCase();
+                return negativeWords.some(word => lower.includes(word));
+            }
+
+            // 结案生成报告
+            function generateReport() {
+                const c = CASES[currentCaseIndex];
+                const factText = selectedFactIndex !== null ? c.facts[selectedFactIndex] : '未选择具体事实';
+                const trapName = selectedTrapIndex !== null ? TRAPS[selectedTrapIndex].name : '未识别';
+                const reframe = reframeInput.value.trim() || '未填写重构想法';
+
+                let report = `📌 原想法：${c.thought}\n\n`;
+                report += `🔍 找到的事实：${factText}\n`;
+                report += `📋 识别的思维陷阱：${trapName}\n`;
+                report += `✏️ 重构的想法：${reframe}\n\n`;
+                report += `🕵️ 侦探小结：`;
+
+                // 评价陷阱是否正确
+                let trapCorrect = false;
+                if (selectedTrapIndex !== null) {
+                    const selectedTrapName = TRAPS[selectedTrapIndex].name;
+                    if (c.commonTraps.includes(selectedTrapName)) {
+                        trapCorrect = true;
+                    }
+                }
+
+                // 判断重构想法是否负面
+                const isReframeNegative = (reframe !== '未填写重构想法') && isNegativeReframe(reframe);
+
+                // 根据情况生成小结
+                if (selectedFactIndex !== null && selectedTrapIndex !== null && reframe !== '未填写重构想法') {
+                    if (trapCorrect && !isReframeNegative) {
+                        report += `太棒了！你完成了完整的认知重构，选对了陷阱，新想法也更积极。继续练习，你会成为自己思维的侦探。`;
+                    } else if (!trapCorrect && !isReframeNegative) {
+                        report += `你找出了事实，重构的想法也不错，但识别的陷阱可能不太准确（本案更常见的是 ${c.commonTraps.join('、')}）。再审视一下这个想法？`;
+                    } else if (trapCorrect && isReframeNegative) {
+                        report += `陷阱识别很准，但重构的想法似乎还带着负面情绪。可以试着写一个更友善、更平衡的句子。`;
+                    } else {
+                        report += `已经迈出一大步！不过陷阱可能选得不太对（本案常见的是 ${c.commonTraps.join('、')}），且重构的想法可以更积极一些。`;
+                    }
+                } else if (selectedFactIndex !== null && selectedTrapIndex !== null) {
+                    if (trapCorrect) {
+                        report += `你找出了事实和正确的陷阱，试着写下一个新的想法，让改变发生。`;
+                    } else {
+                        report += `事实和陷阱都选了，但陷阱可能不太对（本案更常见的是 ${c.commonTraps.join('、')}）。再想想？`;
+                    }
+                } else if (reframe !== '未填写重构想法') {
+                    if (isReframeNegative) {
+                        report += `你已经尝试重构，但新想法偏向负面。试着站在友善的角度，写一句能鼓励自己的话。`;
+                    } else {
+                        report += `你已经迈出了重要一步——写下新想法。再往前一步，找出事实和陷阱，会让它更坚实。`;
+                    }
+                } else {
+                    report += `侦案需要耐心，慢慢练习，每一步都在成长。`;
+                }
+
+                reportContent.innerText = report;
+            }
+
+            // 随机抽取新案件
+            function randomCase() {
+                let newIndex = Math.floor(Math.random() * CASES.length);
+                while (newIndex === currentCaseIndex && CASES.length > 1) {
+                    newIndex = Math.floor(Math.random() * CASES.length);
+                }
+                currentCaseIndex = newIndex;
+                loadCase(currentCaseIndex);
+            }
+
+            // 事件绑定
+            newCaseBtn.addEventListener('click', randomCase);
+            closeCaseBtn.addEventListener('click', generateReport);
+
+            // 初始化
+            currentCaseIndex = 0;
+            loadCase(0);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SMART目标工坊 · 让目标清晰起来</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(145deg, #d6f0f0, #b8e0e0);
+            font-family: 'Segoe UI', 'Ma Shan Zheng', 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .smart-container {
+            max-width: 700px;
+            width: 100%;
+            background: #ffffffdd;
+            backdrop-filter: blur(4px);
+            border-radius: 60px 60px 40px 40px;
+            box-shadow: 0 20px 30px rgba(70, 120, 120, 0.25), 0 0 0 4px #c0e8e8, 0 0 0 8px #e0f8f8;
+            padding: 30px 25px;
+            border: 2px solid #b0d8d8;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #206060;
+            text-shadow: 2px 2px 0 #d0f0f0;
+        }
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 400;
+            letter-spacing: 4px;
+        }
+        .header p {
+            font-size: 1rem;
+            color: #408080;
+        }
+
+        /* 当前编辑区卡片 */
+        .current-card {
+            background: #f0fcfc;
+            border-radius: 40px;
+            padding: 25px 20px;
+            margin-bottom: 30px;
+            border: 3px solid #90c0c0;
+            box-shadow: inset 0 0 0 2px #ffffff, 0 8px 0 #70a0a0;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #206060;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 原始目标 */
+        .raw-goal {
+            margin-bottom: 20px;
+        }
+        .raw-goal label {
+            font-size: 0.9rem;
+            color: #2d7a7a;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .raw-input {
+            width: 100%;
+            background: white;
+            border: 3px solid #90c0c0;
+            border-radius: 30px;
+            padding: 14px 18px;
+            font-size: 1rem;
+            color: #1f5f5f;
+            outline: none;
+            transition: 0.1s;
+        }
+        .raw-input:focus {
+            border-color: #5fa0a0;
+            box-shadow: 0 0 0 3px #c0e8e8;
+        }
+
+        /* SMART分步卡片 */
+        .step-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .step-item {
+            background: #ffffff;
+            border-radius: 30px;
+            padding: 15px 18px;
+            border: 2px solid #b0d0d0;
+            box-shadow: 0 4px 0 #80a8a8;
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .step-letter {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #5fa0a0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .step-title {
+            font-weight: 600;
+            color: #206060;
+            font-size: 1rem;
+        }
+        .step-example {
+            font-size: 0.8rem;
+            color: #408080;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+        .step-input {
+            width: 100%;
+            background: #f0fcfc;
+            border: 2px solid #b0d0d0;
+            border-radius: 20px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            color: #1f5f5f;
+            outline: none;
+        }
+        .step-input:focus {
+            border-color: #5fa0a0;
+        }
+
+        /* 实时预览区 */
+        .preview-box {
+            background: #e0f4f4;
+            border-radius: 30px;
+            padding: 20px;
+            border: 3px dashed #70a0a0;
+            margin-bottom: 20px;
+        }
+        .preview-label {
+            font-size: 0.8rem;
+            color: #2d7a7a;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        .preview-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #1f5f5f;
+            word-break: break-word;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #ffffff;
+            border: 2px solid #70a0a0;
+            border-radius: 40px;
+            padding: 10px 25px;
+            font-size: 0.9rem;
+            color: #1f5f5f;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #609090;
+            transition: 0.1s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .btn.primary {
+            background: #5fa0a0;
+            border-color: #408080;
+            color: white;
+            box-shadow: 0 4px 0 #306060;
+        }
+
+        /* 历史目标列表 */
+        .history-area {
+            margin-top: 25px;
+        }
+        .history-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #206060;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #b0d0d0;
+            padding-bottom: 5px;
+        }
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .history-item {
+            background: #f0fcfc;
+            border-radius: 30px;
+            padding: 15px 20px;
+            border: 2px solid #b0d0d0;
+            box-shadow: 0 4px 0 #80a8a8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .history-info {
+            flex: 2 1 200px;
+        }
+        .history-goal {
+            font-weight: 600;
+            color: #206060;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+        .history-date {
+            font-size: 0.7rem;
+            color: #609090;
+        }
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #408080;
+            padding: 5px;
+        }
+        .icon-btn:hover {
+            color: #206060;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #609090;
+            font-size: 0.8rem;
+        }
+        .site-badge {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #5fa0a0;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #555;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="site-badge">中侨·心理</div>
+    <div class="smart-container">
+        <div class="header">
+            <h1>🧠 SMART目标工坊</h1>
+            <p>模糊愿望 → 清晰计划</p>
+        </div>
+
+        <div class="current-card">
+            <div class="section-title">
+                <span>🎯 当前目标</span>
+            </div>
+            <!-- 原始目标输入 -->
+            <div class="raw-goal">
+                <label>我的原始目标 (先写下大概想法)</label>
+                <input type="text" class="raw-input" id="rawGoalInput" placeholder="例如：学好英语、减肥、通过考试……" value="学好英语">
+            </div>
+
+            <!-- SMART 分步引导 -->
+            <div class="step-grid">
+                <!-- S -->
+                <div class="step-item">
+                    <div class="step-header">
+                        <div class="step-letter">S</div>
+                        <div class="step-title">具体化 · 你想要达到什么具体结果？</div>
+                    </div>
+                    <div class="step-example">例：通过英语六级考试，能看懂英文文献</div>
+                    <input class="step-input" id="inputS" placeholder="填写具体结果" value="通过英语六级考试">
+                </div>
+                <!-- M -->
+                <div class="step-item">
+                    <div class="step-header">
+                        <div class="step-letter">M</div>
+                        <div class="step-title">可衡量 · 怎么衡量成功？</div>
+                    </div>
+                    <div class="step-example">例：六级分数550+，每天背30个单词，每周做一套真题</div>
+                    <input class="step-input" id="inputM" placeholder="填写衡量指标" value="六级分数550+，每天背30个单词，每周做一套真题">
+                </div>
+                <!-- A -->
+                <div class="step-item">
+                    <div class="step-header">
+                        <div class="step-letter">A</div>
+                        <div class="step-title">可实现 · 你打算怎么做？需要什么资源？</div>
+                    </div>
+                    <div class="step-example">例：每天早起1小时背单词，周末做真题，购买真题集，加入学习小组</div>
+                    <input class="step-input" id="inputA" placeholder="填写行动计划和资源" value="每天早起1小时背单词，周末做真题">
+                </div>
+                <!-- R -->
+                <div class="step-item">
+                    <div class="step-header">
+                        <div class="step-letter">R</div>
+                        <div class="step-title">相关性 · 这个目标为什么对你重要？</div>
+                    </div>
+                    <div class="step-example">例：为了考研英语不拖后腿，未来能阅读国际文献</div>
+                    <input class="step-input" id="inputR" placeholder="填写重要性理由" value="为了考研英语不拖后腿，未来能阅读国际文献">
+                </div>
+                <!-- T -->
+                <div class="step-item">
+                    <div class="step-header">
+                        <div class="step-letter">T</div>
+                        <div class="step-title">时间限制 · 打算什么时候完成？</div>
+                    </div>
+                    <div class="step-example">例：2025年6月前（六级考试前）</div>
+                    <input class="step-input" id="inputT" placeholder="填写截止日期或里程碑" value="2025年6月前">
+                </div>
+            </div>
+
+            <!-- 实时预览 -->
+            <div class="preview-box">
+                <div class="preview-label">✨ SMART目标声明</div>
+                <div class="preview-text" id="previewText">在2025年6月前，通过每天早起1小时背单词、周末做真题，将英语六级分数提升到550+，每天背30个单词，每周做一套真题，以达到考研英语不拖后腿的目标。</div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button class="btn" id="saveBtn">💾 保存目标</button>
+                <button class="btn" id="clearBtn">🔄 清空当前</button>
+                <button class="btn primary" id="newBtn">✨ 新建目标</button>
+            </div>
+        </div>
+
+        <!-- 历史目标列表 -->
+        <div class="history-area">
+            <div class="history-title">
+                <span>📚 历史目标</span>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        <div class="footer-note">
+            ✦ 每一步都让目标更清晰 ✦
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 存储键 ----------
+            const STORAGE_KEY = 'smartGoals';
+
+            // ---------- 当前目标状态 ----------
+            let rawGoal = '学好英语';
+            let sText = '通过英语六级考试';
+            let mText = '六级分数550+，每天背30个单词，每周做一套真题';
+            let aText = '每天早起1小时背单词，周末做真题';
+            let rText = '为了考研英语不拖后腿，未来能阅读国际文献';
+            let tText = '2025年6月前';
+
+            // DOM 元素
+            const rawInput = document.getElementById('rawGoalInput');
+            const inputS = document.getElementById('inputS');
+            const inputM = document.getElementById('inputM');
+            const inputA = document.getElementById('inputA');
+            const inputR = document.getElementById('inputR');
+            const inputT = document.getElementById('inputT');
+            const previewText = document.getElementById('previewText');
+            const saveBtn = document.getElementById('saveBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const newBtn = document.getElementById('newBtn');
+            const historyList = document.getElementById('historyList');
+
+            // ---------- 辅助函数 ----------
+            function generatePreview() {
+                // 组合SMART声明
+                let preview = '';
+                if (tText && tText.trim() !== '') preview += `在${tText}，`;
+                if (aText && aText.trim() !== '') preview += `通过${aText}，`;
+                if (sText && sText.trim() !== '') preview += `将${rawGoal}细化为“${sText}”，`;
+                else if (rawGoal) preview += `将${rawGoal}，`;
+                if (mText && mText.trim() !== '') preview += `衡量标准：${mText}，`;
+                if (rText && rText.trim() !== '') preview += `因为这对我很重要：${rText}。`;
+                else preview += '。';
+                // 清理多余符号
+                preview = preview.replace(/,，/g, '，').replace(/，\./g, '。');
+                return preview;
+            }
+
+            function updatePreview() {
+                previewText.innerText = generatePreview();
+            }
+
+            // 从输入更新状态
+            function syncStateFromInputs() {
+                rawGoal = rawInput.value.trim() || '未填写';
+                sText = inputS.value.trim();
+                mText = inputM.value.trim();
+                aText = inputA.value.trim();
+                rText = inputR.value.trim();
+                tText = inputT.value.trim();
+                updatePreview();
+            }
+
+            // 将状态填充到输入框
+            function fillInputs() {
+                rawInput.value = rawGoal;
+                inputS.value = sText;
+                inputM.value = mText;
+                inputA.value = aText;
+                inputR.value = rText;
+                inputT.value = tText;
+                updatePreview();
+            }
+
+            // ---------- 本地存储 ----------
+            function loadGoals() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    try {
+                        return JSON.parse(stored);
+                    } catch (e) {
+                        return [];
+                    }
+                }
+                return [];
+            }
+
+            function saveGoalToStorage(goal) {
+                const goals = loadGoals();
+                goals.unshift(goal); // 新目标放前面
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
+                renderHistory();
+            }
+
+            function deleteGoalFromStorage(index) {
+                const goals = loadGoals();
+                goals.splice(index, 1);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
+                renderHistory();
+            }
+
+            // HTML 转义辅助函数
+            function escapeHTML(str) {
+                if (!str) return '';
+                return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            }
+
+            // 渲染历史列表
+            function renderHistory() {
+                const goals = loadGoals();
+                if (goals.length === 0) {
+                    historyList.innerHTML = '<div style="text-align:center; color:#80a8a8;">暂无保存的目标，创建并保存一个吧~</div>';
+                    return;
+                }
+                let html = '';
+                goals.forEach((goal, idx) => {
+                    const date = new Date(goal.createdAt).toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                    html += `
+                        <div class="history-item">
+                            <div class="history-info">
+                                <div class="history-goal">${escapeHTML(goal.preview) || '目标'}</div>
+                                <div class="history-date">${date}</div>
+                            </div>
+                            <div class="history-actions">
+                                <button class="icon-btn load-goal" data-index="${idx}" title="加载到当前编辑">📂</button>
+                                <button class="icon-btn delete-goal" data-index="${idx}" title="删除">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                historyList.innerHTML = html;
+
+                // 加载按钮事件
+                document.querySelectorAll('.load-goal').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = e.currentTarget.dataset.index;
+                        const goals = loadGoals();
+                        const goal = goals[idx];
+                        if (goal) {
+                            rawGoal = goal.rawGoal || '';
+                            sText = goal.sText || '';
+                            mText = goal.mText || '';
+                            aText = goal.aText || '';
+                            rText = goal.rText || '';
+                            tText = goal.tText || '';
+                            fillInputs();
+                        }
+                    });
+                });
+
+                // 删除按钮事件
+                document.querySelectorAll('.delete-goal').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = e.currentTarget.dataset.index;
+                        if (confirm('确定删除这条目标吗？')) {
+                            deleteGoalFromStorage(idx);
+                        }
+                    });
+                });
+            }
+
+            // ---------- 保存当前目标 ----------
+            function saveCurrentGoal() {
+                syncStateFromInputs();
+                const goal = {
+                    rawGoal,
+                    sText,
+                    mText,
+                    aText,
+                    rText,
+                    tText,
+                    preview: generatePreview(),
+                    createdAt: Date.now()
+                };
+                saveGoalToStorage(goal);
+                // 可选提示
+                alert('目标已保存！');
+            }
+
+            // ---------- 清空当前输入 ----------
+            function clearCurrent() {
+                rawGoal = '';
+                sText = '';
+                mText = '';
+                aText = '';
+                rText = '';
+                tText = '';
+                fillInputs();
+            }
+
+            // ---------- 新建目标（重置为空白）----------
+            function newGoal() {
+                clearCurrent();
+            }
+
+            // ---------- 事件绑定 ----------
+            rawInput.addEventListener('input', syncStateFromInputs);
+            inputS.addEventListener('input', syncStateFromInputs);
+            inputM.addEventListener('input', syncStateFromInputs);
+            inputA.addEventListener('input', syncStateFromInputs);
+            inputR.addEventListener('input', syncStateFromInputs);
+            inputT.addEventListener('input', syncStateFromInputs);
+
+            saveBtn.addEventListener('click', saveCurrentGoal);
+            clearBtn.addEventListener('click', clearCurrent);
+            newBtn.addEventListener('click', newGoal);
+
+            // ---------- 初始化 ----------
+            // 设置默认示例
+            rawGoal = '学好英语';
+            sText = '通过英语六级考试';
+            mText = '六级分数550+，每天背30个单词，每周做一套真题';
+            aText = '每天早起1小时背单词，周末做真题';
+            rText = '为了考研英语不拖后腿，未来能阅读国际文献';
+            tText = '2025年6月前';
+            fillInputs();
+
+            renderHistory();
+        })();
+    </script>
+</body>
+</html>

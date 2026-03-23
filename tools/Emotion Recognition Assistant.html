@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>情绪识别小助手 · 完整版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #fef7e9;
+            font-family: 'Segoe UI', 'Ma Shan Zheng', 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #ffffffdd;
+            backdrop-filter: blur(8px);
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 20px 30px rgba(255, 160, 100, 0.2), 0 0 0 4px #ffe0b5, 0 0 0 8px #ffc799;
+            padding: 28px 22px;
+            border: 2px solid #ffb77c;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #b45a2b;
+            text-shadow: 2px 2px 0 #ffe3b0;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            letter-spacing: 3px;
+        }
+        .header p {
+            font-size: 0.95rem;
+            color: #b45a2b;
+        }
+
+        /* 输入区域 */
+        .input-card {
+            background: #fff4e0;
+            border-radius: 40px;
+            padding: 22px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #ffb77c;
+            box-shadow: 0 6px 0 #d47a2c;
+        }
+        .input-label {
+            font-size: 0.9rem;
+            color: #b45a2b;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        textarea {
+            width: 100%;
+            background: white;
+            border: 2px solid #ffb77c;
+            border-radius: 30px;
+            padding: 16px 18px;
+            font-size: 1rem;
+            color: #4a2e1a;
+            resize: vertical;
+            outline: none;
+            transition: 0.1s;
+        }
+        textarea:focus {
+            border-color: #ff8c42;
+        }
+
+        .identify-btn {
+            background: #ffb86b;
+            border: 2px solid #e5944a;
+            border-radius: 40px;
+            padding: 14px 28px;
+            font-size: 1.2rem;
+            color: #5e2e12;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #b25923;
+            transition: 0.1s;
+            width: 100%;
+            font-weight: 600;
+        }
+        .identify-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        /* 识别结果区 */
+        .result-area {
+            background: #fff4e0;
+            border-radius: 40px;
+            padding: 22px 20px;
+            margin: 20px 0;
+            border: 2px solid #ffb77c;
+        }
+        .result-title {
+            font-size: 1.1rem;
+            color: #b45a2b;
+            margin-bottom: 12px;
+        }
+        .emotion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .emotion-tag {
+            background: white;
+            border: 2px solid #ffb77c;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 1rem;
+            color: #4a2e1a;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .emotion-tag .score {
+            font-size: 0.7rem;
+            background: #ffedd4;
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: #b25923;
+        }
+        .select-area {
+            margin: 15px 0;
+        }
+        .select-area p {
+            color: #b45a2b;
+            margin-bottom: 8px;
+        }
+        .emotion-check-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .emotion-check {
+            background: white;
+            border: 2px solid #ffb77c;
+            border-radius: 30px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .feedback-box {
+            background: #ffedd4;
+            border-left: 8px solid #ff8c42;
+            border-radius: 20px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #4a2e1a;
+        }
+
+        .knowledge-card {
+            background: #ffeac2;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 10px;
+            border: 2px dashed #ffb257;
+            font-size: 0.9rem;
+            color: #8b4b1f;
+        }
+
+        /* 历史统计 */
+        .stats-area {
+            margin-top: 30px;
+            border-top: 2px dashed #ffb77c;
+            padding-top: 20px;
+        }
+        .stats-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .stats-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .reset-btn {
+            background: #ffedd4;
+            border: 2px solid #ffb77c;
+            border-radius: 30px;
+            padding: 6px 18px;
+            font-size: 0.9rem;
+            color: #b45a2b;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #d47a2c;
+            transition: 0.1s;
+            font-weight: 500;
+        }
+        .reset-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+        .wordcloud {
+            background: #fff4e0;
+            border-radius: 30px;
+            padding: 20px;
+            min-height: 150px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #ffb77c;
+            margin: 15px 0;
+        }
+        .word-item {
+            display: inline-block;
+            margin: 5px 8px;
+            color: #c96b2e;
+            transition: 0.1s;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            color: #d47a2c;
+            font-size: 0.8rem;
+        }
+        .site-badge {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #ffb86b;
+            color: #5e2e12;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #555;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="site-badge">中侨·心理</div>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 情绪识别小助手</h1>
+            <p>描述事件 · 发现隐藏的情绪</p>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="input-card">
+            <div class="input-label">📝 描述一件让你有情绪的事</div>
+            <textarea id="eventInput" rows="3" placeholder="例如：今天小组讨论时，我的方案被大家否定了……"></textarea>
+        </div>
+
+        <button class="identify-btn" id="identifyBtn">✨ 识别情绪</button>
+
+        <!-- 识别结果区 -->
+        <div class="result-area" id="resultArea" style="display: none;">
+            <div class="result-title">🧠 AI 识别的可能情绪（按强度排序）</div>
+            <div class="emotion-tags" id="aiTags"></div>
+
+            <div class="select-area">
+                <p>🤔 你认为实际感受到的情绪是？</p>
+                <div class="emotion-check-group" id="userCheckGroup"></div>
+            </div>
+
+            <div class="feedback-box" id="feedbackText">等待反馈……</div>
+            <div class="knowledge-card" id="knowledgeCard"></div>
+        </div>
+
+        <!-- 历史统计（词云 + 重置） -->
+        <div class="stats-area">
+            <div class="stats-header">
+                <div class="stats-left">
+                    <h3 style="color:#b45a2b;">📊 情绪词汇云</h3>
+                    <span style="color:#b45a2b;" id="historyCount">累计 0 次</span>
+                </div>
+                <button class="reset-btn" id="resetStatsBtn">↻ 重置统计</button>
+            </div>
+            <div class="wordcloud" id="wordCloud"></div>
+        </div>
+
+        <div class="footer-note">
+            ✦ 点击「识别情绪」开始 · 选择你认同的情绪获得反馈 ✦
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 扩充的情绪词库 (包含丰富积极情绪) ----------
+            const EMOTIONS = [
+                // 原有情绪
+                {
+                    name: '挫败',
+                    keywords: [
+                        { word: '否定', weight: 0.8 }, { word: '拒绝', weight: 0.7 }, { word: '失败', weight: 1.0 },
+                        { word: '没做好', weight: 0.9 }, { word: '做不好', weight: 0.9 }, { word: '努力白费', weight: 1.0 },
+                        { word: '被否定', weight: 1.0 }, { word: '没通过', weight: 0.8 }, { word: '白费', weight: 0.8 }
+                    ],
+                    definition: '挫败感：觉得自己能力不够，或努力没有回报，对自己产生怀疑。'
+                },
+                {
+                    name: '失落',
+                    keywords: [
+                        { word: '没来', weight: 0.7 }, { word: '取消', weight: 0.6 }, { word: '没实现', weight: 0.8 },
+                        { word: '失望', weight: 0.9 }, { word: '落空', weight: 0.8 }, { word: '期待落空', weight: 1.0 },
+                        { word: '白等', weight: 0.7 }, { word: '没等到', weight: 0.7 }, { word: '扑空', weight: 0.7 }
+                    ],
+                    definition: '失落：期待的事情没有发生，心里空落落的。'
+                },
+                {
+                    name: '委屈',
+                    keywords: [
+                        { word: '误解', weight: 0.9 }, { word: '被误解', weight: 1.0 }, { word: '不被理解', weight: 0.9 },
+                        { word: '解释不清', weight: 0.8 }, { word: '凭什么', weight: 0.7 }, { word: '冤枉', weight: 0.9 },
+                        { word: '被冤枉', weight: 1.0 }, { word: '说我不对', weight: 0.6 }, { word: '明明不是', weight: 0.6 }
+                    ],
+                    definition: '委屈：感觉自己被误会或不被公平对待，想解释却说不出口。'
+                },
+                {
+                    name: '焦虑',
+                    keywords: [
+                        { word: '担心', weight: 0.7 }, { word: '害怕', weight: 0.7 }, { word: '紧张', weight: 0.8 },
+                        { word: '来不及', weight: 0.8 }, { word: '怕', weight: 0.5 }, { word: '不安', weight: 0.8 },
+                        { word: '失眠', weight: 0.6 }, { word: '压力大', weight: 0.7 }, { word: '慌', weight: 0.6 }
+                    ],
+                    definition: '焦虑：对未来的不确定感到不安，常常伴随紧张和担心。'
+                },
+                {
+                    name: '失望',
+                    keywords: [
+                        { word: '失望', weight: 1.0 }, { word: '没达到预期', weight: 0.9 }, { word: '本期待', weight: 0.8 },
+                        { word: '竟然这样', weight: 0.5 }, { word: '没想到', weight: 0.4 }, { word: '落差', weight: 0.7 }
+                    ],
+                    definition: '失望：现实没有达到预期，心里产生落差。'
+                },
+                {
+                    name: '愧疚',
+                    keywords: [
+                        { word: '抱歉', weight: 0.8 }, { word: '对不起', weight: 1.0 }, { word: '内疚', weight: 1.0 },
+                        { word: '不该', weight: 0.7 }, { word: '后悔', weight: 0.8 }, { word: '怪自己', weight: 0.9 }
+                    ],
+                    definition: '愧疚：感觉自己做错了事，伤害了别人，心里不安。'
+                },
+                {
+                    name: '羡慕',
+                    keywords: [
+                        { word: '羡慕', weight: 1.0 }, { word: '嫉妒', weight: 0.8 }, { word: '要是我也能', weight: 0.8 },
+                        { word: '为什么他', weight: 0.6 }, { word: '眼红', weight: 0.7 }, { word: '也想拥有', weight: 0.7 }
+                    ],
+                    definition: '羡慕：渴望拥有别人拥有的东西或特质。'
+                },
+                {
+                    name: '愤怒',
+                    keywords: [
+                        { word: '生气', weight: 1.0 }, { word: '愤怒', weight: 1.0 }, { word: '恼火', weight: 0.9 },
+                        { word: '火大', weight: 0.8 }, { word: '气死', weight: 0.9 }, { word: '不可理喻', weight: 0.7 },
+                        { word: '忍不了', weight: 0.7 }, { word: '无法接受', weight: 0.6 }
+                    ],
+                    definition: '愤怒：当感到被冒犯、不公或阻碍时产生的强烈不满。'
+                },
+                {
+                    name: '惊讶',
+                    keywords: [
+                        { word: '惊讶', weight: 1.0 }, { word: '吃惊', weight: 1.0 }, { word: '没想到', weight: 0.8 },
+                        { word: '意外', weight: 0.8 }, { word: '突然', weight: 0.6 }, { word: '竟然', weight: 0.7 }
+                    ],
+                    definition: '惊讶：因突发或意料之外的事情而产生的短暂反应。'
+                },
+                {
+                    name: '平静',
+                    keywords: [
+                        { word: '平静', weight: 1.0 }, { word: '安心', weight: 0.9 }, { word: '放松', weight: 0.8 },
+                        { word: '宁静', weight: 0.8 }, { word: '没什么感觉', weight: 0.5 }
+                    ],
+                    definition: '平静：内心安稳，没有强烈的情绪波动。'
+                },
+                {
+                    name: '尴尬',
+                    keywords: [
+                        { word: '尴尬', weight: 1.0 }, { word: '难堪', weight: 0.9 }, { word: '不好意思', weight: 0.7 },
+                        { word: '脸红', weight: 0.7 }, { word: '下不来台', weight: 0.8 }
+                    ],
+                    definition: '尴尬：在社交场合中感到不自在、难为情。'
+                },
+                {
+                    name: '疲惫',
+                    keywords: [
+                        { word: '累', weight: 0.9 }, { word: '疲惫', weight: 1.0 }, { word: '困', weight: 0.6 },
+                        { word: '没精神', weight: 0.8 }, { word: '精疲力竭', weight: 1.0 }, { word: '耗尽了', weight: 0.8 }
+                    ],
+                    definition: '疲惫：身心极度疲劳，缺乏能量。'
+                },
+                // 新增积极情绪
+                {
+                    name: '开心',
+                    keywords: [
+                        { word: '开心', weight: 1.0 }, { word: '高兴', weight: 1.0 }, { word: '快乐', weight: 1.0 },
+                        { word: '被夸', weight: 0.8 }, { word: '收到礼物', weight: 0.8 }, { word: '谢谢', weight: 0.5 },
+                        { word: '顺利', weight: 0.6 }, { word: '成功', weight: 0.7 }, { word: '通过', weight: 0.6 }
+                    ],
+                    definition: '开心：一种积极、满足的情绪，让人感到轻松愉悦。'
+                },
+                {
+                    name: '轻松',
+                    keywords: [
+                        { word: '轻松', weight: 1.0 }, { word: '放松', weight: 0.9 }, { word: '没压力', weight: 0.8 },
+                        { word: '舒坦', weight: 0.8 }, { word: '解脱', weight: 0.7 }
+                    ],
+                    definition: '轻松：卸下负担后感到身心舒畅。'
+                },
+                {
+                    name: '满足',
+                    keywords: [
+                        { word: '满足', weight: 1.0 }, { word: '满意', weight: 0.9 }, { word: '值得', weight: 0.7 },
+                        { word: '充实', weight: 0.8 }, { word: '够啦', weight: 0.5 }
+                    ],
+                    definition: '满足：愿望达成，内心感到充实和欣慰。'
+                },
+                {
+                    name: '感恩',
+                    keywords: [
+                        { word: '感恩', weight: 1.0 }, { word: '感谢', weight: 0.9 }, { word: '幸运', weight: 0.7 },
+                        { word: '谢谢', weight: 0.6 }, { word: '感激', weight: 0.9 }
+                    ],
+                    definition: '感恩：对他人或生活的善意心怀感激。'
+                },
+                {
+                    name: '自豪',
+                    keywords: [
+                        { word: '自豪', weight: 1.0 }, { word: '骄傲', weight: 0.9 }, { word: '成就感', weight: 0.9 },
+                        { word: '厉害', weight: 0.6 }, { word: '做成了', weight: 0.8 }
+                    ],
+                    definition: '自豪：为自己或与自己相关的人取得的成绩感到光荣。'
+                },
+                {
+                    name: '感动',
+                    keywords: [
+                        { word: '感动', weight: 1.0 }, { word: '温暖', weight: 0.8 }, { word: '暖心', weight: 0.8 },
+                        { word: '被触动', weight: 0.8 }, { word: '眼眶一热', weight: 0.7 }
+                    ],
+                    definition: '感动：被真挚的情感触动，内心充满暖意。'
+                },
+                {
+                    name: '惊喜',
+                    keywords: [
+                        { word: '惊喜', weight: 1.0 }, { word: '意外之喜', weight: 0.9 }, { word: '没想到这么好', weight: 0.8 },
+                        { word: '超出预期', weight: 0.7 }, { word: '喜出望外', weight: 0.9 }
+                    ],
+                    definition: '惊喜：因意外的好事感到兴奋和快乐。'
+                }
+            ];
+
+            // 否定词库
+            const NEGATIONS = ['不', '没', '没有', '并非', '不是', '并非', '无', '未'];
+
+            // 历史记录
+            let history = [];
+
+            // DOM 元素
+            const eventInput = document.getElementById('eventInput');
+            const identifyBtn = document.getElementById('identifyBtn');
+            const resultArea = document.getElementById('resultArea');
+            const aiTagsDiv = document.getElementById('aiTags');
+            const userCheckGroup = document.getElementById('userCheckGroup');
+            const feedbackText = document.getElementById('feedbackText');
+            const knowledgeCard = document.getElementById('knowledgeCard');
+            const wordCloudDiv = document.getElementById('wordCloud');
+            const historyCountSpan = document.getElementById('historyCount');
+            const resetStatsBtn = document.getElementById('resetStatsBtn');
+
+            // ---------- 核心识别函数 ----------
+            function identifyEmotions(text) {
+                const scores = {};
+
+                EMOTIONS.forEach(em => {
+                    let total = 0;
+                    em.keywords.forEach(kw => {
+                        if (text.includes(kw.word)) {
+                            // 检查附近是否有否定词（简单版本：检查词的前后10个字符）
+                            const index = text.indexOf(kw.word);
+                            const context = text.substring(Math.max(0, index - 10), index + kw.word.length + 10);
+                            let negated = NEGATIONS.some(neg => context.includes(neg));
+                            if (negated) {
+                                total += kw.weight * 0.3;
+                            } else {
+                                total += kw.weight;
+                            }
+                        }
+                    });
+                    if (total > 0) {
+                        scores[em.name] = total;
+                    }
+                });
+
+                // 归一化并排序
+                const sorted = Object.entries(scores)
+                    .map(([name, score]) => ({ name, score }))
+                    .sort((a, b) => b.score - a.score);
+
+                return sorted.slice(0, 5);
+            }
+
+            // 显示AI识别结果
+            function showAIResult(emotions) {
+                aiTagsDiv.innerHTML = '';
+                if (emotions.length === 0) {
+                    aiTagsDiv.innerHTML = '<span class="emotion-tag">未识别出明显情绪，试试其他描述</span>';
+                    return;
+                }
+                emotions.forEach(e => {
+                    const tag = document.createElement('span');
+                    tag.className = 'emotion-tag';
+                    tag.innerHTML = `${e.name} <span class="score">${e.score.toFixed(1)}</span>`;
+                    aiTagsDiv.appendChild(tag);
+                });
+            }
+
+            // 生成用户复选框（所有情绪）
+            function renderUserCheck() {
+                const allEmotionNames = EMOTIONS.map(e => e.name);
+                let html = '';
+                allEmotionNames.forEach(name => {
+                    html += `
+                        <label class="emotion-check">
+                            <input type="checkbox" value="${name}"> ${name}
+                        </label>
+                    `;
+                });
+                userCheckGroup.innerHTML = html;
+            }
+
+            // 获取定义
+            function getDefinition(emotionName) {
+                const em = EMOTIONS.find(e => e.name === emotionName);
+                return em ? em.definition : '';
+            }
+
+            // 生成反馈和知识卡片
+            function generateFeedback(selectedEmotions, aiEmotions) {
+                const aiNames = aiEmotions.map(e => e.name);
+                const selected = Array.from(selectedEmotions);
+                const matched = selected.filter(s => aiNames.includes(s));
+                const missed = aiNames.filter(a => !selected.includes(a));
+                const extra = selected.filter(s => !aiNames.includes(s));
+
+                let feedback = '';
+                if (matched.length > 0) {
+                    feedback += `✅ 你选择了 ${matched.join('、')}，这与AI识别一致。`;
+                }
+                if (missed.length > 0) {
+                    feedback += `\n⚠️ AI还识别出你可能也有 ${missed.join('、')}，可以思考一下这些情绪是否存在。`;
+                }
+                if (extra.length > 0) {
+                    feedback += `\n🔍 你选择了 ${extra.join('、')}，但AI没有识别出，可以回忆一下事件中是否有这些情绪的线索。`;
+                }
+                if (matched.length === 0 && selected.length === 0) {
+                    feedback = '你还没有选择情绪，试着选择你感受到的。';
+                } else if (matched.length === 0 && selected.length > 0) {
+                    feedback = '你选择的情绪与AI识别完全不同。可以试着换一种描述，或者思考是否还有其他感受。';
+                }
+
+                // 知识卡片：从选中的情绪中选一个（或第一个AI）给出定义
+                let knowledge = '';
+                if (selected.length > 0) {
+                    const firstSelected = selected[0];
+                    knowledge = getDefinition(firstSelected);
+                } else if (aiEmotions.length > 0) {
+                    knowledge = getDefinition(aiEmotions[0].name);
+                }
+                if (knowledge) {
+                    knowledge = '📘 ' + knowledge;
+                }
+
+                feedbackText.innerText = feedback;
+                knowledgeCard.innerText = knowledge || '点击情绪可查看详细解释';
+            }
+
+            // 更新历史统计和词云
+            function updateStats(selectedEmotions) {
+                selectedEmotions.forEach(em => {
+                    const found = history.find(h => h.emotion === em);
+                    if (found) found.count++;
+                    else history.push({ emotion: em, count: 1 });
+                });
+                renderWordCloud();
+                historyCountSpan.innerText = `累计 ${history.reduce((a, b) => a + b.count, 0)} 次`;
+            }
+
+            function renderWordCloud() {
+                if (history.length === 0) {
+                    wordCloudDiv.innerHTML = '<span style="color:#b45a2b;">暂无记录，开始识别吧～</span>';
+                    return;
+                }
+                const maxCount = Math.max(...history.map(h => h.count));
+                wordCloudDiv.innerHTML = '';
+                history.forEach(h => {
+                    const span = document.createElement('span');
+                    span.className = 'word-item';
+                    const size = 12 + (h.count / maxCount) * 30;
+                    span.style.fontSize = size + 'px';
+                    span.style.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                    span.innerText = h.emotion;
+                    wordCloudDiv.appendChild(span);
+                });
+            }
+
+            // 重置统计
+            function resetStats() {
+                history = [];
+                renderWordCloud();
+                historyCountSpan.innerText = '累计 0 次';
+            }
+
+            // 识别主流程
+            function onIdentify() {
+                const text = eventInput.value.trim();
+                if (!text) {
+                    alert('请输入事件描述');
+                    return;
+                }
+                const emotions = identifyEmotions(text);
+                showAIResult(emotions);
+                // 确保复选框已渲染（所有情绪）
+                renderUserCheck();
+                resultArea.style.display = 'block';
+                feedbackText.innerText = '等待反馈……';
+                knowledgeCard.innerText = '';
+                // 重新绑定监听
+                attachCheckListeners();
+            }
+
+            function attachCheckListeners() {
+                document.querySelectorAll('.emotion-check input').forEach(cb => {
+                    cb.addEventListener('change', (e) => {
+                        const selected = [];
+                        document.querySelectorAll('.emotion-check input:checked').forEach(c => selected.push(c.value));
+                        // 获取当前AI识别结果
+                        const aiNames = [];
+                        document.querySelectorAll('#aiTags .emotion-tag').forEach(tag => {
+                            const name = tag.innerText.split(' ')[0];
+                            aiNames.push(name);
+                        });
+                        const aiEmotions = aiNames.map(name => ({ name }));
+                        generateFeedback(selected, aiEmotions);
+                        // 仅统计新勾选的情绪，避免重复计数
+                        if (e.target.checked) {
+                            updateStats([e.target.value]);
+                        }
+                    });
+                });
+            }
+
+            identifyBtn.addEventListener('click', () => {
+                onIdentify();
+            });
+
+            resetStatsBtn.addEventListener('click', resetStats);
+
+            // 初始化渲染复选框（但一开始隐藏，点击后再显示）
+            renderUserCheck();
+
+            // 预设一些历史记录展示
+            history = [
+                { emotion: '挫败', count: 5 },
+                { emotion: '失落', count: 3 },
+                { emotion: '焦虑', count: 4 },
+                { emotion: '开心', count: 2 },
+                { emotion: '轻松', count: 2 },
+                { emotion: '满足', count: 1 },
+                { emotion: '感恩', count: 3 },
+                { emotion: '惊讶', count: 1 },
+                { emotion: '疲惫', count: 3 }
+            ];
+            renderWordCloud();
+            historyCountSpan.innerText = `累计 ${history.reduce((a, b) => a + b.count, 0)} 次`;
+        })();
+    </script>
+</body>
+</html>

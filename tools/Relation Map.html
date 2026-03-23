@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>我的关系地图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600&family=ZCOOL+XiaoWei&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600&family=ZCOOL+XiaoWei&display=swap"></noscript>
+<style>
+/* --- RESET & BASE --- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --ink: #4a4350; --ink-light: #6b6372; --ink-faint: #9890a0;
+  --parchment: #f0ece8; --parchment-deep: #e5dfd9; --parchment-dark: #d0c8c0;
+  --warm-glow: #c9a87c; --trust-high: #7ba08a; --trust-mid: #c4a96e; --trust-low: #c07e78;
+  --accent: #8e7e9a; --shadow: rgba(74,67,80,0.1);
+  --close-color: #5ea87a; --familiar-color: #c9a83a; --acquaint-color: #a08ec0;
+}
+html, body { width:100%; height:100%; overflow:hidden; font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif; background:var(--parchment); color:var(--ink); -webkit-tap-highlight-color:transparent; user-select:none; }
+body::before { content:''; position:fixed; inset:0; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; }
+#ambient-canvas { position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.4; }
+#map-canvas { position:fixed; inset:0; z-index:1; cursor:default; }
+
+/* --- TITLE --- */
+.page-title { position:fixed; top:24px; left:50%; transform:translateX(-50%); z-index:100; font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:28px; color:var(--ink-light); letter-spacing:6px; opacity:0; animation:fadeInDownTitle 1.2s ease-out 0.3s forwards; pointer-events:none; white-space:nowrap; }
+@keyframes fadeInDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeInDownTitle { from{opacity:0;transform:translateX(-50%) translateY(-12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+/* --- TOOLBAR --- */
+.toolbar { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:100; display:flex; gap:10px; align-items:center; background:rgba(240,236,232,0.92); backdrop-filter:blur(12px); border:1px solid var(--parchment-dark); border-radius:40px; padding:8px 12px; box-shadow:0 4px 24px var(--shadow); opacity:0; animation:fadeInUp 0.8s ease-out 0.6s forwards; }
+@keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+.toolbar button { display:flex; align-items:center; gap:6px; padding:10px 18px; border:none; border-radius:28px; background:transparent; color:var(--ink-light); font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif; font-size:14px; cursor:pointer; transition:all 0.3s; white-space:nowrap; }
+.toolbar button:hover { background:var(--parchment-deep); color:var(--ink); }
+.toolbar button.primary { background:var(--ink); color:var(--parchment); }
+.toolbar button.primary:hover { background:var(--ink-light); }
+.toolbar button svg { width:18px; height:18px; flex-shrink:0; }
+.toolbar-divider { width:1px; height:24px; background:var(--parchment-dark); }
+
+/* --- HINT --- */
+.hint { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:99; font-family:'ZCOOL XiaoWei','STFangsong','FangSong','仿宋',serif; font-size:13px; color:var(--ink-faint); letter-spacing:1px; opacity:0; animation:fadeInUp2 1s ease-out 1.2s forwards; pointer-events:none; text-align:center; }
+@keyframes fadeInUp2 { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+/* --- MODAL --- */
+.modal-overlay { position:fixed; inset:0; z-index:500; background:rgba(74,67,80,0.25); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; opacity:0; transition:opacity 0.3s; }
+.modal-overlay.visible { display:flex; opacity:1; }
+.node-editor { background:var(--parchment); border:1px solid var(--parchment-dark); border-radius:20px; padding:32px; width:90%; max-width:380px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(74,67,80,0.15); transform:scale(0.95); transition:transform 0.3s; }
+.modal-overlay.visible .node-editor { transform:scale(1); }
+.node-editor h3 { font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:22px; color:var(--ink); margin-bottom:24px; letter-spacing:2px; }
+.form-group { margin-bottom:18px; }
+.form-group label { display:block; font-size:12px; color:var(--ink-faint); margin-bottom:6px; letter-spacing:1px; }
+.form-group input[type="text"] { width:100%; padding:10px 14px; border:1px solid var(--parchment-dark); border-radius:10px; background:var(--parchment-deep); font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif; font-size:15px; color:var(--ink); outline:none; transition:border-color 0.2s; }
+.form-group input:focus { border-color:var(--accent); }
+.form-group select { width:100%; padding:10px 14px; border:1px solid var(--parchment-dark); border-radius:10px; background:var(--parchment-deep); font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif; font-size:14px; color:var(--ink); outline:none; appearance:none; cursor:pointer; }
+
+/* Closeness selector */
+.closeness-selector { display:flex; gap:8px; }
+.closeness-option { flex:1; padding:10px 6px; border:2px solid var(--parchment-dark); border-radius:10px; text-align:center; font-size:13px; cursor:pointer; transition:all 0.2s; color:var(--ink-light); font-weight:400; }
+.closeness-option.selected { font-weight:600; }
+.closeness-option.close { color:var(--close-color); }
+.closeness-option.close.selected { border-color:var(--close-color); background:rgba(94,168,122,0.08); }
+.closeness-option.familiar { color:var(--familiar-color); }
+.closeness-option.familiar.selected { border-color:var(--familiar-color); background:rgba(201,168,58,0.08); }
+.closeness-option.acquaint { color:var(--acquaint-color); }
+.closeness-option.acquaint.selected { border-color:var(--acquaint-color); background:rgba(160,142,192,0.08); }
+
+/* Trust selector */
+.trust-selector { display:flex; gap:8px; }
+.trust-option { flex:1; padding:8px; border:2px solid var(--parchment-dark); border-radius:10px; text-align:center; font-size:12px; cursor:pointer; transition:all 0.2s; }
+.trust-option.selected { border-color:currentColor; font-weight:600; }
+.trust-option.high { color:var(--trust-high); }
+.trust-option.mid { color:var(--trust-mid); }
+.trust-option.low { color:var(--trust-low); }
+
+/* Frequency slider */
+.freq-slider { display:flex; align-items:center; gap:10px; }
+.freq-slider input[type="range"] { flex:1; accent-color:var(--accent); height:4px; }
+.freq-slider span { font-size:12px; color:var(--ink-faint); min-width:32px; text-align:center; }
+
+/* Labels */
+.label-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.label-tag { padding:6px 12px; border:1px solid var(--parchment-dark); border-radius:16px; font-size:12px; cursor:pointer; transition:all 0.2s; color:var(--ink-light); }
+.label-tag.selected { border-color:var(--accent); background:rgba(142,126,154,0.08); color:var(--ink); }
+
+/* Modal actions */
+.modal-actions { display:flex; gap:10px; margin-top:24px; }
+.modal-actions button { flex:1; padding:12px; border:none; border-radius:12px; font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif; font-size:14px; cursor:pointer; transition:all 0.2s; }
+.btn-cancel { background:var(--parchment-deep); color:var(--ink-light); }
+.btn-save { background:var(--ink); color:var(--parchment); }
+.btn-delete { background:transparent; color:var(--trust-low); border:1px solid var(--trust-low) !important; flex:0.6; }
+.btn-delete:hover { background:var(--trust-low); color:white; }
+
+/* --- QUICK ADD MENU --- */
+.quick-add-menu { position:fixed; z-index:300; background:rgba(240,236,232,0.96); backdrop-filter:blur(12px); border:1px solid var(--parchment-dark); border-radius:16px; padding:8px; box-shadow:0 8px 32px rgba(74,67,80,0.12); display:none; opacity:0; transform:scale(0.9); transition:all 0.2s; }
+.quick-add-menu.visible { display:block; opacity:1; transform:scale(1); }
+.quick-add-item { display:flex; align-items:center; gap:10px; padding:10px 16px; border:none; background:transparent; border-radius:10px; font-family:'Noto Serif SC','PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif; font-size:14px; color:var(--ink-light); cursor:pointer; transition:all 0.15s; width:100%; text-align:left; }
+.quick-add-item:hover { background:var(--parchment-deep); color:var(--ink); }
+.quick-add-item .emoji { font-size:18px; width:28px; text-align:center; }
+
+/* --- REFLECTION PANEL --- */
+.reflection-panel { position:fixed; top:0; right:-420px; width:400px; max-width:90vw; height:100%; z-index:200; background:rgba(240,236,232,0.96); backdrop-filter:blur(16px); border-left:1px solid var(--parchment-dark); padding:40px 28px; overflow-y:auto; transition:right 0.5s cubic-bezier(0.4,0,0.2,1); box-shadow:-8px 0 40px rgba(74,67,80,0.08); }
+.reflection-panel.open { right:0; }
+.reflection-panel h2 { font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:26px; color:var(--ink); letter-spacing:3px; margin-bottom:8px; }
+.reflection-subtitle { font-size:13px; color:var(--ink-faint); margin-bottom:32px; line-height:1.6; }
+.reflection-close { position:absolute; top:20px; right:20px; width:36px; height:36px; border:none; background:var(--parchment-deep); border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--ink-light); transition:all 0.2s; }
+.reflection-close:hover { background:var(--parchment-dark); }
+.reflection-question { margin-bottom:24px; padding:20px; background:rgba(255,255,255,0.5); border-radius:16px; border:1px solid rgba(217,207,192,0.6); opacity:0; transform:translateY(10px); animation:reflectionIn 0.5s ease-out forwards; }
+.reflection-question:nth-child(2){animation-delay:0.1s} .reflection-question:nth-child(3){animation-delay:0.2s} .reflection-question:nth-child(4){animation-delay:0.3s} .reflection-question:nth-child(5){animation-delay:0.4s} .reflection-question:nth-child(6){animation-delay:0.5s} .reflection-question:nth-child(7){animation-delay:0.6s} .reflection-question:nth-child(8){animation-delay:0.7s}
+@keyframes reflectionIn { to{opacity:1;transform:translateY(0)} }
+.reflection-question .q-icon { font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:20px; color:var(--accent); margin-bottom:8px; }
+.reflection-question p { font-size:14px; line-height:1.8; color:var(--ink-light); }
+.map-stats { margin-bottom:28px; padding:18px; background:rgba(142,126,154,0.06); border-radius:14px; border:1px solid rgba(142,126,154,0.12); }
+.map-stats h4 { font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:16px; color:var(--accent); margin-bottom:10px; letter-spacing:1px; }
+.stat-row { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; color:var(--ink-light); }
+.stat-row span:last-child { font-weight:600; color:var(--ink); }
+
+/* --- ONBOARDING --- */
+.onboarding { position:fixed; inset:0; z-index:1000; background:var(--parchment); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 24px; overflow:hidden; transition:opacity 0.8s,transform 0.8s; }
+.onboarding.hidden { opacity:0; transform:scale(1.02); pointer-events:none; }
+.onboarding h1 { font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:min(8vw,52px); color:var(--ink); letter-spacing:min(1vw,6px); margin-bottom:16px; opacity:0; animation:fadeInDown 1s ease-out 0.2s forwards; }
+.onboarding .subtitle { font-family:'ZCOOL XiaoWei','STFangsong','FangSong','仿宋',serif; font-size:clamp(14px,2.5vw,18px); color:var(--ink-faint); line-height:1.8; max-width:480px; margin-bottom:48px; opacity:0; animation:fadeInDown 1s ease-out 0.5s forwards; }
+.onboarding .start-btn { padding:16px 48px; border:2px solid var(--ink); border-radius:40px; background:transparent; font-family:'Ma Shan Zheng','STKaiti','KaiTi','楷体',cursive; font-size:20px; letter-spacing:4px; color:var(--ink); cursor:pointer; opacity:0; animation:fadeInDown 1s ease-out 0.8s forwards; transition:all 0.3s; }
+.onboarding .start-btn:hover { background:var(--ink); color:var(--parchment); }
+.ink-wash { position:absolute; width:200px; height:200px; border-radius:50%; opacity:0.04; filter:blur(60px); pointer-events:none; }
+.ink-wash.w1{top:15%;left:15%;background:var(--accent)} .ink-wash.w2{bottom:20%;right:15%;background:var(--trust-high)} .ink-wash.w3{top:50%;left:55%;background:var(--warm-glow)}
+
+::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--parchment-dark);border-radius:4px}
+@media(max-width:600px){ .page-title{font-size:22px;top:16px} .toolbar{bottom:16px;padding:6px 8px;gap:4px} .toolbar button{padding:8px 12px;font-size:12px} .toolbar button span{display:none} .hint{bottom:72px;font-size:11px} .node-editor{padding:24px} .reflection-panel{width:100%;max-width:100%} }
+.home-btn {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    background: rgba(240,236,232,0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--parchment-dark);
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--ink-light);
+    cursor: pointer;
+    text-decoration: none;
+    z-index: 100;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: 0.15s;
+    font-family: 'Noto Serif SC','PingFang SC','Microsoft YaHei',sans-serif;
+}
+.home-btn:hover {
+    background: rgba(240,236,232,1);
+    color: var(--ink);
+}
+.site-badge {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: rgba(240,236,232,0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--parchment-dark);
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--ink-light);
+    z-index: 100;
+    box-shadow: 0 2px 8px var(--shadow);
+    font-family: 'Noto Serif SC','PingFang SC','Microsoft YaHei',sans-serif;
+    pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<a href="Index.html" class="home-btn">← 返回首页</a>
+<div class="site-badge">中侨·心理</div>
+
+<canvas id="ambient-canvas"></canvas>
+<canvas id="map-canvas"></canvas>
+
+<div class="page-title">我 的 关 系 地 图</div>
+<div class="hint" id="hint-text">点击「添加」开始绘制你的人际关系图谱</div>
+
+<!-- Toolbar -->
+<div class="toolbar" id="toolbar">
+  <button class="primary" id="btn-add">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span>添加</span>
+  </button>
+  <div class="toolbar-divider"></div>
+  <button id="btn-reflect">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9"/><path d="M12 7v5l3 3"/></svg>
+    <span>反思</span>
+  </button>
+  <button id="btn-reset">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12a9 9 0 1 1 9 9"/><polyline points="3 7 3 12 8 12"/></svg>
+    <span>重置</span>
+  </button>
+</div>
+
+<!-- Quick add menu -->
+<div class="quick-add-menu" id="quick-add-menu"></div>
+
+<!-- Node editor modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="node-editor" id="node-editor">
+    <h3 id="editor-title">添加关系</h3>
+
+    <div class="form-group">
+      <label>称呼</label>
+      <input type="text" id="ed-name" placeholder="输入名字或称呼…" maxlength="10">
+    </div>
+
+    <div class="form-group">
+      <label>关系类型</label>
+      <select id="ed-type">
+        <option value="家人">家人</option>
+        <option value="朋友">朋友</option>
+        <option value="恋人">恋人</option>
+        <option value="室友">室友</option>
+        <option value="老师">老师</option>
+        <option value="同学">同学</option>
+        <option value="同事">同事</option>
+        <option value="其他">其他</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>亲密度</label>
+      <div class="closeness-selector" id="ed-closeness">
+        <div class="closeness-option close" data-val="close">亲密</div>
+        <div class="closeness-option familiar" data-val="familiar">熟悉</div>
+        <div class="closeness-option acquaint" data-val="acquaint">认识</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>信任程度</label>
+      <div class="trust-selector" id="ed-trust">
+        <div class="trust-option high" data-val="high">很信任</div>
+        <div class="trust-option mid" data-val="mid">一般</div>
+        <div class="trust-option low" data-val="low">不太信任</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>互动频率</label>
+      <div class="freq-slider">
+        <span>少</span>
+        <input type="range" id="ed-freq" min="1" max="5" value="3">
+        <span>多</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>关系标签</label>
+      <div class="label-tags" id="ed-labels">
+        <div class="label-tag" data-val="无话不谈">无话不谈</div>
+        <div class="label-tag" data-val="偶尔联系">偶尔联系</div>
+        <div class="label-tag" data-val="有些隔阂">有些隔阂</div>
+        <div class="label-tag" data-val="亦师亦友">亦师亦友</div>
+        <div class="label-tag" data-val="渐行渐远">渐行渐远</div>
+        <div class="label-tag" data-val="默默关注">默默关注</div>
+        <div class="label-tag" data-val="互相依赖">互相依赖</div>
+        <div class="label-tag" data-val="新认识">新认识</div>
+        <div class="label-tag" data-val="点头之交">点头之交</div>
+        <div class="label-tag" data-val="曾经很好">曾经很好</div>
+      </div>
+    </div>
+
+    <div class="modal-actions" id="modal-actions">
+      <button class="btn-cancel" id="btn-ed-cancel">取消</button>
+      <button class="btn-save" id="btn-ed-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reflection panel -->
+<div class="reflection-panel" id="reflection-panel">
+  <button class="reflection-close" id="reflection-close">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <h2>静心反思</h2>
+  <p class="reflection-subtitle">以下问题没有标准答案，只是一面镜子，<br>帮助你看见自己的内心世界。</p>
+  <div id="reflection-content"></div>
+</div>
+
+<!-- Onboarding -->
+<div class="onboarding" id="onboarding">
+  <div class="ink-wash w1"></div>
+  <div class="ink-wash w2"></div>
+  <div class="ink-wash w3"></div>
+  <h1>我的关系地图</h1>
+  <p class="subtitle">
+    每个人的身边，都有一张看不见的关系网。<br>
+    在这里，你可以把它画出来——<br>
+    看见距离，看见温度，看见自己。
+  </p>
+  <button class="start-btn" id="btn-start">开 始 探 索</button>
+</div>
+
+<script>
+// ============================================
+// RELATIONSHIP MAP - REWRITTEN
+// ============================================
+const PI2 = Math.PI * 2;
+const CATEGORIES = [
+  { type: '家人', emoji: '🏠' }, { type: '朋友', emoji: '🤝' },
+  { type: '恋人', emoji: '💕' }, { type: '室友', emoji: '🏡' },
+  { type: '老师', emoji: '📚' }, { type: '同学', emoji: '🎓' },
+  { type: '同事', emoji: '💼' }, { type: '其他', emoji: '✨' },
+];
+const TRUST_COLORS = { high:'#7ba08a', mid:'#c4a96e', low:'#c07e78' };
+// Closeness ring config: close=ring1(inner), familiar=ring2, acquaint=ring3(outer)
+const CLOSENESS_RINGS = {
+  close:    { index: 0, ratio: 0.28, label: '亲密', color: '#5ea87a' },
+  familiar: { index: 1, ratio: 0.53, label: '熟悉', color: '#c9a83a' },
+  acquaint: { index: 2, ratio: 0.80, label: '认识', color: '#a08ec0' },
+};
+const NODE_RADIUS = 30; // Fixed radius, same visual weight as "我"
+
+// ============================================
+// STATE
+// ============================================
+let nodes = [];
+let centerX, centerY, mapRadius;
+let editingNode = null;
+let isNewNode = false;
+let isMapRunning = false;
+let hoveredNode = null;
+let dpr = 1;
+
+// ============================================
+// LOCAL STORAGE PERSISTENCE
+// ============================================
+const STORAGE_KEY = 'relationMapNodes';
+
+function saveNodesToStorage() {
+  try {
+    const data = nodes.map(n => ({
+      id: n.id, name: n.name, type: n.type,
+      closeness: n.closeness, trust: n.trust,
+      freq: n.freq, label: n.label,
+      _assignedAngle: n._assignedAngle
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadNodesFromStorage() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const data = JSON.parse(saved);
+      nodes = data.map(d => ({
+        ...d,
+        x: 0, y: 0,
+        _birthTime: performance.now()
+      }));
+    }
+  } catch(e) {}
+}
+
+// ============================================
+// CANVAS
+// ============================================
+const mapCanvas = document.getElementById('map-canvas');
+const mapCtx = mapCanvas.getContext('2d');
+const ambientCanvas = document.getElementById('ambient-canvas');
+const ambientCtx = ambientCanvas.getContext('2d');
+
+function resizeCanvases() {
+  const w = window.innerWidth, h = window.innerHeight;
+  dpr = window.devicePixelRatio || 1;
+  for (const [c, ctx] of [[mapCanvas, mapCtx], [ambientCanvas, ambientCtx]]) {
+    c.width = w * dpr; c.height = h * dpr;
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  centerX = w / 2; centerY = h / 2;
+  mapRadius = Math.min(w, h) * 0.38;
+  // Recompute all node positions when resizing
+  for (const n of nodes) placeNode(n);
+}
+resizeCanvases();
+window.addEventListener('resize', resizeCanvases);
+
+// ============================================
+// AMBIENT PARTICLES
+// ============================================
+const particles = [];
+for (let i = 0; i < 35; i++) {
+  particles.push({
+    x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
+    r: Math.random()*2+0.5, vx: (Math.random()-0.5)*0.15, vy: (Math.random()-0.5)*0.15,
+    alpha: Math.random()*0.3+0.1, phase: Math.random()*PI2
+  });
+}
+function drawAmbient(t) {
+  const w = window.innerWidth, h = window.innerHeight;
+  ambientCtx.clearRect(0, 0, w, h);
+  for (const p of particles) {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < -10) p.x = w+10; if (p.x > w+10) p.x = -10;
+    if (p.y < -10) p.y = h+10; if (p.y > h+10) p.y = -10;
+    const flicker = Math.sin(t*0.001+p.phase)*0.15+0.85;
+    ambientCtx.beginPath(); ambientCtx.arc(p.x,p.y,p.r,0,PI2);
+    ambientCtx.fillStyle = `rgba(142,126,154,${p.alpha*flicker})`; ambientCtx.fill();
+  }
+}
+
+// ============================================
+// NODE PLACEMENT - auto by closeness, no overlap
+// ============================================
+function placeNode(node) {
+  const ring = CLOSENESS_RINGS[node.closeness] || CLOSENESS_RINGS.familiar;
+  const dist = mapRadius * ring.ratio;
+  // Find nodes in same ring
+  const sameRing = nodes.filter(n => n !== node && n.closeness === node.closeness);
+  if (node._assignedAngle == null) {
+    // Find best angle to avoid overlaps
+    if (sameRing.length === 0) {
+      // First in ring: distribute by ring index for visual variety
+      node._assignedAngle = [-Math.PI/3, Math.PI/6, -Math.PI*0.8][ring.index] + (Math.random()-0.5)*0.3;
+    } else {
+      // Find angle with most space from other same-ring nodes
+      const usedAngles = sameRing.map(n => n._assignedAngle).filter(a => a != null);
+      let bestAngle = 0, bestGap = -1;
+      for (let a = 0; a < PI2; a += 0.08) {
+        let minDist = PI2;
+        for (const ua of usedAngles) {
+          let diff = Math.abs(a - ua);
+          if (diff > Math.PI) diff = PI2 - diff;
+          minDist = Math.min(minDist, diff);
+        }
+        // Also check all nodes (any ring) for spatial collision
+        const testX = centerX + Math.cos(a) * dist;
+        const testY = centerY + Math.sin(a) * dist;
+        let tooClose = false;
+        for (const other of nodes) {
+          if (other === node) continue;
+          const dx = testX - other.x, dy = testY - other.y;
+          if (Math.sqrt(dx*dx+dy*dy) < NODE_RADIUS * 2.5) { tooClose = true; break; }
+        }
+        if (!tooClose && minDist > bestGap) { bestGap = minDist; bestAngle = a; }
+      }
+      // If all positions have collisions, still pick the best angular gap
+      if (bestGap < 0) {
+        for (let a = 0; a < PI2; a += 0.08) {
+          let minDist = PI2;
+          for (const ua of usedAngles) {
+            let diff = Math.abs(a - ua); if (diff > Math.PI) diff = PI2 - diff;
+            minDist = Math.min(minDist, diff);
+          }
+          if (minDist > bestGap) { bestGap = minDist; bestAngle = a; }
+        }
+      }
+      node._assignedAngle = bestAngle;
+    }
+  }
+  node.x = centerX + Math.cos(node._assignedAngle) * dist;
+  node.y = centerY + Math.sin(node._assignedAngle) * dist;
+}
+
+// ============================================
+// DRAWING - MAP
+// ============================================
+function drawMap(t) {
+  const w = window.innerWidth, h = window.innerHeight;
+  mapCtx.clearRect(0, 0, w, h);
+
+  // Background glow
+  const bgGlow = mapCtx.createRadialGradient(centerX,centerY,0,centerX,centerY,mapRadius*1.2);
+  bgGlow.addColorStop(0,'rgba(201,168,124,0.05)'); bgGlow.addColorStop(0.5,'rgba(142,126,154,0.03)'); bgGlow.addColorStop(1,'rgba(142,126,154,0)');
+  mapCtx.fillStyle = bgGlow; mapCtx.fillRect(0,0,w,h);
+
+  // Concentric ring bands
+  const ringKeys = ['close','familiar','acquaint'];
+  const ringColors = ['rgba(142,126,154,0.06)','rgba(201,168,124,0.04)','rgba(152,144,160,0.03)'];
+  // Draw filled bands outer to inner
+  for (let i = 2; i >= 0; i--) {
+    const r = mapRadius * (CLOSENESS_RINGS[ringKeys[i]].ratio + 0.12);
+    const rInner = i > 0 ? mapRadius * (CLOSENESS_RINGS[ringKeys[i]].ratio - 0.10) : 0;
+    mapCtx.beginPath(); mapCtx.arc(centerX,centerY,r,0,PI2);
+    if (rInner > 0) mapCtx.arc(centerX,centerY,rInner,0,PI2,true);
+    mapCtx.fillStyle = ringColors[i]; mapCtx.fill();
+  }
+  // Ring border circles
+  for (let i = 0; i < 3; i++) {
+    const r = mapRadius * CLOSENESS_RINGS[ringKeys[i]].ratio;
+    mapCtx.beginPath(); mapCtx.arc(centerX,centerY,r,0,PI2);
+    mapCtx.strokeStyle = CLOSENESS_RINGS[ringKeys[i]].color + '40';
+    mapCtx.lineWidth = 1.5; mapCtx.setLineDash([6,4]); mapCtx.stroke(); mapCtx.setLineDash([]);
+  }
+  // Ring labels
+  for (let i = 0; i < 3; i++) {
+    const ring = CLOSENESS_RINGS[ringKeys[i]];
+    const r = mapRadius * ring.ratio;
+    mapCtx.font = '600 13px "Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif';
+    const tw = mapCtx.measureText(ring.label).width;
+    const px = centerX - tw/2 - 10, py = centerY - r - 18;
+    mapCtx.beginPath(); mapCtx.roundRect(px,py,tw+20,22,11);
+    mapCtx.fillStyle = 'rgba(240,236,232,0.85)'; mapCtx.fill();
+    mapCtx.strokeStyle = ring.color + '40'; mapCtx.lineWidth = 1; mapCtx.stroke();
+    mapCtx.fillStyle = ring.color; mapCtx.textAlign = 'center'; mapCtx.textBaseline = 'middle';
+    mapCtx.fillText(ring.label, centerX, py+11);
+  }
+
+  // Connection lines (with relationship type text)
+  for (const node of nodes) drawConnection(node, t);
+
+  // Center "我" node
+  const pulse = Math.sin(t*0.002)*2;
+  const meR = NODE_RADIUS + pulse;
+  // Aura
+  const aura = mapCtx.createRadialGradient(centerX,centerY,meR,centerX,centerY,meR+40);
+  aura.addColorStop(0,'rgba(142,126,154,0.12)'); aura.addColorStop(1,'rgba(142,126,154,0)');
+  mapCtx.beginPath(); mapCtx.arc(centerX,centerY,meR+40,0,PI2); mapCtx.fillStyle = aura; mapCtx.fill();
+  // Glow ring
+  mapCtx.beginPath(); mapCtx.arc(centerX,centerY,meR+6,0,PI2);
+  mapCtx.strokeStyle = 'rgba(142,126,154,0.2)'; mapCtx.lineWidth = 1; mapCtx.stroke();
+  // Fill
+  const meFill = mapCtx.createRadialGradient(centerX-4,centerY-4,0,centerX,centerY,meR);
+  meFill.addColorStop(0,'#f5f1ed'); meFill.addColorStop(1,'#e8e2dc');
+  mapCtx.beginPath(); mapCtx.arc(centerX,centerY,meR,0,PI2);
+  mapCtx.fillStyle = meFill; mapCtx.fill();
+  mapCtx.strokeStyle = 'rgba(142,126,154,0.4)'; mapCtx.lineWidth = 2.5; mapCtx.stroke();
+  mapCtx.font = '600 22px "Ma Shan Zheng","STKaiti","KaiTi",cursive'; mapCtx.fillStyle = '#4a4350';
+  mapCtx.textAlign = 'center'; mapCtx.textBaseline = 'middle';
+  mapCtx.fillText('我', centerX, centerY);
+
+  // Person nodes
+  for (const node of nodes) drawNode(node, t);
+}
+
+// ============================================
+// CONNECTION LINE with relationship type text
+// ============================================
+function drawConnection(node, t) {
+  const ring = CLOSENESS_RINGS[node.closeness] || CLOSENESS_RINGS.familiar;
+  const color = ring.color;
+  const dx = node.x - centerX, dy = node.y - centerY;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  if (dist < 1) return;
+
+  // Slight curve
+  const midX = centerX+dx*0.5, midY = centerY+dy*0.5;
+  const perpX = -dy/dist*dist*0.06, perpY = dx/dist*dist*0.06;
+  const cpX = midX+perpX, cpY = midY+perpY;
+
+  mapCtx.save();
+  mapCtx.beginPath(); mapCtx.moveTo(centerX,centerY);
+  mapCtx.quadraticCurveTo(cpX,cpY,node.x,node.y);
+  mapCtx.strokeStyle = color + '66'; mapCtx.lineWidth = 2; mapCtx.lineCap = 'round';
+  mapCtx.setLineDash([]); mapCtx.stroke();
+  mapCtx.restore();
+
+  // Draw relationship type label on the line
+  // Position at ~40% from center to node (closer to center)
+  const labelT = 0.38;
+  const lx = (1-labelT)*(1-labelT)*centerX + 2*(1-labelT)*labelT*cpX + labelT*labelT*node.x;
+  const ly = (1-labelT)*(1-labelT)*centerY + 2*(1-labelT)*labelT*cpY + labelT*labelT*node.y;
+
+  // Background pill
+  mapCtx.font = '11px "Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif';
+  const typeText = node.type;
+  const tw = mapCtx.measureText(typeText).width;
+  mapCtx.beginPath(); mapCtx.roundRect(lx-tw/2-6, ly-9, tw+12, 18, 9);
+  mapCtx.fillStyle = 'rgba(240,236,232,0.9)'; mapCtx.fill();
+  mapCtx.strokeStyle = color + '55'; mapCtx.lineWidth = 1; mapCtx.stroke();
+  // Text
+  mapCtx.fillStyle = color; mapCtx.textAlign = 'center'; mapCtx.textBaseline = 'middle';
+  mapCtx.fillText(typeText, lx, ly);
+}
+
+// ============================================
+// NODE DRAWING - same size as "我"
+// ============================================
+function drawNode(node, t) {
+  const ring = CLOSENESS_RINGS[node.closeness] || CLOSENESS_RINGS.familiar;
+  const color = ring.color;
+  const isHovered = hoveredNode === node;
+
+  // Entrance animation
+  const age = t - (node._birthTime || 0);
+  const eased = Math.min(1, age/400);
+  const scale = 1 - Math.pow(1-eased, 3);
+  const breathe = Math.sin(t*0.0015+node.id*0.7)*1.5;
+  const drawR = (NODE_RADIUS + breathe) * (isHovered ? 1.08 : 1) * scale;
+  if (drawR < 0.5) return;
+
+  // Shadow
+  mapCtx.save();
+  mapCtx.shadowColor = 'rgba(74,67,80,0.16)'; mapCtx.shadowBlur = 14; mapCtx.shadowOffsetY = 3;
+  mapCtx.beginPath(); mapCtx.arc(node.x,node.y,drawR,0,PI2);
+  mapCtx.fillStyle = '#f0ece8'; mapCtx.fill();
+  mapCtx.restore();
+
+  // Glow halo
+  const glow = mapCtx.createRadialGradient(node.x,node.y,drawR*0.6,node.x,node.y,drawR+20);
+  glow.addColorStop(0, color+'35'); glow.addColorStop(1, color+'00');
+  mapCtx.beginPath(); mapCtx.arc(node.x,node.y,drawR+20,0,PI2); mapCtx.fillStyle = glow; mapCtx.fill();
+
+  // Circle fill
+  const nf = mapCtx.createRadialGradient(node.x-3,node.y-3,0,node.x,node.y,drawR);
+  nf.addColorStop(0,'#f5f1ed'); nf.addColorStop(1,'#ebe5df');
+  mapCtx.beginPath(); mapCtx.arc(node.x,node.y,drawR,0,PI2); mapCtx.fillStyle = nf; mapCtx.fill();
+
+  // Border
+  mapCtx.beginPath(); mapCtx.arc(node.x,node.y,drawR,0,PI2);
+  mapCtx.strokeStyle = color + (isHovered ? 'dd' : 'bb'); mapCtx.lineWidth = isHovered ? 3.5 : 2.5; mapCtx.stroke();
+
+  // Name text: show first char if name is longer than 2 chars
+  const displayName = node.name.length > 2 ? node.name.charAt(0) : node.name;
+  const fontSize = node.name.length > 2 ? Math.max(16, drawR*0.55) : Math.max(13, drawR*0.45);
+  mapCtx.font = `600 ${fontSize}px "Ma Shan Zheng","STKaiti","KaiTi",cursive`;
+  mapCtx.fillStyle = `rgba(74,67,80,${scale})`;
+  mapCtx.textAlign = 'center'; mapCtx.textBaseline = 'middle';
+  mapCtx.fillText(displayName, node.x, node.y);
+
+  // Full name below (small)
+  if (node.name.length > 2 && scale > 0.5) {
+    mapCtx.font = '11px "Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif';
+    mapCtx.fillStyle = `rgba(74,67,80,${0.6*scale})`;
+    mapCtx.fillText(node.name, node.x, node.y+drawR+14);
+  } else if (scale > 0.5) {
+    // Show name below only if it fits inside and there's a label
+    if (node.label) {
+      mapCtx.font = '11px "Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif';
+      mapCtx.fillStyle = `rgba(107,99,114,${0.7*scale})`;
+      mapCtx.fillText(node.label, node.x, node.y+drawR+14);
+    }
+  }
+
+  // Label below full name (or further below)
+  if (node.name.length > 2 && node.label && scale > 0.5) {
+    mapCtx.font = '10px "Noto Serif SC","PingFang SC","Microsoft YaHei",sans-serif';
+    mapCtx.fillStyle = `rgba(107,99,114,${0.6*scale})`;
+    mapCtx.fillText(node.label, node.x, node.y+drawR+28);
+  }
+}
+
+// ============================================
+// ANIMATION LOOP
+// ============================================
+function ambientOnlyTick(t) { drawAmbient(t); if (!isMapRunning) requestAnimationFrame(ambientOnlyTick); }
+function mainTick(t) { drawAmbient(t); drawMap(t); requestAnimationFrame(mainTick); }
+function startMainLoop() { if (isMapRunning) return; isMapRunning = true; requestAnimationFrame(mainTick); }
+
+// ============================================
+// NODE MANAGEMENT
+// ============================================
+function addNode(type) {
+  const node = {
+    id: Date.now()+Math.random(),
+    name: type,
+    type: type,
+    closeness: 'familiar', // default
+    trust: 'mid',
+    freq: 3,
+    label: '',
+    x: centerX, y: centerY, // temporary, will be placed after save
+    _birthTime: performance.now(),
+    _assignedAngle: null,
+  };
+  nodes.push(node);
+  openEditor(node, true);
+  updateHint();
+}
+
+function deleteNode(node) {
+  nodes = nodes.filter(n => n !== node);
+  // Recompute angles for remaining nodes in the same ring to fill gaps
+  const sameRing = nodes.filter(n => n.closeness === node.closeness);
+  if (sameRing.length > 0) {
+    // Reset angles and re-place
+    for (const n of sameRing) n._assignedAngle = null;
+    for (const n of sameRing) placeNode(n);
+  }
+  saveNodesToStorage();
+  updateHint();
+}
+
+function updateHint() {
+  const hint = document.getElementById('hint-text');
+  if (nodes.length === 0) { hint.textContent = '点击「添加」开始绘制你的人际关系图谱'; hint.style.opacity = '1'; }
+  else if (nodes.length < 3) { hint.textContent = '点击节点可查看或编辑详情'; hint.style.opacity = '1'; }
+  else { hint.style.opacity = '0'; }
+}
+
+// ============================================
+// QUICK ADD MENU
+// ============================================
+const quickMenu = document.getElementById('quick-add-menu');
+function showQuickAdd() {
+  quickMenu.innerHTML = CATEGORIES.map(c =>
+    `<button class="quick-add-item" data-type="${c.type}"><span class="emoji">${c.emoji}</span>${c.type}</button>`
+  ).join('');
+  const rect = document.getElementById('btn-add').getBoundingClientRect();
+  quickMenu.style.left = rect.left+'px';
+  quickMenu.style.bottom = (window.innerHeight-rect.top+8)+'px';
+  quickMenu.classList.add('visible');
+  quickMenu.querySelectorAll('.quick-add-item').forEach(item => {
+    item.addEventListener('click', (e) => { e.stopPropagation(); addNode(item.dataset.type); quickMenu.classList.remove('visible'); });
+  });
+  setTimeout(() => document.addEventListener('click', e => { if (!quickMenu.contains(e?.target)) quickMenu.classList.remove('visible'); }, { once:true }), 10);
+}
+document.getElementById('btn-add').addEventListener('click', (e) => { e.stopPropagation(); quickMenu.classList.contains('visible') ? quickMenu.classList.remove('visible') : showQuickAdd(); });
+
+// ============================================
+// NODE EDITOR
+// ============================================
+const overlay = document.getElementById('modal-overlay');
+
+function openEditor(node, isNew) {
+  editingNode = node; isNewNode = !!isNew;
+  document.getElementById('editor-title').textContent = isNew ? '添加关系' : '编辑关系';
+  document.getElementById('ed-name').value = isNew ? '' : node.name;
+  document.getElementById('ed-type').value = node.type;
+  document.getElementById('ed-freq').value = node.freq;
+
+  // Closeness
+  document.querySelectorAll('#ed-closeness .closeness-option').forEach(el => el.classList.toggle('selected', el.dataset.val === node.closeness));
+  // Trust
+  document.querySelectorAll('#ed-trust .trust-option').forEach(el => el.classList.toggle('selected', el.dataset.val === node.trust));
+  // Labels
+  document.querySelectorAll('#ed-labels .label-tag').forEach(el => el.classList.toggle('selected', el.dataset.val === node.label));
+
+  // Delete button
+  let deleteBtn = document.getElementById('btn-ed-delete');
+  if (!isNew) {
+    if (!deleteBtn) {
+      deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-delete'; deleteBtn.id = 'btn-ed-delete'; deleteBtn.textContent = '删除';
+      document.getElementById('modal-actions').insertBefore(deleteBtn, document.getElementById('btn-ed-cancel'));
+    }
+    deleteBtn.style.display = '';
+    deleteBtn.onclick = () => { deleteNode(editingNode); closeEditor(); };
+  } else if (deleteBtn) { deleteBtn.style.display = 'none'; }
+
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  setTimeout(() => document.getElementById('ed-name').focus(), 100);
+}
+
+function closeEditor() {
+  overlay.classList.remove('visible');
+  setTimeout(() => overlay.style.display = 'none', 300);
+  editingNode = null; isNewNode = false;
+}
+
+function saveEditor() {
+  if (!editingNode) return;
+  const name = document.getElementById('ed-name').value.trim();
+  editingNode.name = name || editingNode.type;
+  editingNode.type = document.getElementById('ed-type').value;
+  editingNode.freq = parseInt(document.getElementById('ed-freq').value);
+
+  const closenessSel = document.querySelector('#ed-closeness .closeness-option.selected');
+  const oldCloseness = editingNode.closeness;
+  editingNode.closeness = closenessSel ? closenessSel.dataset.val : 'familiar';
+
+  const trustSel = document.querySelector('#ed-trust .trust-option.selected');
+  if (trustSel) editingNode.trust = trustSel.dataset.val;
+
+  const labelSel = document.querySelector('#ed-labels .label-tag.selected');
+  editingNode.label = labelSel ? labelSel.dataset.val : '';
+
+  // If closeness changed, reset angle so it gets re-placed in new ring
+  if (editingNode.closeness !== oldCloseness || editingNode._assignedAngle == null) {
+    editingNode._assignedAngle = null;
+  }
+
+  // Place node in correct ring
+  placeNode(editingNode);
+  editingNode._birthTime = performance.now(); // restart entrance animation
+
+  saveNodesToStorage();
+  closeEditor();
+}
+
+function cancelEditor() {
+  if (isNewNode && editingNode) deleteNode(editingNode);
+  closeEditor();
+}
+
+// Closeness selector clicks
+document.querySelectorAll('#ed-closeness .closeness-option').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('#ed-closeness .closeness-option').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  });
+});
+// Trust selector clicks
+document.querySelectorAll('#ed-trust .trust-option').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('#ed-trust .trust-option').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  });
+});
+// Label clicks
+document.querySelectorAll('#ed-labels .label-tag').forEach(el => {
+  el.addEventListener('click', () => {
+    const was = el.classList.contains('selected');
+    document.querySelectorAll('#ed-labels .label-tag').forEach(e => e.classList.remove('selected'));
+    if (!was) el.classList.add('selected');
+  });
+});
+
+document.getElementById('btn-ed-save').addEventListener('click', saveEditor);
+document.getElementById('btn-ed-cancel').addEventListener('click', cancelEditor);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) cancelEditor(); });
+
+// ============================================
+// CLICK ON NODE to edit (no drag)
+// ============================================
+function getNodeAt(x, y) {
+  for (let i = nodes.length-1; i >= 0; i--) {
+    const n = nodes[i], dx = x-n.x, dy = y-n.y;
+    if (dx*dx+dy*dy < (NODE_RADIUS*1.4)*(NODE_RADIUS*1.4)) return n;
+  }
+  return null;
+}
+
+mapCanvas.addEventListener('pointermove', (e) => {
+  if (overlay.style.display === 'flex') return;
+  const node = getNodeAt(e.clientX, e.clientY);
+  hoveredNode = node;
+  mapCanvas.style.cursor = node ? 'pointer' : 'default';
+});
+
+mapCanvas.addEventListener('pointerup', (e) => {
+  if (overlay.style.display === 'flex') return;
+  const node = getNodeAt(e.clientX, e.clientY);
+  if (node) openEditor(node, false);
+});
+
+// ============================================
+// REFLECTION ENGINE - expanded
+// ============================================
+function generateReflections() {
+  const Q = [];
+  if (nodes.length === 0) {
+    Q.push('你还没有添加任何人——在你的生活中，谁是第一个浮现在脑海里的人？');
+    return Q;
+  }
+
+  // Categorize
+  const byCloseness = { close:[], familiar:[], acquaint:[] };
+  const byTrust = { high:[], mid:[], low:[] };
+  const byType = {};
+  const byLabel = {};
+  for (const n of nodes) {
+    (byCloseness[n.closeness] || []).push(n);
+    (byTrust[n.trust] || []).push(n);
+    if (!byType[n.type]) byType[n.type] = [];
+    byType[n.type].push(n);
+    if (n.label) { if (!byLabel[n.label]) byLabel[n.label] = []; byLabel[n.label].push(n); }
+  }
+  const names = ns => ns.map(n => `「${n.name}」`).join('、');
+
+  // 1. 亲密但低信任
+  const closeButLow = byCloseness.close.filter(n => n.trust === 'low');
+  if (closeButLow.length > 0) {
+    Q.push(`${names(closeButLow)}被你放在了"亲密"的位置，但你的信任度却不高。亲近不等于信任——这种矛盾的感受，是让你不安，还是你已经习以为常了？`);
+  }
+
+  // 2. 认识但高信任
+  const farButHigh = byCloseness.acquaint.filter(n => n.trust === 'high');
+  if (farButHigh.length > 0) {
+    Q.push(`${names(farButHigh)}只是"认识"的关系，但你对ta们非常信任。有些人不需要天天联系，也能让你觉得安心。这种信任是怎么建立起来的？`);
+  }
+
+  // 3. 没有亲密的人
+  if (byCloseness.close.length === 0 && nodes.length >= 3) {
+    Q.push(`你的"亲密"圈里还没有人。是你习惯了保持距离，还是你觉得把谁放进最内圈都需要很大的勇气？`);
+  }
+
+  // 4. 亲密圈很满
+  if (byCloseness.close.length >= 4) {
+    Q.push(`你的亲密圈有${byCloseness.close.length}个人，说明你身边有很多重要的人。在这些亲密的人当中，如果只能选一个人倾诉心事，你会选谁？`);
+  }
+
+  // 5. 全是同一类型
+  const biggest = Object.entries(byType).sort((a,b) => b[1].length-a[1].length)[0];
+  if (biggest && biggest[1].length >= nodes.length*0.6 && nodes.length >= 3) {
+    Q.push(`你的关系地图中，「${biggest[0]}」占了大多数。你的社交圈是否集中在某一个领域？你有没有想过拓展其他类型的关系？`);
+  }
+
+  // 6. 家人相关
+  if (byType['家人']?.length > 0) {
+    const familyTrust = byType['家人'].filter(n => n.trust === 'low');
+    if (familyTrust.length > 0) {
+      Q.push(`在你的家人中，${names(familyTrust)}的信任度并不高。家人之间的隔阂往往最难开口谈——你愿意想想，这种距离感是从什么时候开始的吗？`);
+    }
+    const familyClose = byType['家人'].filter(n => n.closeness !== 'close');
+    if (familyClose.length > 0) {
+      Q.push(`${names(familyClose)}是你的家人，但并不在"亲密"圈内。血缘关系和心理距离，有时候并不是一回事。你觉得呢？`);
+    }
+  }
+
+  // 7. 恋人相关
+  if (byType['恋人']?.length > 0) {
+    const lover = byType['恋人'][0];
+    if (lover.closeness !== 'close') {
+      Q.push(`你的恋人「${lover.name}」并不在"亲密"圈——这是你有意识的选择吗？在爱情中，你是一个需要空间的人吗？`);
+    }
+    if (lover.trust !== 'high') {
+      Q.push(`你给恋人「${lover.name}」的信任度不是最高的。在一段亲密关系中，信任和爱是不同的东西——你觉得你们之间缺少的是什么？`);
+    }
+  }
+
+  // 8. 标签分析
+  if (byLabel['渐行渐远']?.length > 0) {
+    Q.push(`${names(byLabel['渐行渐远'])}正在"渐行渐远"。这种渐远是你主动的选择，还是自然发生的？你觉得，有些人离开，是生活的常态，还是你心中的遗憾？`);
+  }
+  if (byLabel['有些隔阂']?.length > 0) {
+    Q.push(`你给${names(byLabel['有些隔阂'])}贴上了"有些隔阂"。隔阂有时候保护了你，有时候也困住了你。如果有一个机会打破这面墙，你会愿意吗？`);
+  }
+  if (byLabel['无话不谈']?.length > 0 && byLabel['无话不谈'].length === 1) {
+    Q.push(`只有「${byLabel['无话不谈'][0].name}」是你"无话不谈"的人。有一个这样的人，已经是很珍贵的事了。你有多久没跟ta好好聊聊了？`);
+  }
+  if (byLabel['曾经很好']?.length > 0) {
+    Q.push(`${names(byLabel['曾经很好'])}曾经和你很好。回想那段时光，是什么让你们走到了今天的距离？如果ta现在突然联系你，你会是什么心情？`);
+  }
+  if (byLabel['默默关注']?.length > 0) {
+    Q.push(`你在"默默关注"${names(byLabel['默默关注'])}。关注不说出口，是因为觉得没有必要，还是因为害怕打扰？`);
+  }
+  if (byLabel['互相依赖']?.length > 0) {
+    Q.push(`你和${names(byLabel['互相依赖'])}互相依赖。依赖是安全感的来源，但有时候也会让人感到压力。在这段关系中，你觉得自己是被需要多一些，还是需要对方多一些？`);
+  }
+
+  // 9. 频率分析
+  const lowFreq = nodes.filter(n => n.freq <= 2 && n.closeness === 'close');
+  if (lowFreq.length > 0) {
+    Q.push(`${names(lowFreq)}是你亲密的人，但你们的互动频率很低。是生活太忙，还是你觉得真正亲密的关系不需要频繁联络？`);
+  }
+  const highFreqAcquaint = nodes.filter(n => n.freq >= 4 && n.closeness === 'acquaint');
+  if (highFreqAcquaint.length > 0) {
+    Q.push(`${names(highFreqAcquaint)}只是"认识"的关系，但互动频率很高。频繁接触却没有更近——是环境的原因（比如同事），还是你有意保持距离？`);
+  }
+
+  // 10. 信任光谱
+  if (byTrust.low.length > 0 && byTrust.high.length > 0) {
+    Q.push(`你的信任地图有着明显的层次。在你看来，信任是一点一滴积累的，还是某个瞬间就建立或者崩塌的？你有没有经历过信任被打破的时刻？`);
+  }
+
+  // 11. 总体分布
+  if (nodes.length >= 2 && byCloseness.acquaint.length > byCloseness.close.length + byCloseness.familiar.length) {
+    Q.push(`你认识的人比亲密和熟悉的人加起来还多。你是一个社交面广但内心谨慎的人吗？在人群中，你是否常常感到一种"热闹中的孤独"？`);
+  }
+
+  // Ensure minimum questions
+  if (Q.length < 2) {
+    Q.push(`看着你的关系地图，如果可以给三年前的自己看，你觉得ta会惊讶于哪些变化？`);
+    Q.push(`在你画出的这些人当中，谁是你最想说"谢谢"却一直没有说出口的？`);
+  }
+  if (Q.length < 3 && nodes.length >= 2) {
+    Q.push(`如果让你的关系地图上的人，给"你"贴一个标签，你觉得他们会选什么？`);
+  }
+
+  // Closing
+  if (nodes.length >= 2) {
+    Q.push(`每一段关系都是你生命中独特的风景。无论远近亲疏，它们共同构成了此刻的你。感谢你愿意认真地审视自己的内心。`);
+  }
+  return Q;
+}
+
+function openReflectionPanel() {
+  const panel = document.getElementById('reflection-panel');
+  const content = document.getElementById('reflection-content');
+
+  const byCloseness = { close:0, familiar:0, acquaint:0 };
+  for (const n of nodes) byCloseness[n.closeness] = (byCloseness[n.closeness]||0)+1;
+
+  const statsHTML = nodes.length > 0 ? `
+    <div class="map-stats">
+      <h4>地图概览</h4>
+      <div class="stat-row"><span>关系总数</span><span>${nodes.length} 人</span></div>
+      <div class="stat-row"><span>亲密圈</span><span>${byCloseness.close} 人</span></div>
+      <div class="stat-row"><span>熟悉圈</span><span>${byCloseness.familiar} 人</span></div>
+      <div class="stat-row"><span>认识圈</span><span>${byCloseness.acquaint} 人</span></div>
+      <div class="stat-row"><span>高信任</span><span>${nodes.filter(n=>n.trust==='high').length} 人</span></div>
+      <div class="stat-row"><span>关系类型</span><span>${[...new Set(nodes.map(n=>n.type))].length} 种</span></div>
+    </div>` : '';
+
+  const questions = generateReflections();
+  content.innerHTML = statsHTML + questions.map((q,i) =>
+    `<div class="reflection-question"><div class="q-icon">问 ${i+1}</div><p>${q}</p></div>`
+  ).join('');
+  panel.classList.add('open');
+}
+
+document.getElementById('btn-reflect').addEventListener('click', openReflectionPanel);
+document.getElementById('reflection-close').addEventListener('click', () => document.getElementById('reflection-panel').classList.remove('open'));
+
+// ============================================
+// RESET
+// ============================================
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (nodes.length === 0) return;
+  if (confirm('确定要清空所有关系节点吗？')) { nodes = []; saveNodesToStorage(); updateHint(); }
+});
+
+// ============================================
+// ONBOARDING
+// ============================================
+document.getElementById('btn-start').addEventListener('click', () => {
+  const ob = document.getElementById('onboarding');
+  ob.classList.add('hidden'); setTimeout(() => ob.style.display = 'none', 800);
+  startMainLoop();
+});
+
+// ============================================
+// INIT
+// ============================================
+loadNodesFromStorage();
+for (const n of nodes) placeNode(n);
+updateHint();
+// 如果已有保存的节点，跳过引导页直接进入地图
+if (nodes.length > 0) {
+  const ob = document.getElementById('onboarding');
+  ob.style.display = 'none';
+  startMainLoop();
+} else {
+  requestAnimationFrame(ambientOnlyTick);
+}
+</script>
+</body>
+</html>

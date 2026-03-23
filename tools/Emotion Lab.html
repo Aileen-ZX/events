@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>情绪实验室 · 中侨 · 心理</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f0ea 0%, #e6dbd1 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        .lab-card {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 250, 240, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 64px 64px 48px 48px;
+            box-shadow: 0 25px 50px -10px rgba(0, 30, 40, 0.25);
+            border: 2px solid rgba(255, 255, 245, 0.7);
+            overflow: hidden;
+            padding: 28px 24px 32px;
+        }
+
+        .lab-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding: 0 8px;
+        }
+        .lab-header h1 {
+            font-weight: 400;
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #7a4e3a, #a5704e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+        .lab-badge {
+            background: #7a4e3a;
+            color: #fef7e9;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 8px rgba(80, 45, 25, 0.15);
+        }
+
+        .mood-hero {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 80px;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 240, 0.9);
+            box-shadow: inset 0 0 0 2px rgba(122, 78, 58, 0.1), 0 15px 30px rgba(0, 0, 0, 0.05);
+        }
+        .mood-emoji {
+            font-size: 160px;
+            line-height: 1;
+            filter: drop-shadow(0 10px 12px rgba(0,0,0,0.1));
+            transition: transform 0.2s cubic-bezier(0.18, 1.3, 0.6, 1);
+            display: inline-block;
+        }
+        .mood-emoji.jump {
+            transform: scale(1.1);
+            animation: pop 0.25s ease-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .mood-value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #7a4e3a;
+            letter-spacing: 2px;
+            margin-top: 8px;
+            text-shadow: 0 3px 6px rgba(122, 78, 58, 0.15);
+        }
+        .mood-tagline {
+            font-size: 1.4rem;
+            color: #a5704e;
+            background: rgba(255, 245, 235, 0.7);
+            display: inline-block;
+            padding: 8px 32px;
+            border-radius: 60px;
+            margin-top: 12px;
+            font-weight: 400;
+            border: 1px solid rgba(122, 78, 58, 0.2);
+        }
+
+        .totals-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .total-pill {
+            background: white;
+            border-radius: 60px;
+            padding: 15px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(122, 78, 58, 0.15);
+            min-width: 180px;
+            justify-content: center;
+        }
+        .total-pill.pressure {
+            background: #ffefe9;
+        }
+        .total-pill.relief {
+            background: #e5f4ee;
+        }
+        .total-icon {
+            font-size: 2rem;
+        }
+        .total-label {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #4d3b2e;
+        }
+        .total-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #7a4e3a;
+            line-height: 1;
+        }
+        .relief .total-number {
+            color: #1d6b4e;
+        }
+
+        .columns-wrapper {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .col {
+            flex: 1 1 300px;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 48px;
+            padding: 24px 20px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 240, 0.8);
+        }
+        .col-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-left: 12px;
+            border-left: 6px solid;
+        }
+        .col-title.factor {
+            color: #b13e3e;
+            border-left-color: #b13e3e;
+        }
+        .col-title.strategy {
+            color: #1d6b4e;
+            border-left-color: #1d6b4e;
+        }
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .factor-btn, .strategy-btn {
+            border: none;
+            background: white;
+            padding: 14px 16px;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: 0.15s;
+            flex: 1 0 auto;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .factor-btn {
+            background: #ffeae5;
+            color: #b13e3e;
+            border-left: 5px solid #b13e3e;
+        }
+        .factor-btn:hover {
+            background: #ffd9d0;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 18px rgba(200,60,60,0.15);
+        }
+        .strategy-btn {
+            background: #e2f0e8;
+            color: #1d6b4e;
+            border-left: 5px solid #1d6b4e;
+        }
+        .strategy-btn:hover {
+            background: #cfe6db;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 18px rgba(30,100,70,0.15);
+        }
+        .effect-badge {
+            background: rgba(0,0,0,0.05);
+            border-radius: 20px;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            font-weight: 400;
+        }
+
+        /* 情绪日记区域 */
+        .diary-section {
+            margin-top: 40px;
+            border-top: 2px dashed rgba(122, 78, 58, 0.2);
+            padding-top: 30px;
+        }
+        .diary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .diary-title {
+            font-size: 1.5rem;
+            color: #7a4e3a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-record {
+            background: #7a4e3a;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(122,78,58,0.2);
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-record:hover {
+            background: #9b6248;
+        }
+        .btn-record:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .diary-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 24px;
+            padding: 16px 24px;
+            flex: 1 1 180px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+            border: 1px solid rgba(122,78,58,0.1);
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #4d3b2e;
+            margin-bottom: 8px;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #7a4e3a;
+        }
+        .stat-note {
+            font-size: 0.8rem;
+            color: #a5704e;
+            margin-top: 6px;
+        }
+        .report-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn-report {
+            background: rgba(122,78,58,0.1);
+            border: 1px solid rgba(122,78,58,0.2);
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #7a4e3a;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .btn-report:hover {
+            background: rgba(122,78,58,0.2);
+        }
+        .report-output {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(122,78,58,0.1);
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .reset-area {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .reset-btn {
+            background: #7a4e3a;
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 16px rgba(90, 55, 35, 0.2);
+            letter-spacing: 2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .reset-btn:hover {
+            background: #9b6248;
+            transform: scale(1.02);
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            color: #555;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: 0.15s;
+        }
+        .home-btn:hover {
+            background: rgba(255,255,255,1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+
+        @media (max-width: 700px) {
+            .lab-header h1 { font-size: 1.6rem; }
+            .mood-emoji { font-size: 120px; }
+            .mood-value { font-size: 2.8rem; }
+            .mood-tagline { font-size: 1.2rem; }
+            .total-pill { min-width: 140px; }
+            .factor-btn, .strategy-btn { min-width: 100%; }
+            .col { padding: 18px 12px; }
+        }
+    </style>
+</head>
+<body>
+<a href="Index.html" class="home-btn">← 返回首页</a>
+    <div class="lab-card">
+        <div class="lab-header">
+            <h1>🧪 情绪实验室</h1>
+            <div class="lab-badge">中侨·心理</div>
+        </div>
+
+        <!-- 巨大的情绪表情 + 数字 -->
+        <div class="mood-hero" id="moodHero">
+            <span class="mood-emoji" id="moodEmoji">😐</span>
+            <div class="mood-value" id="moodValue">50</div>
+            <div class="mood-tagline" id="moodTag">平静</div>
+        </div>
+
+        <!-- 压力/缓解合计 -->
+        <div class="totals-row">
+            <div class="total-pill pressure">
+                <span class="total-icon">⚠️</span>
+                <span class="total-label">压力总值</span>
+                <span class="total-number" id="pressureTotal">0</span>
+            </div>
+            <div class="total-pill relief">
+                <span class="total-icon">🍃</span>
+                <span class="total-label">缓解总值</span>
+                <span class="total-number" id="reliefTotal">0</span>
+            </div>
+        </div>
+
+        <!-- 左右双列布局 -->
+        <div class="columns-wrapper">
+            <!-- 左侧：情绪因子 -->
+            <div class="col">
+                <div class="col-title factor">⚠️ 情绪因子</div>
+                <div class="button-grid" id="factorContainer"></div>
+            </div>
+            <!-- 右侧：调节策略（四大类） -->
+            <div class="col">
+                <div class="col-title strategy">🛠️ 调节策略 (四大类)</div>
+                <div class="button-grid" id="strategyContainer"></div>
+            </div>
+        </div>
+
+        <!-- 情绪日记区域 -->
+        <div class="diary-section">
+            <div class="diary-header">
+                <div class="diary-title">📓 情绪日记</div>
+                <button class="btn-record" id="recordBtn">📝 记录今天情绪</button>
+            </div>
+            <div class="diary-stats" id="diaryStats">
+                <!-- 动态插入统计数据 -->
+            </div>
+            <div class="report-buttons">
+                <button class="btn-report" id="weekReportBtn">📆 查看周报</button>
+                <button class="btn-report" id="monthReportBtn">📅 查看月报</button>
+                <button class="btn-report" id="clearDiaryBtn">🗑️ 清空日记</button>
+            </div>
+            <div class="report-output" id="reportOutput">
+                <span style="color:#a5704e;">点击上方按钮查看周报或月报</span>
+            </div>
+        </div>
+
+        <!-- 重置按钮 -->
+        <div class="reset-area">
+            <button class="reset-btn" id="resetBtn">⟲ 重置实验</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ----- 情绪因子 (压力源) 保持不变 -----
+            const FACTORS_RAW = [
+                { name: '📚 考试临近', effect: 20 },
+                { name: '🗣️ 室友吵闹', effect: 15 },
+                { name: '📱 手机没电', effect: 10 },
+                { name: '💔 收到前任消息', effect: 25 },
+                { name: '😴 睡眠不足', effect: 18 },
+                { name: '👎 被老师批评', effect: 22 },
+                { name: '💰 生活费告急', effect: 20 },
+                { name: '👪 父母争吵', effect: 28 },
+                { name: '📉 成绩下滑', effect: 24 },
+                { name: '🏃 体测焦虑', effect: 12 },
+                { name: '👥 小组作业划水', effect: 16 },
+                { name: '🚦 未来迷茫', effect: 22 }
+            ];
+            // 情绪因子按 effect 从大到小降序排列
+            const FACTORS = FACTORS_RAW.sort((a, b) => b.effect - a.effect);
+
+            // ----- 调节策略 (四大类，带典型例子，效果值取中位数) -----
+            const STRATEGIES = [
+                // 身体调节类 (快速降唤醒)
+                { name: '🌬️ 身体调节类 (深呼吸/运动/散步/休息)', effect: -16, category: '身体' },
+                // 认知重构类 (改变想法)
+                { name: '🧠 认知重构类 (写日记/自我对话/认知重构/小目标)', effect: -14, category: '认知' },
+                // 情感连接类 (获得支持)
+                { name: '🫂 情感连接类 (倾诉/拥抱/听音乐)', effect: -18, category: '情感' },
+                // 存在意义类 (深层应对未来迷茫)
+                { name: '🌟 存在意义类 (感恩/确定的事/回顾成长/帮助他人)', effect: -12, category: '意义' },
+                // 错误策略（保留一个）
+                { name: '🧱 硬扛', effect: 8, category: '无效' }
+            ];
+
+            // 平滑系数：实际情绪变化 = 总影响 / 2
+            const SMOOTH_FACTOR = 2;
+
+            // 当前总影响 (正=压力，负=缓解)
+            let totalEffect = 0;
+
+            // 情绪日记存储 (key: YYYY-MM-DD, value: { date, mood })
+            let moodDiary = {};
+
+            // 加载本地存储
+            function loadDiary() {
+                try {
+                    const saved = localStorage.getItem('moodDiary');
+                    if (saved) {
+                        moodDiary = JSON.parse(saved);
+                    }
+                } catch (e) {}
+            }
+            loadDiary();
+
+            // 保存到本地存储
+            function saveDiary() {
+                localStorage.setItem('moodDiary', JSON.stringify(moodDiary));
+            }
+
+            // DOM 元素
+            const moodEmoji = document.getElementById('moodEmoji');
+            const moodValue = document.getElementById('moodValue');
+            const moodTag = document.getElementById('moodTag');
+            const pressureTotal = document.getElementById('pressureTotal');
+            const reliefTotal = document.getElementById('reliefTotal');
+            const factorContainer = document.getElementById('factorContainer');
+            const strategyContainer = document.getElementById('strategyContainer');
+            const recordBtn = document.getElementById('recordBtn');
+            const diaryStats = document.getElementById('diaryStats');
+            const weekReportBtn = document.getElementById('weekReportBtn');
+            const monthReportBtn = document.getElementById('monthReportBtn');
+            const clearDiaryBtn = document.getElementById('clearDiaryBtn');
+            const reportOutput = document.getElementById('reportOutput');
+            const resetBtn = document.getElementById('resetBtn');
+
+            // 根据总影响更新所有UI
+            function refreshUI(triggerJump = true) {
+                // 计算压力和缓解（正部分和负部分）
+                let pressure = totalEffect > 0 ? totalEffect : 0;
+                let relief = totalEffect < 0 ? -totalEffect : 0;
+                pressureTotal.textContent = pressure;
+                reliefTotal.textContent = relief;
+
+                // 情绪值 = 50 - (总影响 / 平滑系数)，限制在0～100
+                let rawMood = 50 - totalEffect / SMOOTH_FACTOR;
+                let mood = Math.min(100, Math.max(0, rawMood));
+                moodValue.textContent = Math.round(mood);
+
+                // 选择表情和标签
+                let emoji = '😐';
+                let tag = '平静';
+                if (mood >= 85) {
+                    emoji = '😊';
+                    tag = '非常平静';
+                } else if (mood >= 70) {
+                    emoji = '🙂';
+                    tag = '轻微放松';
+                } else if (mood >= 55) {
+                    emoji = '😌';
+                    tag = '平和';
+                } else if (mood >= 45) {
+                    emoji = '😐';
+                    tag = '无感';
+                } else if (mood >= 30) {
+                    emoji = '😟';
+                    tag = '有些焦虑';
+                } else if (mood >= 15) {
+                    emoji = '😰';
+                    tag = '压力很大';
+                } else {
+                    emoji = '😫';
+                    tag = '濒临崩溃';
+                }
+                moodEmoji.textContent = emoji;
+                moodTag.textContent = tag;
+
+                // 触发跳跃动画
+                if (triggerJump) {
+                    moodEmoji.classList.add('jump');
+                    setTimeout(() => moodEmoji.classList.remove('jump'), 250);
+                }
+
+                // 更新日记统计区域
+                updateDiaryStats();
+            }
+
+            // 应用效果
+            function applyEffect(effect) {
+                totalEffect += effect;
+                refreshUI(true);
+            }
+
+            // 重置
+            function resetExperiment() {
+                totalEffect = 0;
+                refreshUI(true);
+            }
+
+            // 获取当前日期 YYYY-MM-DD
+            function getTodayString() {
+                const d = new Date();
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // 记录今天情绪
+            function recordToday() {
+                const today = getTodayString();
+                const mood = Math.round(50 - totalEffect / SMOOTH_FACTOR); // 当前情绪值
+                moodDiary[today] = { date: today, mood: mood };
+                saveDiary();
+                updateDiaryStats();
+                reportOutput.innerHTML = `✅ 已记录 ${today} 的情绪值为 ${mood}`;
+            }
+
+            // 更新日记统计卡片
+            function updateDiaryStats() {
+                const entries = Object.values(moodDiary);
+                if (entries.length === 0) {
+                    diaryStats.innerHTML = '<div class="stat-card"><div class="stat-label">📊 暂无记录</div><div class="stat-number">—</div><div class="stat-note">点击「记录今天情绪」开始</div></div>';
+                    return;
+                }
+
+                // 计算总数、平均、最高、最低
+                const moods = entries.map(e => e.mood);
+                const avg = Math.round(moods.reduce((a, b) => a + b, 0) / moods.length);
+                const max = Math.max(...moods);
+                const min = Math.min(...moods);
+                const lastEntry = entries.sort((a, b) => b.date.localeCompare(a.date))[0];
+
+                const statsHtml = `
+                    <div class="stat-card">
+                        <div class="stat-label">📅 记录天数</div>
+                        <div class="stat-number">${entries.length}</div>
+                        <div class="stat-note">最近: ${lastEntry.date}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">📈 平均情绪</div>
+                        <div class="stat-number">${avg}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">📊 最高情绪</div>
+                        <div class="stat-number">${max}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">📉 最低情绪</div>
+                        <div class="stat-number">${min}</div>
+                    </div>
+                `;
+                diaryStats.innerHTML = statsHtml;
+            }
+
+            // 生成周报 (最近7天)
+            function generateWeekReport() {
+                const entries = Object.values(moodDiary);
+                if (entries.length === 0) {
+                    reportOutput.innerHTML = '暂无日记数据，请先记录情绪。';
+                    return;
+                }
+
+                // 按日期排序
+                const sorted = entries.sort((a, b) => b.date.localeCompare(a.date)); // 最新的在前
+                const weekData = sorted.slice(0, 7);
+                const weekMoods = weekData.map(e => e.mood);
+                const avg = Math.round(weekMoods.reduce((a, b) => a + b, 0) / weekMoods.length);
+                const max = Math.max(...weekMoods);
+                const min = Math.min(...weekMoods);
+
+                let report = `📆 最近7天情绪周报 (${weekData.length}天记录)\n`;
+                report += `平均情绪: ${avg}\n最高情绪: ${max}\n最低情绪: ${min}\n\n`;
+                report += `逐日详情:\n`;
+                weekData.forEach(e => {
+                    report += `${e.date} : ${e.mood}\n`;
+                });
+                reportOutput.innerHTML = report.replace(/\n/g, '<br>');
+            }
+
+            // 生成月报 (最近30天)
+            function generateMonthReport() {
+                const entries = Object.values(moodDiary);
+                if (entries.length === 0) {
+                    reportOutput.innerHTML = '暂无日记数据，请先记录情绪。';
+                    return;
+                }
+
+                const sorted = entries.sort((a, b) => b.date.localeCompare(a.date));
+                const monthData = sorted.slice(0, 30);
+                const monthMoods = monthData.map(e => e.mood);
+                const avg = Math.round(monthMoods.reduce((a, b) => a + b, 0) / monthMoods.length);
+                const max = Math.max(...monthMoods);
+                const min = Math.min(...monthMoods);
+
+                let report = `📅 最近30天情绪月报 (${monthData.length}天记录)\n`;
+                report += `平均情绪: ${avg}\n最高情绪: ${max}\n最低情绪: ${min}\n\n`;
+                report += `逐日摘要 (近7天):\n`;
+                monthData.slice(0, 7).forEach(e => {
+                    report += `${e.date} : ${e.mood}\n`;
+                });
+                if (monthData.length > 7) report += `...... 共 ${monthData.length} 条记录`;
+                reportOutput.innerHTML = report.replace(/\n/g, '<br>');
+            }
+
+            // 清空日记
+            function clearDiary() {
+                if (confirm('确定清空所有情绪日记吗？')) {
+                    moodDiary = {};
+                    saveDiary();
+                    updateDiaryStats();
+                    reportOutput.innerHTML = '🗑️ 日记已清空。';
+                }
+            }
+
+            // 构建按钮
+            function buildButtons() {
+                factorContainer.innerHTML = '';
+                FACTORS.forEach(f => {
+                    const btn = document.createElement('button');
+                    btn.className = 'factor-btn';
+                    btn.innerHTML = `${f.name} <span class="effect-badge">+${f.effect}</span>`;
+                    btn.addEventListener('click', () => applyEffect(f.effect));
+                    factorContainer.appendChild(btn);
+                });
+
+                strategyContainer.innerHTML = '';
+                STRATEGIES.forEach(s => {
+                    const btn = document.createElement('button');
+                    btn.className = 'strategy-btn';
+                    const displayEffect = s.effect > 0 ? `+${s.effect}` : s.effect;
+                    btn.innerHTML = `${s.name} <span class="effect-badge">${displayEffect}</span>`;
+                    btn.addEventListener('click', () => applyEffect(s.effect));
+                    strategyContainer.appendChild(btn);
+                });
+            }
+
+            // 初始化
+            buildButtons();
+            refreshUI(false);  // 初次不要动画
+            updateDiaryStats();
+
+            // 事件监听
+            resetBtn.addEventListener('click', resetExperiment);
+            recordBtn.addEventListener('click', recordToday);
+            weekReportBtn.addEventListener('click', generateWeekReport);
+            monthReportBtn.addEventListener('click', generateMonthReport);
+            clearDiaryBtn.addEventListener('click', clearDiary);
+        })();
+    </script>
+</body>
+</html>
